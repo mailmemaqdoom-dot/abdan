@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
-    <meta name="description" content="ABDAN — Where Deviation Meets Style. Curated ethnic wear for Tamil Nadu women who deserve to feel celebrated every day."/>
-    <title>ABDAN | Where Deviation Meets Style</title>
+    <meta name="description" content="ABDAN — Your Devotion Meets Style. Curated ethnic wear for Tamil Nadu women who deserve to feel celebrated every day."/>
+    <title>ABDAN | Your Devotion Meets Style</title>
     <meta name="theme-color" content="#023D3A"/>
     <meta name="mobile-web-app-capable" content="yes"/>
     <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -53,6 +53,62 @@
             --card-bg: #023D3A;
             --border-color: rgba(230, 223, 203, 0.15);
             --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="dark"] .product-desc,
+        [data-theme="dark"] .mp-content p,
+        [data-theme="dark"] .option-group h5,
+        [data-theme="dark"] .chip,
+        [data-theme="dark"] .filter-btn,
+        [data-theme="dark"] .payment-text,
+        [data-theme="dark"] .sr,
+        [data-theme="dark"] .sl,
+        [data-theme="dark"] .footer-faq span,
+        [data-theme="dark"] .footer-faq strong,
+        [data-theme="dark"] .footer-tc p,
+        [data-theme="dark"] .footer-tc strong,
+        [data-theme="dark"] .footer-about p {
+            color: var(--soft-cream) !important;
+            opacity: 1 !important;
+        }
+
+        [data-theme="dark"] .chip {
+            background: rgba(230, 223, 203, 0.1);
+            border-color: rgba(230, 223, 203, 0.2);
+        }
+
+        [data-theme="dark"] .chip.selected {
+            background: var(--warm-gold);
+            color: var(--ivory) !important;
+        }
+
+        [data-theme="dark"] .filter-btn {
+            background: rgba(230, 223, 203, 0.05);
+            border-color: rgba(230, 223, 203, 0.1);
+        }
+
+        [data-theme="dark"] .filter-btn.active {
+            background: var(--warm-gold);
+            color: var(--ivory) !important;
+        }
+
+        [data-theme="dark"] .modal-pane {
+            background: var(--bg-primary);
+        }
+
+        [data-theme="dark"] .mp-content {
+            background: var(--bg-primary);
+        }
+
+        [data-theme="dark"] .qr-img {
+            border-color: var(--soft-cream);
+        }
+
+        [data-theme="dark"] .pay-btn,
+        [data-theme="dark"] .upi-id-box {
+            background: var(--bg-secondary);
+            color: var(--soft-cream);
+            border-color: var(--border-color);
         }
 
         * {
@@ -185,16 +241,17 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 1px;
-            padding: 8px 12px;
+            padding: 8px 14px;
             border-radius: 50px;
-            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex;
             align-items: center;
             gap: 0;
             background: transparent;
             overflow: hidden;
-            max-width: 40px;
+            max-width: 44px;
             white-space: nowrap;
+            justify-content: center;
         }
 
         .nav-links a i {
@@ -203,22 +260,26 @@
 
         .nav-links a span {
             opacity: 0;
+            width: 0;
             transform: translateX(10px);
             transition: all 0.3s ease;
             font-size: 0.7rem;
+            pointer-events: none;
         }
 
         .nav-links a:hover, .nav-links a.active {
-            max-width: 200px;
+            max-width: 240px;
             background: var(--accent);
             color: var(--ivory);
-            padding: 8px 18px;
+            padding: 8px 20px;
             gap: 10px;
             box-shadow: 0 4px 12px var(--shadow);
+            justify-content: flex-start;
         }
 
         .nav-links a:hover span, .nav-links a.active span {
             opacity: 1;
+            width: auto;
             transform: translateX(0);
         }
 
@@ -1042,37 +1103,45 @@
             text-decoration: none;
             color: var(--text-primary);
             gap: 0;
-            padding: 10px 12px;
+            padding: 10px 14px;
             border-radius: 30px;
-            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             overflow: hidden;
-            max-width: 45px;
+            max-width: 48px;
             white-space: nowrap;
         }
 
         .mobile-nav-item i {
-            min-width: 20px;
+            min-width: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .mobile-nav-item span {
-            display: none;
+            width: 0;
+            opacity: 0;
             font-size: 0.7rem;
             font-weight: 700;
             text-transform: uppercase;
+            transition: all 0.3s ease;
+            pointer-events: none;
         }
 
         .mobile-nav-item.active {
-            max-width: 120px;
+            max-width: 140px;
             background: var(--accent);
             color: var(--ivory);
-            gap: 8px;
-            padding: 10px 20px;
+            gap: 10px;
+            padding: 10px 22px;
             box-shadow: 0 4px 15px rgba(197, 161, 59, 0.3);
+            justify-content: flex-start;
         }
 
         .mobile-nav-item.active span {
+            width: auto;
+            opacity: 1;
             display: block;
-            animation: fadeIn 0.3s ease forwards;
         }
 
         /* Ripple Effect */
@@ -1299,42 +1368,38 @@
 </head>
 <body data-theme="light">
 
-    <!-- Floating Top Nav -->
-    <nav id="topNav">
-        <a href="#" class="logo-area">
-            <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663561972157/CLsmPdmHcNuRpeof.jpg" alt="ABDAN Logo" class="logo-img-header">
-        </a>
-        <div class="nav-links">
-            <a href="#products" class="active"><i data-lucide="shopping-bag"></i> <span>Handpicked for You</span></a>
-            <a href="#wsy"><i data-lucide="heart"></i> <span>Her Story</span></a>
-            <a href="#testi"><i data-lucide="users"></i> <span>Her Circle 💛</span></a>
-            <a href="#teasers"><i data-lucide="sparkles"></i> <span>What You Might Love</span></a>
-            <a href="#account"><i data-lucide="user"></i> <span>Your Space 💛</span></a>
+    <!-- Floating Actions -->
+    <div class="top-actions" style="position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; gap: 12px;">
+        <button class="theme-toggle" id="themeToggle" title="Toggle Light/Dark Mode" style="background: var(--nav-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--border-color); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary); box-shadow: 0 4px 15px var(--shadow);">
+            <i data-lucide="sun" id="themeIcon"></i>
+        </button>
+        <div class="cart-toggle" onclick="toggleCart()" style="background: var(--nav-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--border-color); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-primary); position: relative; box-shadow: 0 4px 15px var(--shadow);">
+            <i data-lucide="shopping-cart"></i>
+            <div class="cart-badge" id="cartBadge" style="position: absolute; top: -5px; right: -5px; background: var(--accent); color: white; font-size: 0.65rem; padding: 2px 6px; border-radius: 10px; font-weight: 700;">0</div>
         </div>
-        <div class="nav-actions">
-            <button class="theme-toggle" id="themeToggle" title="Toggle Light/Dark Mode">
-                <i data-lucide="sun" id="themeIcon"></i>
-            </button>
-            <div class="cart-toggle" onclick="toggleCart()">
-                <i data-lucide="shopping-cart"></i>
-                <div class="cart-badge" id="cartBadge">0</div>
-            </div>
-        </div>
-    </nav>
+    </div>
 
-    <!-- Mobile Bottom Nav (App Like) -->
-    <div class="mobile-bottom-nav" id="bottomNav">
+    <!-- Consolidated Bottom Navigation -->
+    <div class="mobile-bottom-nav" id="bottomNav" style="display: flex; gap: 8px; padding: 8px 16px; overflow-x: auto; max-width: 95vw; scrollbar-width: none;">
         <a href="#products" class="mobile-nav-item active" onclick="activateMobileNav(this)">
             <i data-lucide="shopping-bag" size="20"></i>
-            <span>Shop</span>
+            <span>Handpicked for You</span>
         </a>
         <a href="#wsy" class="mobile-nav-item" onclick="activateMobileNav(this)">
             <i data-lucide="heart" size="20"></i>
-            <span>Story</span>
+            <span>Her Story</span>
+        </a>
+        <a href="#testi" class="mobile-nav-item" onclick="activateMobileNav(this)">
+            <i data-lucide="users" size="20"></i>
+            <span>Her Circle 💛</span>
+        </a>
+        <a href="#teasers" class="mobile-nav-item" onclick="activateMobileNav(this)">
+            <i data-lucide="sparkles" size="20"></i>
+            <span>What You Might Love</span>
         </a>
         <a href="#account" class="mobile-nav-item" onclick="activateMobileNav(this)">
             <i data-lucide="user" size="20"></i>
-            <span>Space</span>
+            <span>Your Space 💛</span>
         </a>
         <a href="https://wa.me/918760595307" class="mobile-nav-item" onclick="activateMobileNav(this)">
             <i data-lucide="message-circle" size="20"></i>
@@ -1365,8 +1430,9 @@
         <section id="hero">
             <div class="container">
                 <div class="hero-grid">
-                    <div class="reveal">
-                        <p class="hero-tagline">Where Deviation Meets Style</p>
+                    <div class="reveal" style="text-align: center; margin-bottom: 30px;">
+                        <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663561972157/CLsmPdmHcNuRpeof.jpg" alt="ABDAN Logo" style="width: 180px; margin-bottom: 20px; filter: var(--logo-filter);">
+                        <p class="hero-tagline">Your Devotion Meets Style</p>
                         <h1>You always think<br/>of <em>everyone…</em><br/><span class="g">this time, we thought<br/>of you. 💛</span></h1>
                         <p class="hero-sub">Every morning you fold the day around others — their tiffins, their schedules, their smiles. <strong>You are the heartbeat of your home.</strong> ABDAN is a warm corner curated just for you.</p>
                         <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
@@ -1610,41 +1676,38 @@
                 </div>
 
                 <!-- Proceed to Checkout Button -->
-                <div id="checkoutTrigger" style="margin-top: 30px;">
+                <div id="checkoutTriggerBtn" style="margin-top: 30px;">
                     <button class="btn btn-primary" onclick="proceedToCheckout()" style="width: 100%; justify-content: center; background: var(--accent); border-color: var(--accent); height: 55px; font-weight: 700;">Proceed to Checkout 💛</button>
-                    <p style="font-size: 0.75rem; text-align: center; margin-top: 10px; opacity: 0.6;">Secure payment via UPI Network</p>
+                    <p style="font-size: 0.75rem; text-align: center; margin-top: 10px; opacity: 0.6;">Secure payment via Razorpay & UPI Network</p>
                 </div>
 
-                <!-- UPI Payment Block -->
+                <!-- Payment Section -->
                 <div class="payment-block" id="paymentSection">
                     <h4 class="payment-title">Complete Your Devotion 💛</h4>
                     
+                    <!-- Razorpay Secure Payment -->
+                    <div style="margin-bottom: 25px;">
+                        <button class="btn btn-primary" style="width: 100%; justify-content: center; background: #023D3A; border-color: #023D3A; height: 55px;" onclick="payWithRazorpay()">
+                            <i data-lucide="shield-check" style="margin-right: 8px;"></i> Pay Securely
+                        </button>
+                    </div>
+
+                    <div style="text-align: center; margin-bottom: 20px; opacity: 0.5; font-size: 0.8rem;">— OR —</div>
+
                     <!-- Desktop: QR Code -->
                     <div class="qr-container">
-                        <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663561972157/fXpPqS7u9q89nU6m.jpeg" alt="UPI QR Code" class="qr-img">
-                        <p class="payment-text">Scan using any UPI app to complete payment</p>
+                        <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663561972157/S790fO18e9Vp8q7W.jpg" alt="UPI QR Code" class="qr-img">
+                        <p class="payment-text">Scan & Pay securely via UPI</p>
                     </div>
 
                     <!-- Mobile: Deep Links -->
                     <div class="mobile-payment-buttons">
-                        <a href="upi://pay?pa=mailme.maqdoom@okhdfcbank&pn=ABDAN&cu=INR" class="pay-btn"><i data-lucide="smartphone"></i> Google Pay</a>
+                        <a href="upi://pay?pa=mailme.maqdoom@okhdfcbank&pn=ABDAN&cu=INR" class="pay-btn"><i data-lucide="smartphone"></i> GPay</a>
                         <a href="upi://pay?pa=mailme.maqdoom@okhdfcbank&pn=ABDAN&cu=INR" class="pay-btn"><i data-lucide="smartphone"></i> PhonePe</a>
                         <a href="upi://pay?pa=mailme.maqdoom@okhdfcbank&pn=ABDAN&cu=INR" class="pay-btn"><i data-lucide="smartphone"></i> Paytm</a>
                         <a href="upi://pay?pa=mailme.maqdoom@okhdfcbank&pn=ABDAN&cu=INR" class="pay-btn"><i data-lucide="smartphone"></i> BHIM</a>
                     </div>
 
-                    <!-- Fallback System -->
-                    <div class="fallback-container">
-                        <p class="payment-text" style="margin-bottom: 5px; font-size: 0.75rem;">If QR not accessible use UPI ID</p>
-                        <div class="upi-id-box">
-                            <span id="upiId">mailme.maqdoom@okhdfcbank</span>
-                            <button class="copy-btn" onclick="copyUPI()" title="Copy UPI ID">
-                                <i data-lucide="copy" size="16"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Trust & Checkout Notes -->
                     <!-- UPI Confirmation Button -->
                     <div style="margin-top: 20px;">
                         <a href="https://wa.me/918760595307?text=Hello%2C%20I%20have%20completed%20payment%20via%20UPI.%0A%0APlease%20confirm%20my%20order." target="_blank" class="btn btn-primary" style="width: 100%; justify-content: center; background: #25D366; border-color: #25D366;">
@@ -1698,7 +1761,10 @@
                 <span>Total</span>
                 <span id="cartTotal">₹0</span>
             </div>
-            <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="toggleCart()">Continue Shopping</button>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button id="cartCheckoutBtn" class="btn btn-primary" style="width: 100%; justify-content: center; display: none;" onclick="cartToCheckout()">Proceed to Checkout</button>
+                <button class="btn btn-primary" style="width: 100%; justify-content: center; background: transparent; color: var(--text-primary); border-color: var(--border-color);" onclick="toggleCart()">Continue Shopping</button>
+            </div>
         </div>
     </div>
 
@@ -1717,7 +1783,7 @@
             <div class="footer-grid">
                 <div>
                     <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663561972157/GvogLbUBgONDrsTX.png" alt="ABDAN Logo" class="footer-logo-img">
-                    <p class="footer-tagline">Where Deviation Meets Style</p>
+                    <p class="footer-tagline">Your Devotion Meets Style</p>
                     <p style="font-size: 0.85rem; opacity: 0.7; margin-bottom: 20px;">Curated with love for the Tamil Nadu homemaker — her grace, her devotion, her style. Celebrating her, every day.</p>
                     <div style="display: flex; gap: 10px; margin-top: 15px;">
                         <a href="https://wa.me/918760595307" target="_blank" class="footer-social-icon" title="WhatsApp"><i data-lucide="message-circle"></i></a>
@@ -1825,7 +1891,7 @@
 
             <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 30px; text-align: center; font-size: 0.75rem; opacity: 0.5; margin-top: 50px;">
                 <p><strong>Aggregator Disclaimer:</strong> ABDAN curates and connects you with trusted artisan and vendor partners. We do not sell directly. Products are verified before purchase. We confirm availability before payment. No hidden charges. We stay with you till delivery. 💛</p>
-                <p style="margin-top: 10px;">&copy; 2026 ABDAN. Where Deviation Meets Style. Handcrafted with love in Tamil Nadu.</p>
+                <p style="margin-top: 10px;">&copy; 2026 ABDAN. Your Devotion Meets Style. Handcrafted with love in Tamil Nadu.</p>
             </div>
         </div>
     </footer>
@@ -1858,17 +1924,17 @@
         // Nav Scroll Effect with Passive Listener for Performance
         let lastScrollY = window.scrollY;
         window.addEventListener('scroll', () => {
-            const nav = document.getElementById('topNav');
+            const topActions = document.querySelector('.top-actions');
             const bottomNav = document.getElementById('bottomNav');
             const waf = document.getElementById('waf');
             
-            nav.classList.toggle('scrolled', window.scrollY > 50);
-            
-            // Hide bottom nav and WhatsApp on scroll down, show on scroll up
+            // Hide actions, bottom nav and WhatsApp on scroll down, show on scroll up
             if (window.scrollY > lastScrollY && window.scrollY > 100) {
+                if(topActions) topActions.style.transform = 'translateY(-100px)';
                 bottomNav.style.transform = 'translateX(-50%) translateY(100px)';
                 waf.style.transform = 'translateY(100px)';
             } else {
+                if(topActions) topActions.style.transform = 'translateY(0)';
                 bottomNav.style.transform = 'translateX(-50%) translateY(0)';
                 waf.style.transform = 'translateY(0)';
             }
@@ -2067,6 +2133,8 @@
             });
             
             totalEl.textContent = '₹' + total.toLocaleString('en-IN');
+            window.totalAmount = total;
+            document.getElementById('cartCheckoutBtn').style.display = total > 0 ? 'flex' : 'none';
             lucide.createIcons();
         }
 
@@ -2135,6 +2203,10 @@
             document.getElementById('mimg').innerHTML = `<img src="${p.img}" alt="${p.name}">`;
             document.getElementById('mstyling').textContent = p.styling;
             
+            // Reset Payment Visibility
+            document.getElementById('paymentSection').style.display = 'none';
+            document.getElementById('checkoutTriggerBtn').style.display = 'block';
+
             const shareText = encodeURIComponent(`I love this ${p.name} style from ABDAN! 💛 ${p.primaryTag}`);
             const shareUrl = encodeURIComponent(window.location.href);
             
@@ -2152,13 +2224,13 @@
             pmod.classList.remove('op');
             document.body.style.overflow = '';
             // Reset checkout state
-            document.getElementById('paymentSection').classList.remove('visible');
-            document.getElementById('checkoutTrigger').style.display = 'block';
+            document.getElementById('paymentSection').style.display = 'none';
+            document.getElementById('checkoutTriggerBtn').style.display = 'block';
         }
 
         function proceedToCheckout() {
-            document.getElementById('paymentSection').classList.add('visible');
-            document.getElementById('checkoutTrigger').style.display = 'none';
+            document.getElementById('paymentSection').style.display = 'block';
+            document.getElementById('checkoutTriggerBtn').style.display = 'none';
             // Scroll to payment section
             document.getElementById('paymentSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
@@ -2263,10 +2335,52 @@
             });
         });
 
+        // Razorpay Integration
+        function payWithRazorpay() {
+            var options = {
+                key: "rzp_live_SkPERat9HcpiCb",
+                amount: (window.totalAmount || 0) * 100,
+                currency: "INR",
+                name: "ABDAN",
+                description: "Secure Payment",
+                handler: function (response) {
+                    alert("Payment successful");
+                    // Optional: Trigger WhatsApp confirmation after Razorpay success
+                    var message = "Hello, I have completed payment via Razorpay.%0A%0APlease confirm my order.%0A%0APayment ID: " + response.razorpay_payment_id;
+                    window.open("https://wa.me/918760595307?text=" + message, "_blank");
+                },
+                theme: { color: "#023D3A" }
+            };
+            try {
+                var rzp = new Razorpay(options);
+                rzp.open();
+            } catch (e) {
+                alert("Payment gateway not ready. Please use UPI scan.");
+            }
+        }
+
+        // Cart to Checkout Logic
+        function cartToCheckout() {
+            toggleCart(); // Close cart
+            // If modal is open, scroll to payment
+            const modal = document.getElementById('pm');
+            if(modal.classList.contains('op')) {
+                const paySection = document.getElementById('paymentSection');
+                paySection.style.display = 'block';
+                paySection.scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('checkoutTriggerBtn').style.display = 'none';
+            } else {
+                // If no product open, open first or show info
+                openT(0);
+            }
+        }
+
         // Close on Escape
         document.addEventListener('keydown', (e) => {
             if(e.key === 'Escape') { closeP(); closeT(); }
         });
     </script>
+    <!-- Razorpay Script -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </body>
 </html>
