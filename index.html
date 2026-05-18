@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta
+      name="description"
+      content="ABDAN is a calm luxury modest-fashion experience shaped by editorial restraint, emotional elegance, and careful curation from discovery to delivery."
+    />
+    <meta name="theme-color" content="#023D3A" />
+    <title>ABDAN | Your Devotion Meets Style</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./css/style.css" />
+  </head>
+  <body>
+    <div class="page-noise" aria-hidden="true"></div>
+    <div class="page-vignette" aria-hidden="true"></div>
+
+    <header class="site-header" id="siteHeader">
+      <a href="#hero" class="brand-pill" aria-label="ABDAN home">
+        <span class="brand-mark" aria-hidden="true">A</span>
+        <span>
+          <strong>ABDAN</strong>
+          <small>Your Devotion Meets Style</small>
+        </span>
+      </a>
+
+      <div class="header-actions">
+        <button class="orb-button" id="themeToggle" type="button" aria-label="Toggle dark mode">
+          <i data-lucide="moon"></i>
+        </button>
+        <button class="orb-button cart-button" id="cartToggle" type="button" aria-label="Open bag">
+          <i data-lucide="shopping-bag"></i>
+          <span class="cart-count" id="cartCount">0</span>
+        </button>
+      </div>
+    </header>
+
+    <a class="support-pill" href="https://wa.me/918760595307" target="_blank" rel="noreferrer">
+      <span>Speak with ABDAN</span>
+      <span class="support-pill__icon"><i data-lucide="message-circle"></i></span>
+    </a>
+
+    <nav class="bottom-dock" id="bottomDock" aria-label="Primary navigation">
+      <button type="button" class="dock-link is-active" data-target="products">
+        <i data-lucide="shopping-bag"></i>
+        <span>For You</span>
+      </button>
+      <button type="button" class="dock-link" data-target="wsy">
+        <i data-lucide="heart"></i>
+        <span>Story</span>
+      </button>
+      <button type="button" class="dock-link" data-target="testi">
+        <i data-lucide="users"></i>
+        <span>Circle</span>
+      </button>
+      <button type="button" class="dock-link" data-target="teasers">
+        <i data-lucide="sparkles"></i>
+        <span>Love</span>
+      </button>
+      <button type="button" class="dock-link" data-target="account">
+        <i data-lucide="user"></i>
+        <span>Space</span>
+      </button>
+    </nav>
+
+    <main class="luxury-shell">
+      <section class="hero-section section-frame" id="hero">
+        <div class="container hero-grid">
+          <article class="hero-copy editorial-panel reveal">
+            <div class="eyebrow-row">
+              <span>Editorial modest fashion</span>
+              <span>Curated with patience</span>
+            </div>
+            <p class="tagline-label">Your Devotion Meets Style</p>
+            <h1>
+              You always think of everyone…
+              <span>this time, we thought of you. 💛</span>
+            </h1>
+            <p class="hero-body">
+              ABDAN is a quieter kind of fashion space for women who move through life with grace,
+              devotion, and depth. Every piece is selected to feel considered, elegant, and worthy of the
+              woman who so often chooses herself last.
+            </p>
+            <div class="hero-actions">
+              <a class="primary-button" href="#products">
+                Enter the collection
+                <i data-lucide="arrow-right"></i>
+              </a>
+              <a class="secondary-button" href="https://wa.me/918760595307" target="_blank" rel="noreferrer">
+                Speak with ABDAN
+              </a>
+            </div>
+            <div class="trust-mini">
+              <p>
+                Carefully verified pieces, human support before payment, and a journey that stays gentle
+                from the first scroll to the final confirmation.
+              </p>
+            </div>
+          </article>
+
+          <aside class="hero-visual reveal">
+            <div class="visual-card visual-card--image">
+              <img src="./assets/embroidered-festive-dupatta.jpg" alt="ABDAN editorial festive drape" loading="eager" />
+              <div class="visual-card__meta">
+                <span class="micro-label">An editorial invitation</span>
+                <p>For the woman whose presence is soft, assured, and deserving of beauty of her own.</p>
+              </div>
+            </div>
+            <div class="visual-card visual-card--note">
+              <span class="micro-label">Why it feels different</span>
+              <p>
+                Less marketplace noise. More thoughtful selection, measured detail, and a fashion journey
+                that feels composed rather than crowded.
+              </p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="trust-rail reveal" aria-label="Trust highlights">
+        <div class="container trust-rail__inner">
+          <span>Verified selection</span>
+          <span>Clear payment flow</span>
+          <span>Support till delivery</span>
+          <span>No account needed</span>
+        </div>
+      </section>
+
+      <section class="promise-band reveal">
+        <div class="container promise-band__inner">
+          <blockquote>
+            We curate with the belief that modest fashion can feel emotional, refined, and deeply personal.
+          </blockquote>
+          <p>— The ABDAN Promise</p>
+        </div>
+      </section>
+
+      <section class="collection-section section-frame" id="products">
+        <div class="container">
+          <header class="section-heading reveal">
+            <p class="section-kicker">Curated with restraint, emotion, and care</p>
+            <h2>Handpicked for You</h2>
+            <p>
+              A considered edit for everyday grace, heritage moments, and festive light. Each piece is
+              placed here to feel less like inventory and more like a quiet recommendation.
+            </p>
+          </header>
+
+          <div class="disclaimer-card reveal">
+            <i data-lucide="shield-check"></i>
+            <div>
+              <strong>ABDAN is a curated aggregator.</strong>
+              <p>
+                We confirm availability before payment, verify every piece with care, and remain present
+                through delivery.
+              </p>
+            </div>
+          </div>
+
+          <div class="filter-row reveal" id="filterRow" aria-label="Collection filters">
+            <button type="button" class="filter-chip is-active" data-filter="All">All</button>
+            <button type="button" class="filter-chip" data-filter="Heritage Moments">Heritage Moments</button>
+            <button type="button" class="filter-chip" data-filter="Everyday Grace">Everyday Grace</button>
+            <button type="button" class="filter-chip" data-filter="Festive Glow">Festive Glow</button>
+          </div>
+
+          <div class="products-grid" id="productsGrid"></div>
+        </div>
+      </section>
+
+      <section class="story-section section-frame" id="wsy">
+        <div class="container">
+          <header class="section-heading reveal">
+            <p class="section-kicker">She is the reason this space exists</p>
+            <h2>Her Story</h2>
+            <p>
+              ABDAN begins with the woman whose care shapes the home, the gathering, the prayer, and the
+              memory — often before anyone notices what she has quietly given.
+            </p>
+          </header>
+
+          <div class="story-grid">
+            <article class="story-card reveal">
+              <span class="story-emoji">🌅</span>
+              <h3>The 5 AM Morning</h3>
+              <p>
+                Before anyone else wakes, she is already holding the day together. Beauty should not have
+                to wait until every task is done.
+              </p>
+            </article>
+            <article class="story-card reveal">
+              <span class="story-emoji">🙏</span>
+              <h3>The Quiet Prayer</h3>
+              <p>
+                Her devotion lives in the ordinary rituals of the home. ABDAN honours that quiet grace
+                with clothing that feels sincere, poised, and personal.
+              </p>
+            </article>
+            <article class="story-card reveal">
+              <span class="story-emoji">💐</span>
+              <h3>The Function She Dresses For</h3>
+              <p>
+                Weddings, pujas, school stages, and evenings that ask her to make everyone else shine.
+                This time, the celebration can belong to her as well.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="circle-section section-frame" id="testi">
+        <div class="container">
+          <header class="section-heading reveal">
+            <p class="section-kicker">Voices that make the experience feel real</p>
+            <h2>Her Circle 💛</h2>
+            <p>
+              A softer kind of trust grows when women feel seen, guided, and cared for in the details.
+            </p>
+          </header>
+
+          <div class="testimonial-grid">
+            <article class="testimonial-card reveal">
+              <p>
+                “I was scared to buy online. They confirmed everything patiently before I paid. The saree
+                arrived like a gift.”
+              </p>
+              <footer>
+                <span>K</span>
+                <div>
+                  <strong>Kavitha R.</strong>
+                  <small>Coimbatore, Tamil Nadu</small>
+                </div>
+              </footer>
+            </article>
+            <article class="testimonial-card testimonial-card--featured reveal">
+              <p>
+                “I wore my ABDAN kurti to my son’s school function. Three mothers asked where I got it.
+                I felt so beautiful.”
+              </p>
+              <footer>
+                <span>S</span>
+                <div>
+                  <strong>Sumathi N.</strong>
+                  <small>Salem, Tamil Nadu</small>
+                </div>
+              </footer>
+            </article>
+            <article class="testimonial-card reveal">
+              <p>
+                “A handwritten note came with my order. No shop has ever made me feel so seen. I still
+                have the note.”
+              </p>
+              <footer>
+                <span>L</span>
+                <div>
+                  <strong>Lakshmi V.</strong>
+                  <small>Madurai, Tamil Nadu</small>
+                </div>
+              </footer>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="teaser-section section-frame" id="teasers">
+        <div class="container">
+          <header class="section-heading reveal">
+            <p class="section-kicker">A luxury ecosystem, gently expanding</p>
+            <h2>What You Might Love</h2>
+            <p>
+              Future spaces for loyalty, conversation, and thoughtful belonging — imagined with the same
+              restraint as the collection itself.
+            </p>
+          </header>
+
+          <div class="teaser-grid">
+            <article class="teaser-card reveal" data-teaser="loyalty">
+              <span class="teaser-emoji">💎</span>
+              <h3>ABDAN Loyalty Circle</h3>
+              <p>
+                Early access, remembered preferences, quieter first looks, and thoughtful touches for
+                women who return because the experience feels like theirs.
+              </p>
+              <button type="button" class="text-link">Explore the Circle</button>
+            </article>
+            <article class="teaser-card reveal" data-teaser="community">
+              <span class="teaser-emoji">🌸</span>
+              <h3>ABDAN Community</h3>
+              <p>
+                A warm space to share outfit stories, ask for opinions, celebrate style, and feel seen
+                among women who understand your world.
+              </p>
+              <button type="button" class="text-link">Join the Community</button>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="account-section section-frame" id="account">
+        <div class="container account-grid">
+          <article class="account-copy reveal">
+            <p class="section-kicker">A softer personal corner</p>
+            <h2>Your Space 💛</h2>
+            <p>
+              A future home for favourites, keepsakes, style notes, and thoughtful reminders. Even
+              before it grows into a fuller account area, the feeling is the same: this space remembers
+              what moved you.
+            </p>
+            <a class="primary-button" href="https://wa.me/918760595307" target="_blank" rel="noreferrer">
+              Create My Space
+            </a>
+          </article>
+
+          <div class="account-features reveal">
+            <article class="feature-card">
+              <i data-lucide="heart"></i>
+              <h3>Moments Loved</h3>
+              <p>Save the pieces that caught your eye. Your favourites wait here, quietly and beautifully.</p>
+            </article>
+            <article class="feature-card">
+              <i data-lucide="shopping-bag"></i>
+              <h3>Your Keepsakes</h3>
+              <p>Every order becomes a memory of the day you chose something just for yourself.</p>
+            </article>
+            <article class="feature-card">
+              <i data-lucide="sparkles"></i>
+              <h3>Style Profile</h3>
+              <p>So ABDAN can remember what you love and recommend with intimacy rather than noise.</p>
+            </article>
+            <article class="feature-card">
+              <i data-lucide="mail"></i>
+              <h3>Personal Notes</h3>
+              <p>Festival greetings, style updates, and contact that feels warm, measured, and welcome.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <aside class="cart-drawer" id="cartDrawer" aria-hidden="true">
+      <div class="cart-drawer__panel">
+        <header class="drawer-header">
+          <div>
+            <p class="micro-label">Your bag</p>
+            <h2>Held with care</h2>
+          </div>
+          <button class="ghost-button" id="cartClose" type="button" aria-label="Close bag">
+            <i data-lucide="x"></i>
+          </button>
+        </header>
+
+        <div class="drawer-body">
+          <div id="cartItems" class="cart-items"></div>
+
+          <div class="checkout-panel" id="bagCheckoutPanel" hidden>
+            <div class="checkout-panel__intro">
+              <p class="micro-label">Checkout details</p>
+              <h3>Complete this step gently</h3>
+              <p>Share the details we need so ABDAN can confirm your selection with care.</p>
+            </div>
+
+            <form class="checkout-form" id="bagCheckoutForm">
+              <label>
+                <span>Name</span>
+                <input type="text" name="name" placeholder="Your name" required />
+              </label>
+              <label>
+                <span>Phone</span>
+                <input type="tel" name="phone" placeholder="Your phone number" required />
+              </label>
+              <label>
+                <span>Email</span>
+                <input type="email" name="email" placeholder="Your email (optional)" />
+              </label>
+              <label>
+                <span>Notes</span>
+                <textarea name="notes" rows="3" placeholder="Anything ABDAN should know?"></textarea>
+              </label>
+            </form>
+
+            <div class="payment-actions">
+              <button type="button" class="primary-button" id="bagRazorpayButton">Pay with Razorpay</button>
+              <button type="button" class="secondary-button" id="bagUpiButton">Pay by UPI</button>
+            </div>
+
+            <div class="payment-note">
+              <p><strong>No hidden charges.</strong> ABDAN confirms every order personally before dispatch.</p>
+              <button type="button" class="inline-copy" id="copyUpiButton">Copy UPI ID</button>
+            </div>
+          </div>
+        </div>
+
+        <footer class="drawer-footer">
+          <div class="drawer-total">
+            <span>Total</span>
+            <strong id="cartTotal">₹0</strong>
+          </div>
+          <button type="button" class="primary-button" id="cartCheckoutButton">Continue to checkout</button>
+        </footer>
+      </div>
+    </aside>
+
+    <div class="product-sheet" id="productSheet" aria-hidden="true">
+      <div class="product-sheet__backdrop" data-close-product></div>
+      <div class="product-sheet__panel">
+        <button class="ghost-button product-sheet__close" type="button" data-close-product aria-label="Close preview">
+          <i data-lucide="x"></i>
+        </button>
+
+        <div class="product-sheet__media">
+          <img id="productImage" src="" alt="" loading="lazy" />
+        </div>
+
+        <div class="product-sheet__content">
+          <p class="micro-label" id="productTag"></p>
+          <h2 id="productName"></h2>
+          <p class="product-price" id="productPrice"></p>
+          <p class="product-description" id="productDescription"></p>
+
+          <div class="product-facts" id="productFacts"></div>
+
+          <div class="option-group">
+            <div class="option-head">
+              <span>Size</span>
+              <small id="selectedSizeLabel"></small>
+            </div>
+            <div class="chip-row" id="sizeChips"></div>
+          </div>
+
+          <div class="option-group">
+            <div class="option-head">
+              <span>Colour</span>
+              <small id="selectedColorLabel"></small>
+            </div>
+            <div class="chip-row" id="colorChips"></div>
+          </div>
+
+          <div class="product-story-grid">
+            <article>
+              <span class="micro-label">Why it matters</span>
+              <p id="productSoul"></p>
+            </article>
+            <article>
+              <span class="micro-label">Styling note</span>
+              <p id="productStyling"></p>
+            </article>
+          </div>
+
+          <div class="sheet-actions">
+            <button type="button" class="primary-button" id="addToCartButton">Add to bag</button>
+            <button type="button" class="secondary-button" id="toggleProductCheckout">Open checkout</button>
+          </div>
+
+          <div class="checkout-panel" id="productCheckoutPanel" hidden>
+            <div class="checkout-panel__intro">
+              <p class="micro-label">Payment</p>
+              <h3>Finish with confidence</h3>
+              <p>Choose your payment path and ABDAN will stay with you until confirmation.</p>
+            </div>
+
+            <form class="checkout-form" id="productCheckoutForm">
+              <label>
+                <span>Name</span>
+                <input type="text" name="name" placeholder="Your name" required />
+              </label>
+              <label>
+                <span>Phone</span>
+                <input type="tel" name="phone" placeholder="Your phone number" required />
+              </label>
+              <label>
+                <span>Email</span>
+                <input type="email" name="email" placeholder="Your email (optional)" />
+              </label>
+              <label>
+                <span>Notes</span>
+                <textarea name="notes" rows="3" placeholder="Anything ABDAN should know?"></textarea>
+              </label>
+            </form>
+
+            <div class="payment-actions">
+              <button type="button" class="primary-button" id="productRazorpayButton">Pay with Razorpay</button>
+              <button type="button" class="secondary-button" id="productUpiButton">Pay by UPI</button>
+            </div>
+
+            <div class="payment-block">
+              <div class="payment-block__copy">
+                <p class="micro-label">Manual UPI option</p>
+                <p class="payment-text">
+                  If you prefer, you can also complete payment with the ABDAN UPI ID and send the
+                  confirmation through WhatsApp.
+                </p>
+              </div>
+              <div class="upi-box">
+                <span id="upiIdLabel">mailme.maqdoom@okhdfcbank</span>
+                <button type="button" class="inline-copy" data-copy-upi>Copy</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="share-row">
+            <span class="micro-label">Share this style</span>
+            <div id="shareButtons" class="share-buttons"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="teaser-modal" id="teaserModal" aria-hidden="true">
+      <div class="teaser-modal__backdrop" data-close-teaser></div>
+      <div class="teaser-modal__panel">
+        <button class="ghost-button teaser-modal__close" type="button" data-close-teaser aria-label="Close teaser">
+          <i data-lucide="x"></i>
+        </button>
+        <div class="teaser-modal__icon" id="teaserIcon"></div>
+        <p class="micro-label">Coming soon</p>
+        <h2 id="teaserTitle"></h2>
+        <p id="teaserMessage"></p>
+        <button type="button" class="primary-button" data-close-teaser>I can’t wait</button>
+      </div>
+    </div>
+
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <section class="footer-column footer-brand">
+          <div class="footer-mark" aria-hidden="true">A</div>
+          <p class="footer-tagline">Your Devotion Meets Style</p>
+          <p>
+            Curated for women whose grace is often seen by everyone else first. ABDAN turns that care
+            gently back toward her.
+          </p>
+          <div class="footer-socials">
+            <a href="https://wa.me/918760595307" target="_blank" rel="noreferrer" aria-label="WhatsApp">
+              <i data-lucide="message-circle"></i>
+            </a>
+            <a href="https://t.me/+918760595307" target="_blank" rel="noreferrer" aria-label="Telegram">
+              <i data-lucide="send"></i>
+            </a>
+            <a href="https://www.instagram.com/mailme.nmcollections" target="_blank" rel="noreferrer" aria-label="Instagram">
+              <i data-lucide="camera"></i>
+            </a>
+            <a href="https://www.facebook.com/share/173kbKas2c/" target="_blank" rel="noreferrer" aria-label="Facebook">
+              <i data-lucide="globe"></i>
+            </a>
+          </div>
+        </section>
+
+        <details class="footer-column footer-disclosure" open>
+          <summary>Common Questions</summary>
+          <div class="footer-stack" id="faqList"></div>
+        </details>
+
+        <details class="footer-column footer-disclosure">
+          <summary>Our Promises (T&amp;C)</summary>
+          <div class="footer-stack" id="termsList"></div>
+        </details>
+      </div>
+
+      <div class="container footer-bottom">
+        <p>
+          <strong>Aggregator Disclaimer:</strong> ABDAN curates and connects you with trusted artisan and
+          vendor partners. We verify pieces before purchase, confirm availability before payment, and
+          stay with you until delivery.
+        </p>
+        <p>© 2026 ABDAN. Your Devotion Meets Style.</p>
+      </div>
+    </footer>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="./js/main.js"></script>
+  </body>
+</html>
