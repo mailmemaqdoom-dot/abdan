@@ -16,6 +16,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./css/style.css" />
+    <link rel="preload" as="image" href="./assets/embroidered-festive-dupatta.jpg" />
   </head>
   <body>
     <div class="page-noise" aria-hidden="true"></div>
@@ -107,7 +108,7 @@
 
           <aside class="hero-visual reveal">
             <div class="visual-card visual-card--image">
-              <img src="./assets/embroidered-festive-dupatta.jpg" alt="ABDAN editorial festive drape" loading="eager" />
+              <img src="./assets/embroidered-festive-dupatta.jpg" alt="ABDAN editorial festive drape" loading="eager" fetchpriority="high" />
               <div class="visual-card__meta">
                 <span class="micro-label">An editorial invitation</span>
                 <p>For the woman whose presence is soft, assured, and deserving of beauty of her own.</p>
@@ -679,8 +680,8 @@
       </div>
     </footer>
 
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <script src="./js/main.js"></script>
+    <script src="https://unpkg.com/lucide@latest" defer></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
+    <script src="./js/main.js" defer></script>
   </body>
 </html>
