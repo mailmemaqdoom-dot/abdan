@@ -25,6 +25,8 @@ const FILTERS = [
 ];
 const DEFAULT_SIZES = ["S", "M", "L", "XL", "XXL"];
 const DEFAULT_COLORS = ["Ivory", "Emerald", "Crimson"];
+const ADMIN_ACCESS_HASH = "23e6902e2651c457f6086da8d743bf2c5b4e2a34dfeef05c80571ca9758aeeda";
+const ADMIN_ACCESS_FALLBACK = "YWJkYW4tYWRtaW4=";
 
 function buildProductNarrative(product) {
   const fabric = product.specs.find(([label]) => label.includes("Fabric"))?.[1] ?? "fine fabric";
@@ -289,6 +291,7 @@ const state = {
   activeProductId: null,
   selectedSize: null,
   selectedColor: null,
+  adminAuthenticated: sessionStorage.getItem("abdan-admin-auth") === "true",
 };
 
 const dom = {
@@ -338,6 +341,21 @@ const dom = {
   bottomDock: document.getElementById("bottomDock"),
   supportPill: document.querySelector(".support-pill"),
   siteHeader: document.getElementById("siteHeader"),
+  adminEntry: document.getElementById("adminEntry"),
+  adminShell: document.getElementById("adminShell"),
+  adminLoginPanel: document.getElementById("adminLoginPanel"),
+  adminPanel: document.getElementById("adminPanel"),
+  adminLoginForm: document.getElementById("adminLoginForm"),
+  adminPasscode: document.getElementById("adminPasscode"),
+  adminError: document.getElementById("adminError"),
+  adminSignout: document.getElementById("adminSignout"),
+  adminPiecesCount: document.getElementById("adminPiecesCount"),
+  adminCategoriesCount: document.getElementById("adminCategoriesCount"),
+  adminRouteValue: document.getElementById("adminRouteValue"),
+  adminSessionValue: document.getElementById("adminSessionValue"),
+  adminPiecesList: document.getElementById("adminPiecesList"),
+  adminRouteLabel: document.getElementById("adminRouteLabel"),
+  adminSessionStatus: document.getElementById("adminSessionStatus"),
 };
 
 function getActiveProduct() {
@@ -364,6 +382,113 @@ function setTheme(theme) {
   const icon = dom.themeToggle.querySelector("i");
   if (icon) icon.setAttribute("data-lucide", theme === "dark" ? "sun" : "moon");
   lucide.createIcons();
+}
+
+function isAdminRoute() {
+  return window.location.hash === "#admin" || window.location.hash.startsWith("#admin?");
+}
+
+async function hashValue(value) {
+  const bytes = new TextEncoder().encode(value);
+  const hashBuffer = await window.crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function verifyAdminPasscode(passcode) {
+  const normalized = passcode.trim();
+  if (!normalized) return false;
+  if (window.crypto?.subtle) {
+    return (await hashValue(normalized)) === ADMIN_ACCESS_HASH;
+  }
+  return normalized === window.atob(ADMIN_ACCESS_FALLBACK);
+}
+
+function setAdminSession(authenticated) {
+  state.adminAuthenticated = authenticated;
+  sessionStorage.setItem("abdan-admin-auth", authenticated ? "true" : "false");
+  renderAdminRoute();
+}
+
+function renderAdminPieces() {
+  if (!dom.adminPiecesList) return;
+  dom.adminPiecesList.innerHTML = PRODUCTS.map(
+    (product) => `
+      <article class="admin-piece-row">
+        <div>
+          <span>${product.primaryTag}</span>
+          <strong>${product.name}</strong>
+          <small>${buildEditorialExcerpt(product)}</small>
+        </div>
+        <span class="admin-piece-price">${product.priceLabel}</span>
+      </article>
+    `,
+  ).join("");
+}
+
+function renderAdminRoute() {
+  const adminRoute = isAdminRoute();
+  dom.html.setAttribute("data-route", adminRoute ? "admin" : "storefront");
+  if (dom.adminShell) {
+    dom.adminShell.hidden = !adminRoute;
+    dom.adminShell.setAttribute("aria-hidden", String(!adminRoute));
+  }
+  if (dom.adminEntry) {
+    dom.adminEntry.classList.toggle("is-active", adminRoute);
+  }
+  if (!adminRoute) return;
+
+  window.scrollTo({ top: 0 });
+  dom.body.classList.remove("is-locked");
+  closeCart();
+  closeProduct();
+  closeTeaser();
+  renderAdminPieces();
+
+  const categoryCount = FILTERS.filter((filter) => filter !== "All").length;
+  if (dom.adminPiecesCount) dom.adminPiecesCount.textContent = String(PRODUCTS.length).padStart(2, "0");
+  if (dom.adminCategoriesCount) dom.adminCategoriesCount.textContent = String(categoryCount).padStart(2, "0");
+  if (dom.adminRouteValue) dom.adminRouteValue.textContent = "#admin";
+  if (dom.adminSessionValue) dom.adminSessionValue.textContent = state.adminAuthenticated ? "Live" : "Locked";
+  if (dom.adminRouteLabel) dom.adminRouteLabel.textContent = window.location.hash || "#admin";
+  if (dom.adminSessionStatus) {
+    dom.adminSessionStatus.textContent = state.adminAuthenticated
+      ? "Signed in for this browser session. The admin route, visibility, and navigation controls are now active."
+      : "Access is currently locked. Enter the admin passcode to load the operational panel.";
+  }
+  if (dom.adminLoginPanel) dom.adminLoginPanel.hidden = state.adminAuthenticated;
+  if (dom.adminPanel) dom.adminPanel.hidden = !state.adminAuthenticated;
+  if (dom.adminSignout) dom.adminSignout.hidden = !state.adminAuthenticated;
+}
+
+async function handleAdminLogin(event) {
+  event.preventDefault();
+  const passcode = dom.adminPasscode?.value || "";
+  const verified = await verifyAdminPasscode(passcode);
+  if (!verified) {
+    if (dom.adminError) {
+      dom.adminError.hidden = false;
+      dom.adminError.textContent = "The access code did not match. Please try again.";
+    }
+    return;
+  }
+
+  if (dom.adminError) {
+    dom.adminError.hidden = true;
+    dom.adminError.textContent = "";
+  }
+  if (dom.adminPasscode) dom.adminPasscode.value = "";
+  setAdminSession(true);
+}
+
+function handleAdminSignout() {
+  if (dom.adminError) {
+    dom.adminError.hidden = true;
+    dom.adminError.textContent = "";
+  }
+  if (dom.adminPasscode) dom.adminPasscode.value = "";
+  setAdminSession(false);
 }
 
 function renderFilters() {
@@ -865,6 +990,16 @@ function initScrollChrome() {
 
 function attachEvents() {
   dom.themeToggle.addEventListener("click", () => setTheme(state.theme === "dark" ? "light" : "dark"));
+  if (dom.adminLoginForm) {
+    dom.adminLoginForm.addEventListener("submit", (event) => {
+      void handleAdminLogin(event);
+    });
+  }
+  if (dom.adminSignout) {
+    dom.adminSignout.addEventListener("click", handleAdminSignout);
+  }
+  window.addEventListener("hashchange", renderAdminRoute);
+
   dom.filterRow.addEventListener("click", (event) => {
     const button = event.target.closest("[data-filter]");
     if (!button) return;
@@ -937,6 +1072,7 @@ function init() {
   revealElements();
   initDockObserver();
   initScrollChrome();
+  renderAdminRoute();
   lucide.createIcons();
 }
 

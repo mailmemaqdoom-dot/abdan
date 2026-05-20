@@ -31,6 +31,7 @@
       </a>
 
       <div class="header-actions">
+        <a class="admin-entry" id="adminEntry" href="#admin">Admin</a>
         <button class="orb-button" id="themeToggle" type="button" aria-label="Toggle dark mode">
           <i data-lucide="moon"></i>
         </button>
@@ -41,7 +42,7 @@
       </div>
     </header>
 
-    <a class="support-pill" href="https://wa.me/918760595307" target="_blank" rel="noreferrer">
+    <a class="support-pill" id="supportPill" href="https://wa.me/918760595307" target="_blank" rel="noreferrer">
       <span>Speak with ABDAN</span>
       <span class="support-pill__icon"><i data-lucide="message-circle"></i></span>
     </a>
@@ -354,6 +355,101 @@
         </div>
       </section>
     </main>
+
+    <section class="admin-shell" id="adminShell" aria-hidden="true" hidden>
+      <div class="container admin-shell__layout">
+        <header class="editorial-panel admin-hero">
+          <div>
+            <p class="section-kicker">Operational visibility with restraint</p>
+            <h1>ABDAN Admin</h1>
+            <p>
+              A calm, minimal control view for admin access, collection visibility, and daily routing.
+            </p>
+          </div>
+          <div class="admin-hero__actions">
+            <a class="secondary-button" href="#products">Back to storefront</a>
+            <button type="button" class="ghost-button" id="adminSignout" hidden>Sign out</button>
+          </div>
+        </header>
+
+        <section class="editorial-panel admin-login" id="adminLoginPanel">
+          <div class="admin-login__copy">
+            <p class="section-kicker">Admin login</p>
+            <h2>Access the operational panel</h2>
+            <p>
+              Enter the admin access code to unlock the route, confirm navigation is working, and review
+              the live collection in one place.
+            </p>
+          </div>
+          <form class="admin-login__form" id="adminLoginForm">
+            <label class="admin-field">
+              <span>Access code</span>
+              <input id="adminPasscode" name="passcode" type="password" autocomplete="current-password" placeholder="Enter access code" required />
+            </label>
+            <p class="admin-form__hint">This is a lightweight static access flow designed to remain Cloudflare-compatible.</p>
+            <p class="admin-form__error" id="adminError" role="alert" hidden></p>
+            <button type="submit" class="primary-button">Enter admin</button>
+          </form>
+        </section>
+
+        <section class="admin-panel" id="adminPanel" hidden>
+          <div class="admin-kpi-grid">
+            <article class="feature-card admin-kpi">
+              <p class="micro-label">Live pieces</p>
+              <strong id="adminPiecesCount">00</strong>
+              <p>Visible pieces currently rendered in the storefront collection.</p>
+            </article>
+            <article class="feature-card admin-kpi">
+              <p class="micro-label">Categories</p>
+              <strong id="adminCategoriesCount">00</strong>
+              <p>Curated categories now available through the Handpicked for You filters.</p>
+            </article>
+            <article class="feature-card admin-kpi">
+              <p class="micro-label">Route</p>
+              <strong id="adminRouteValue">#admin</strong>
+              <p>The admin route is loading through static hash-based navigation.</p>
+            </article>
+            <article class="feature-card admin-kpi">
+              <p class="micro-label">Session</p>
+              <strong id="adminSessionValue">Locked</strong>
+              <p>Access remains local to this browser session until you sign out.</p>
+            </article>
+          </div>
+
+          <div class="admin-grid">
+            <article class="editorial-panel admin-overview">
+              <p class="section-kicker">Collection visibility</p>
+              <h2>Curated pieces now live</h2>
+              <p>
+                This view confirms the admin route is rendering correctly while surfacing the current
+                collection, category placement, and pricing at a glance.
+              </p>
+              <div class="admin-piece-list" id="adminPiecesList"></div>
+            </article>
+
+            <aside class="admin-sidebar">
+              <article class="feature-card admin-card">
+                <p class="micro-label">Navigation access</p>
+                <h3>Operational shortcuts</h3>
+                <div class="admin-link-stack">
+                  <a class="ghost-button" href="#products">Open collection</a>
+                  <a class="ghost-button" href="https://wa.me/918760595307" target="_blank" rel="noreferrer">WhatsApp orders</a>
+                  <a class="ghost-button" href="tel:+918760595307">Call support</a>
+                </div>
+              </article>
+
+              <article class="feature-card admin-card">
+                <p class="micro-label">Route status</p>
+                <h3 id="adminRouteLabel">#admin</h3>
+                <p id="adminSessionStatus">
+                  Signed in for this browser session. Routing, rendering, and navigation are now visible in one place.
+                </p>
+              </article>
+            </aside>
+          </div>
+        </section>
+      </div>
+    </section>
 
     <aside class="cart-drawer" id="cartDrawer" aria-hidden="true">
       <div class="cart-drawer__panel">
