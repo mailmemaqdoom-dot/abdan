@@ -252,10 +252,10 @@ const PRODUCTS = [
 ].map((product) => ({ ...product, ...buildProductNarrative(product) }));
 
 const FAQS = [
-  ["How do you ensure product quality?", "Every piece is handpicked and verified by our team before we list it for you."],
+  ["How is each piece selected?", "Every piece is handpicked and verified by our team before we list it for you."],
   ["Is the pricing transparent?", "Yes. We believe in honesty, confirm costs before payment, and avoid hidden charges."],
-  ["Can I trust the artisans?", "We only work with partners who share our values of craftsmanship and integrity."],
-  ["How long does delivery take?", "Usually 5–7 working days, depending on your location in Tamil Nadu or beyond."],
+  ["Who creates these pieces?", "We only work with partners who share our values of craftsmanship and integrity."],
+  ["When will my order arrive?", "Usually 5–7 working days, depending on your location in Tamil Nadu or beyond."],
   ["How do I choose the right size?", "WhatsApp support is always here to guide you with measurements and fabric notes."],
   ["Is my payment secure?", "ABDAN uses trusted payment options and manually confirms transactions with care."],
 ];
@@ -266,7 +266,7 @@ const TERMS = [
   ["Shipping", "We partner with reliable couriers, though external delays may occasionally occur."],
   ["Returns", "Returns are accepted for damaged items or wrong dispatches. Please share an unboxing video when possible."],
   ["Expectations", "Handcrafted items may show slight irregularities — the mark of human hands, not a defect."],
-  ["Liability", "ABDAN acts as a careful bridge between you and trusted vendor partners while staying with you until delivery."],
+  ["Our Promise", "ABDAN acts as a careful bridge between you and trusted vendor partners while staying with you until delivery."],
 ];
 
 const TEASERS = {
