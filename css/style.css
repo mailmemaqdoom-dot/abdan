@@ -31,18 +31,21 @@
   --card-border: rgba(2, 61, 58, 0.1);
   --chip-bg: rgba(255, 252, 246, 0.74);
   --overlay: rgba(12, 23, 22, 0.38);
+  --text-dim: #7a8d89;
   --z-content: 1;
   --z-support: 30;
   --z-nav: 50;
   --z-header: 60;
   --z-drawer: 80;
   --z-modal: 90;
+  --z-toast: 110;
 }
 
 html[data-theme="dark"] {
   --bg: linear-gradient(180deg, #071d1c 0%, #082625 50%, #041716 100%);
   --text-main: #f7f1e4;
   --text-soft: #d6cfbf;
+  --text-dim: #9aaba7;
   --surface: rgba(8, 27, 26, 0.9);
   --surface-strong: rgba(6, 23, 22, 0.96);
   --surface-soft: rgba(230, 223, 203, 0.06);
@@ -913,7 +916,11 @@ html[data-theme="dark"] .admin-field input {
 }
 
 .admin-form__error {
-  color: #8d3d2e;
+  color: #c05a4a;
+}
+
+html[data-theme="dark"] .admin-form__error {
+  color: #e07a6a;
 }
 
 .admin-panel {
@@ -1809,6 +1816,38 @@ html[data-theme="dark"] .upi-box {
 .footer-bottom p {
   margin: 0.25rem 0 0;
   line-height: 1.8;
+}
+
+.toast {
+  position: fixed;
+  bottom: 6rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  z-index: var(--z-toast);
+  padding: 0.78rem 1.4rem;
+  border-radius: var(--radius-pill);
+  background: var(--emerald);
+  color: var(--ivory);
+  font-size: 0.87rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  opacity: 0;
+  transition: opacity 220ms var(--ease-out), transform 220ms var(--ease-out);
+  pointer-events: none;
+  max-width: calc(100% - 2.5rem);
+  text-align: center;
+  box-shadow: 0 14px 36px rgba(2, 61, 58, 0.22);
+  white-space: nowrap;
+}
+
+html[data-theme="dark"] .toast {
+  background: var(--gold);
+  color: var(--emerald);
+}
+
+.toast.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 .reveal {

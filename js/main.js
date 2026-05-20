@@ -284,6 +284,9 @@ const TEASERS = {
   },
 };
 
+let _toastTimer = null;
+let _revealObserver = null;
+
 const state = {
   theme: localStorage.getItem("abdan-theme") || "light",
   filter: "All",
@@ -371,8 +374,26 @@ function formatCurrency(value) {
   return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(value);
 }
 
+function showToast(message, duration = 2800) {
+  let toast = document.getElementById("abdan-toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "abdan-toast";
+    toast.className = "toast";
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.classList.add("is-visible");
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => toast.classList.remove("is-visible"), duration);
+}
+
 function saveCart() {
   localStorage.setItem("abdan-cart", JSON.stringify(state.cart));
+}
+
+function safeCreateIcons() {
+  if (typeof lucide !== "undefined") lucide.createIcons();
 }
 
 function setTheme(theme) {
@@ -381,7 +402,7 @@ function setTheme(theme) {
   localStorage.setItem("abdan-theme", theme);
   const icon = dom.themeToggle.querySelector("i");
   if (icon) icon.setAttribute("data-lucide", theme === "dark" ? "sun" : "moon");
-  lucide.createIcons();
+  safeCreateIcons();
 }
 
 function isAdminRoute() {
@@ -583,7 +604,12 @@ function renderOptionChips(container, values, selectedValue, onClick) {
     )
     .join("");
   container.querySelectorAll("[data-option-value]").forEach((button) => {
-    button.addEventListener("click", () => onClick(button.dataset.optionValue || ""));
+    button.addEventListener("click", () => {
+      container.querySelectorAll(".option-chip").forEach((chip) => {
+        chip.classList.toggle("is-selected", chip.dataset.optionValue === button.dataset.optionValue);
+      });
+      onClick(button.dataset.optionValue || "");
+    });
   });
 }
 
@@ -610,20 +636,10 @@ function openProduct(productId) {
   renderOptionChips(dom.sizeChips, product.sizes?.length ? product.sizes : DEFAULT_SIZES, state.selectedSize, (value) => {
     state.selectedSize = value;
     dom.selectedSizeLabel.textContent = value;
-    renderOptionChips(dom.sizeChips, product.sizes?.length ? product.sizes : DEFAULT_SIZES, state.selectedSize, (next) => {
-      state.selectedSize = next;
-      dom.selectedSizeLabel.textContent = next;
-      openProduct(product.id);
-    });
   });
   renderOptionChips(dom.colorChips, product.colors?.length ? product.colors : DEFAULT_COLORS, state.selectedColor, (value) => {
     state.selectedColor = value;
     dom.selectedColorLabel.textContent = value;
-    renderOptionChips(dom.colorChips, product.colors?.length ? product.colors : DEFAULT_COLORS, state.selectedColor, (next) => {
-      state.selectedColor = next;
-      dom.selectedColorLabel.textContent = next;
-      openProduct(product.id);
-    });
   });
 
   dom.selectedSizeLabel.textContent = state.selectedSize || "Select";
@@ -634,7 +650,7 @@ function openProduct(productId) {
   dom.productSheet.classList.add("is-open");
   dom.productSheet.setAttribute("aria-hidden", "false");
   dom.body.classList.add("is-locked");
-  lucide.createIcons();
+  safeCreateIcons();
 }
 
 function closeProduct() {
@@ -684,7 +700,7 @@ function renderCart() {
   dom.cartCount.textContent = String(state.cart.reduce((sum, item) => sum + item.quantity, 0));
   dom.cartCheckoutButton.disabled = false;
   dom.cartCheckoutButton.style.opacity = "1";
-  lucide.createIcons();
+  safeCreateIcons();
 }
 
 function addToCart() {
@@ -692,7 +708,7 @@ function addToCart() {
   if (!product) return;
 
   if (!state.selectedSize || !state.selectedColor) {
-    window.alert("Please choose both size and colour before adding this piece to your bag.");
+    showToast("Please choose a size and colour first. 💛");
     return;
   }
 
@@ -778,7 +794,7 @@ function getFormPayload(form) {
 
 function validateCheckoutDetails(details) {
   if (!details.name || !details.phone) {
-    window.alert("Please share your name and phone number so ABDAN can confirm your order with care.");
+    showToast("Please add your name and phone number to continue. 💛");
     return false;
   }
   return true;
@@ -810,7 +826,7 @@ function buildWhatsAppOrderMessage(details, items, paymentMethod, extra = {}) {
 function launchRazorpay(details, items) {
   const total = items.reduce((sum, item) => sum + getNumericPrice(item.priceLabel) * item.quantity, 0);
   if (!window.Razorpay) {
-    window.alert("Razorpay could not load right now. Please try UPI or WhatsApp support.");
+    showToast("Razorpay couldn't load. Please try UPI or reach us on WhatsApp. 💛");
     return;
   }
 
@@ -907,9 +923,9 @@ function handleProductUpi() {
 async function copyUpi() {
   try {
     await navigator.clipboard.writeText(BRAND.upiId);
-    window.alert("UPI ID copied.");
+    showToast("UPI ID copied. 💛");
   } catch {
-    window.alert(`UPI ID: ${BRAND.upiId}`);
+    showToast(`UPI ID: ${BRAND.upiId}`);
   }
 }
 
@@ -933,19 +949,20 @@ function closeTeaser() {
 }
 
 function revealElements() {
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("is-visible");
-          observer.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.12 },
-  );
-
-  document.querySelectorAll(".reveal:not(.is-visible)").forEach((element) => observer.observe(element));
+  if (!_revealObserver) {
+    _revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            _revealObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12 },
+    );
+  }
+  document.querySelectorAll(".reveal:not(.is-visible)").forEach((element) => _revealObserver.observe(element));
 }
 
 function updateDockActive(targetId) {
@@ -1073,7 +1090,7 @@ function init() {
   initDockObserver();
   initScrollChrome();
   renderAdminRoute();
-  lucide.createIcons();
+  safeCreateIcons();
 }
 
 window.addEventListener("DOMContentLoaded", init);
