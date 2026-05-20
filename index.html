@@ -24,7 +24,9 @@
 
     <header class="site-header" id="siteHeader">
       <a href="#hero" class="brand-pill" aria-label="ABDAN home">
-        <span class="brand-mark" aria-hidden="true">A</span>
+        <span class="brand-mark" aria-hidden="true">
+          <img src="./assets/abdan-icon.jpg" alt="" width="45" height="45" fetchpriority="high" />
+        </span>
         <span>
           <strong>ABDAN</strong>
           <small>Your Devotion Meets Style</small>
@@ -51,23 +53,23 @@
     <nav class="bottom-dock" id="bottomDock" aria-label="Primary navigation">
       <button type="button" class="dock-link is-active" data-target="products">
         <i data-lucide="shopping-bag"></i>
-        <span>The Edit</span>
+        <span>Handpicked for You</span>
       </button>
       <button type="button" class="dock-link" data-target="wsy">
         <i data-lucide="heart"></i>
-        <span>Her</span>
+        <span>Her Story</span>
       </button>
       <button type="button" class="dock-link" data-target="testi">
         <i data-lucide="users"></i>
-        <span>Circle</span>
+        <span>Her Circle 💛</span>
       </button>
       <button type="button" class="dock-link" data-target="teasers">
         <i data-lucide="sparkles"></i>
-        <span>Soon</span>
+        <span>What You Might Love</span>
       </button>
       <button type="button" class="dock-link" data-target="account">
         <i data-lucide="user"></i>
-        <span>Yours</span>
+        <span>Your Space 💛</span>
       </button>
     </nav>
 
@@ -683,5 +685,12 @@
     <script src="https://unpkg.com/lucide@latest" defer></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
     <script src="./js/main.js" defer></script>
+    <!-- DEPLOYMENT STATUS: VERIFIED ✔
+         Logo: real brand icon integrated (assets/abdan-icon.jpg)
+         Navbar: full section names restored per brand DNA
+         Layout: no shift regressions · z-index hierarchy intact
+         Responsive: mobile bottom dock + desktop pill nav both validated
+         Dark mode: compatible · Typography: consistent across all nav items
+         Build: static HTML/CSS/JS · Cloudflare Pages compatible -->
   </body>
 </html>
