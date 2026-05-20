@@ -13,7 +13,16 @@ const BRAND = {
   razorpayKey: "rzp_live_SkPERat9HcpiCb",
 };
 
-const FILTERS = ["All", "Heritage Moments", "Everyday Grace", "Festive Glow"];
+const FILTERS = [
+  "All",
+  "Everyday Grace",
+  "Modest Essence",
+  "Festive Glow",
+  "Workflow Elegance",
+  "Soft Statement",
+  "Evening Calm",
+  "Signature Picks",
+];
 const DEFAULT_SIZES = ["S", "M", "L", "XL", "XXL"];
 const DEFAULT_COLORS = ["Ivory", "Emerald", "Crimson"];
 
@@ -22,36 +31,41 @@ function buildProductNarrative(product) {
   const color = product.color || "graceful hues";
   const style = product.secondaryTags.style || "elegant design";
   const hooks = [
-    `For those moments when you reach for something that holds the weight of your family’s stories, this ${product.name} feels like a warm embrace.`,
-    `When the day calls for a touch of quiet brilliance, this piece in ${fabric} moves with a softness that is entirely your own.`,
-    `Crafted for the woman who finds beauty in the honest details, this ${style} ${product.name} is a tribute to the grace you carry.`,
+    `Chosen for the moments when you want to feel composed without saying very much, this ${product.name} carries that quiet assurance beautifully.`,
+    `When the day asks for softness and presence at once, this piece in ${fabric} answers with an ease that feels entirely your own.`,
+    `Made for the woman who notices the honest details, this ${style.toLowerCase()} ${product.name} honours the grace you bring into every room.`,
   ];
   const connections = [
-    "It is woven for the woman who moves with purpose, providing an effortless presence in the kaleidoscope of her daily life.",
-    "Designed to be your quiet companion through busy mornings and celebratory evenings alike, fitting perfectly into the tapestry of your journey.",
-    "This is for the woman who balances a thousand tasks with a smile, offering a comfort that breathes as easily as you do.",
+    "It slips into daily life with restraint, letting texture, proportion, and poise do the work instead of noise.",
+    "Designed as a calm companion from early duties to evening plans, it feels thoughtful rather than performative.",
+    "It offers a polished kind of comfort for the woman who carries responsibility, tenderness, and style all at once.",
   ];
   const feels = [
-    `The ${fabric} feels like a second skin, draped in ${color} to reflect the gentle strength you bring to every room.`,
-    "Experience a presence that is both grounded and celebrated, with a texture that respects the sensitivity of your skin and spirit.",
-    "It drapes with a gentle weight, allowing you to move with a confidence that is felt rather than seen.",
+    `The ${fabric} settles softly, while tones of ${color} keep the mood grounded, luminous, and quietly memorable.`,
+    "There is presence here, but it stays measured — refined enough to be noticed and gentle enough to feel personal.",
+    "Its drape has a composed weight, allowing confidence to arrive through movement, line, and calm detail rather than excess.",
   ];
   const stylingTips = {
-    "Heritage Moments": `A simple high-necked blouse and a soft low bun with fresh jasmine would complement this ${fabric} beautifully. It’s a timeless choice for days when you want to feel deeply connected to your roots.`,
-    "Everyday Grace": `This ${style} piece pairs effortlessly with comfortable footwear for errands, lunches, and quieter celebrations. A delicate gold chain adds presence without feeling overdone.`,
-    "Festive Glow": `Let the ${style} details catch the light as you move. Statement earrings and a small bindi will deepen the festive grace of this ${color} look.`,
+    "Everyday Grace": `Wear this ${style.toLowerCase()} piece with simple flats and a slim gold chain so the ease of the silhouette stays intact through errands, lunches, and gentler gatherings.`,
+    "Modest Essence": `Let the shape stay uninterrupted with tonal layers, a clean scarf drape, and understated sandals that keep the line long and serene.`,
+    "Festive Glow": `Add light-catching earrings and a softly defined bun so the embroidery can hold the celebration without the look becoming overstated.`,
+    "Workflow Elegance": `Pair it with a structured tote, low heels, and a quiet watch so the day feels organised, polished, and still feminine.`,
+    "Soft Statement": `Keep the rest of the styling restrained — a neutral sandal and one piece of jewellery will let the silhouette feel expressive without excess.`,
+    "Evening Calm": `Style it with softer metallics, a low knot, and a clean lip colour so the mood stays intimate, graceful, and composed after dark.`,
+    "Signature Picks": `Let this piece lead with minimal accompaniment — refined earrings, careful tailoring, and confident simplicity are enough.`,
   };
   const hash = product.name.length % 3;
 
   return {
-    description: `${hooks[hash]} ${connections[(hash + 1) % 3]} ${feels[(hash + 2) % 3]} Every fold is a reminder of the devotion you carry in your everyday life. 💛`,
+    description: `${hooks[hash]} ${connections[(hash + 1) % 3]} ${feels[(hash + 2) % 3]} Every fold is a reminder that choosing yourself can also be an act of devotion. 💛`,
     styling:
       stylingTips[product.primaryTag] ||
-      `Pair this ${style} ${product.name} with pieces that make you feel most like yourself. A touch of your favourite fragrance and a comfortable pair of sandals complete it with ease.`,
+      `Pair this ${style.toLowerCase()} ${product.name} with pieces that already feel like you. The most memorable finish is often the most restrained one.`,
   };
 }
 
 function buildEditorialExcerpt(product) {
+  if (product.curationLine) return product.curationLine;
   const mood = product.secondaryTags.emotion?.toLowerCase() || "quiet elegance";
   const style = product.secondaryTags.style?.toLowerCase() || "considered dressing";
   return `Selected for ${mood}, ${style}, and a calmer way of getting dressed.`;
@@ -59,36 +73,13 @@ function buildEditorialExcerpt(product) {
 
 const PRODUCTS = [
   {
-    id: "kanjivaram-silk-saree",
-    name: "Kanjivaram Silk Saree",
-    priceLabel: "₹8,500 onwards",
-    image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=900&q=80",
-    primaryTag: "Heritage Moments",
-    secondaryTags: { occasion: "Festive", emotion: "Elegant", style: "Embroidered" },
-    color: "deep gold and emerald",
-    specs: [
-      ["Fabric", "Pure Mulberry Silk — Grade A"],
-      ["Length", "6.3 metres with matching blouse piece"],
-      ["Border", "Real Zari (gold thread) border & pallu"],
-      ["Occasion", "Weddings · Puja ceremonies · The days your family gathers"],
-      ["Care", "Dry clean only · Store in muslin cloth"],
-      ["Verified", "Sourced from certified Kanchipuram weavers"],
-    ],
-    history:
-      "Kanchipuram silk weaving dates back over 400 years to the temple town of Kanchipuram in Tamil Nadu. Each saree takes several days to weave using pure mulberry silk and zari.",
-    soul: "This is for the woman who carries tradition with devotion — let this silken prayer be just for you. 💛",
-    whatsappQuery:
-      "Hi 💛, I saw the Kanjivaram Silk Saree on ABDAN and it is beautiful. Could you tell me more about it?",
-    sizes: ["Free Size"],
-    colors: ["Deep Gold", "Emerald", "Temple Red"],
-  },
-  {
     id: "hand-block-print-kurti-set",
     name: "Hand Block Print Kurti Set",
     priceLabel: "₹1,200 onwards",
     image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=900&q=80",
     primaryTag: "Everyday Grace",
-    secondaryTags: { occasion: "Daily", emotion: "Comfortable", style: "Minimal" },
+    secondaryTags: { occasion: "Daily dressing", emotion: "Comfortable", style: "Minimal" },
+    curationLine: "Soft cotton ease for temple mornings, errands, and slower afternoons.",
     color: "soft indigo and ivory",
     specs: [
       ["Fabric", "100% Soft Cotton — hand-block printed"],
@@ -102,9 +93,34 @@ const PRODUCTS = [
       "Hand block printing is a 4,500-year-old Indian textile art. Each wooden block is hand-carved and pressed onto fabric with practiced precision.",
     soul: "This is for the woman who nurtures everyone through long days — let this softness hold you back, just for today. 💛",
     whatsappQuery:
-      "Hi 💛, I'm interested in the Block Print Kurti Set from ABDAN. Could you help me find the right size?",
+      "Hi 💛, I'm interested in the Hand Block Print Kurti Set from ABDAN. Could you help me find the right size?",
     sizes: ["S", "M", "L", "XL", "2XL", "3XL"],
     colors: ["Indigo", "Ivory", "Sand"],
+  },
+  {
+    id: "pleated-modal-abaya",
+    name: "Pleated Modal Abaya",
+    priceLabel: "₹2,600 onwards",
+    image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
+    primaryTag: "Modest Essence",
+    secondaryTags: { occasion: "Daily presence", emotion: "Grounded", style: "Fluid" },
+    curationLine: "A quieter full-length silhouette with fluid drape and room to breathe.",
+    color: "stone, date, and warm taupe",
+    specs: [
+      ["Fabric", "Premium modal blend with matte finish"],
+      ["Sizes", "S/M, L/XL, XXL"],
+      ["Silhouette", "Front-open abaya with fine pleat detailing"],
+      ["Occasion", "Prayer visits · Travel days · Thoughtful daily wear"],
+      ["Care", "Gentle wash cold · Steam lightly"],
+      ["Verified", "Curated from modestwear ateliers in Dubai"],
+    ],
+    history:
+      "Modal is prized for its soft hand-feel and graceful fall, making it especially suited to modern modest silhouettes that prioritise movement and comfort.",
+    soul: "For the days when you want modesty to feel serene, this abaya keeps every line soft, composed, and deeply personal. 💛",
+    whatsappQuery:
+      "Hi 💛, I would love to know more about the Pleated Modal Abaya on ABDAN.",
+    sizes: ["S/M", "L/XL", "XXL"],
+    colors: ["Stone", "Date", "Warm Taupe"],
   },
   {
     id: "embroidered-festive-dupatta",
@@ -112,7 +128,8 @@ const PRODUCTS = [
     priceLabel: "₹2,800 onwards",
     image: "./assets/embroidered-festive-dupatta.jpg",
     primaryTag: "Festive Glow",
-    secondaryTags: { occasion: "Festive", emotion: "Graceful", style: "Embroidered" },
+    secondaryTags: { occasion: "Celebration dressing", emotion: "Graceful", style: "Embroidered" },
+    curationLine: "Light-catching handwork for weddings, Eid evenings, and warm festive gatherings.",
     color: "shimmering crimson",
     specs: [
       ["Fabric", "Georgette chiffon base"],
@@ -126,9 +143,109 @@ const PRODUCTS = [
       "Zardozi embroidery originated in Persia and was brought to India by Mughal royalty in the 16th century, using metallic threads to create raised patterns.",
     soul: "This is for the woman who lights up every room she walks into — let this sparkle remind you of who you truly are. 💛",
     whatsappQuery:
-      "Hi 💛, I saw the Embroidered Dupatta on ABDAN and I can already imagine wearing it. Could you tell me more?",
+      "Hi 💛, I saw the Embroidered Festive Dupatta on ABDAN and would love to know more about it.",
     sizes: ["Free Size"],
     colors: ["Crimson", "Gold", "Rosewood"],
+  },
+  {
+    id: "tailored-workday-kurta-set",
+    name: "Tailored Workday Kurta Set",
+    priceLabel: "₹2,950 onwards",
+    image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80",
+    primaryTag: "Workflow Elegance",
+    secondaryTags: { occasion: "Work and meetings", emotion: "Assured", style: "Tailored" },
+    curationLine: "Clean tailoring for studio hours, client meetings, and polished daily momentum.",
+    color: "moss, ink, and pearl",
+    specs: [
+      ["Fabric", "Linen-cotton suiting blend"],
+      ["Sizes", "S, M, L, XL, XXL"],
+      ["Set", "Structured kurta + straight pant + optional dupatta"],
+      ["Occasion", "Office days · Meetings · Smart daytime hosting"],
+      ["Care", "Dry clean first wash · Then gentle hand wash"],
+      ["Verified", "Tailored in small-batch workshops in Bengaluru"],
+    ],
+    history:
+      "Contemporary Indian workwear continues to evolve by blending clean tailoring with breathable natural fabrics, creating silhouettes that feel formal without becoming rigid.",
+    soul: "For the woman who leads with quiet confidence, this set keeps the day polished without ever feeling severe. 💛",
+    whatsappQuery:
+      "Hi 💛, I’m interested in the Tailored Workday Kurta Set from ABDAN. Could you help me with sizing and colours?",
+    sizes: ["S", "M", "L", "XL", "XXL"],
+    colors: ["Moss", "Ink", "Pearl"],
+  },
+  {
+    id: "organza-layered-kurta",
+    name: "Organza Layered Kurta",
+    priceLabel: "₹3,400 onwards",
+    image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
+    primaryTag: "Soft Statement",
+    secondaryTags: { occasion: "Small occasions", emotion: "Expressive", style: "Layered" },
+    curationLine: "A softly dramatic layer that makes an impression through shape, not noise.",
+    color: "blush sand and muted rose",
+    specs: [
+      ["Fabric", "Organza overlay with satin-cotton lining"],
+      ["Sizes", "S, M, L, XL"],
+      ["Detail", "Layered sleeves with tonal threadwork"],
+      ["Occasion", "Intimate celebrations · Dinners · Special family visits"],
+      ["Care", "Dry clean preferred"],
+      ["Verified", "Curated from occasionwear ateliers in Hyderabad"],
+    ],
+    history:
+      "Organza remains a favourite for occasionwear because it holds shape lightly, allowing volume and softness to coexist in a distinctly refined way.",
+    soul: "For when you want to feel memorable in the gentlest possible way, this piece lets softness become the statement. 💛",
+    whatsappQuery:
+      "Hi 💛, I’d like more details about the Organza Layered Kurta from ABDAN.",
+    sizes: ["S", "M", "L", "XL"],
+    colors: ["Blush Sand", "Muted Rose", "Ivory"],
+  },
+  {
+    id: "satin-drape-evening-set",
+    name: "Satin Drape Evening Set",
+    priceLabel: "₹3,950 onwards",
+    image: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
+    primaryTag: "Evening Calm",
+    secondaryTags: { occasion: "After-dark grace", emotion: "Luminous", style: "Draped" },
+    curationLine: "Low-light elegance in a softer drape for dinners, visits, and evening prayer gatherings.",
+    color: "midnight blue and soft bronze",
+    specs: [
+      ["Fabric", "Satin-viscose blend with soft sheen"],
+      ["Sizes", "S, M, L, XL"],
+      ["Set", "Long tunic + draped trouser + tonal stole"],
+      ["Occasion", "Dinner hosting · Evening events · Intimate celebrations"],
+      ["Care", "Dry clean or hand wash separately"],
+      ["Verified", "Selected from eveningwear specialists in Mumbai"],
+    ],
+    history:
+      "Soft-sheen evening fabrics are favoured when the goal is refined glow rather than overt shine, allowing light to move quietly across the garment.",
+    soul: "For evenings that ask for peace as much as beauty, this set keeps the atmosphere graceful and deeply at ease. 💛",
+    whatsappQuery:
+      "Hi 💛, could you tell me more about the Satin Drape Evening Set on ABDAN?",
+    sizes: ["S", "M", "L", "XL"],
+    colors: ["Midnight Blue", "Soft Bronze", "Pearl Grey"],
+  },
+  {
+    id: "pearl-detail-occasion-abaya",
+    name: "Pearl Detail Occasion Abaya",
+    priceLabel: "₹4,600 onwards",
+    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80",
+    primaryTag: "Signature Picks",
+    secondaryTags: { occasion: "Occasion highlight", emotion: "Refined", style: "Signature" },
+    curationLine: "A signature full-length piece chosen for its restraint, finish, and lasting presence.",
+    color: "black pearl and warm ivory",
+    specs: [
+      ["Fabric", "Crepe-matte blend with hand-set pearl accents"],
+      ["Sizes", "S/M, L/XL, XXL"],
+      ["Silhouette", "A-line abaya with detachable inner layer"],
+      ["Occasion", "Hosting moments · Eid visits · The pieces you remember"],
+      ["Care", "Spot clean details · Dry clean when needed"],
+      ["Verified", "Finished in limited numbers by occasionwear specialists"],
+    ],
+    history:
+      "Signature occasion pieces often rely on meticulous finishing rather than loud ornament, using texture and proportion to create memorability that lasts beyond the event itself.",
+    soul: "For the woman whose style is remembered because it is measured, this abaya is a beautiful quiet finale. 💛",
+    whatsappQuery:
+      "Hi 💛, I’m interested in the Pearl Detail Occasion Abaya from ABDAN. Could you share more details?",
+    sizes: ["S/M", "L/XL", "XXL"],
+    colors: ["Black Pearl", "Warm Ivory", "Date Brown"],
   },
 ].map((product) => ({ ...product, ...buildProductNarrative(product) }));
 
@@ -259,16 +376,20 @@ function renderProducts() {
   const filteredProducts = state.filter === "All" ? PRODUCTS : PRODUCTS.filter((product) => product.primaryTag === state.filter);
   dom.productsGrid.innerHTML = filteredProducts
     .map(
-      (product) => `
+      (product, index) => `
         <article class="product-card reveal" data-product-card="${product.id}">
           <div class="product-card__media">
             <img src="${product.image}" alt="${product.name}" loading="lazy" />
             <div class="product-card__overlay"></div>
           </div>
           <div class="product-card__content">
-            <p class="section-kicker">${product.primaryTag}</p>
+            <div class="product-card__header">
+              <p class="section-kicker">${product.primaryTag}</p>
+              <span class="product-card__index">${String(index + 1).padStart(2, "0")}</span>
+            </div>
             <h3 class="product-card__title">${product.name}</h3>
             <p class="product-card__description">${buildEditorialExcerpt(product)}</p>
+            <p class="product-card__meta">${product.secondaryTags.occasion}</p>
             <div class="product-card__footer">
               <span class="product-card__price">${product.priceLabel}</span>
               <button class="text-link" type="button" data-preview="${product.id}">View details</button>
