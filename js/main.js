@@ -732,18 +732,14 @@ function initDockObserver() {
 }
 
 function initScrollChrome() {
-  let lastY = window.scrollY;
-  window.addEventListener(
-    "scroll",
-    () => {
-      const currentY = window.scrollY;
-      const hide = currentY > lastY && currentY > 80;
-      dom.siteHeader.classList.toggle("is-hidden", hide);
-      dom.supportPill.classList.toggle("is-hidden", hide);
-      lastY = currentY;
-    },
-    { passive: true },
-  );
+  const updateChrome = () => {
+    const isScrolled = window.scrollY > 18;
+    dom.siteHeader.classList.toggle("is-scrolled", isScrolled);
+    dom.bottomDock.classList.toggle("is-scrolled", isScrolled);
+  };
+
+  updateChrome();
+  window.addEventListener("scroll", updateChrome, { passive: true });
 }
 
 function attachEvents() {
