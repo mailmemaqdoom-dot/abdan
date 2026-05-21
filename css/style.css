@@ -44,6 +44,17 @@
   /* ── Loading system tokens ── */
   --skel-base: rgba(197, 161, 59, 0.07);   /* gold-tinted faint warm */
   --skel-sheen: rgba(255, 253, 248, 0.52); /* light sweep on buttons */
+  /* ── Brand typography system ──────────────────────────────────────
+     --font-display   : Cormorant Garamond — structural headings (closest web
+                        approximation to Abdan Calligraph / luxury calligraphic)
+     --font-editorial : Libre Baskerville — brand-spec tagline font; used italic
+                        for all emotionally charged copy: taglines, soul quotes,
+                        product intros, brand identity moments
+     --font-body      : Open Sans — brand-specified body font; warm humanist
+                        sans vs. the geometric Inter it replaces               */
+  --font-display:  "Cormorant Garamond", Georgia, serif;
+  --font-editorial: "Libre Baskerville", "Baskerville", Georgia, serif;
+  --font-body:      "Open Sans", "Inter", sans-serif;
 }
 
 html[data-theme="dark"] {
@@ -85,7 +96,7 @@ body {
   overscroll-behavior-y: none; /* prevents pull-to-refresh — app-like containment */
   background: var(--bg);
   color: var(--text-main);
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-body);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
@@ -222,6 +233,9 @@ html[data-theme="dark"] .brand-pill {
 }
 
 /* ── Footer text mark ─────────────────────────────────────── */
+/* Playfair Display retained here intentionally: the footer mark is a
+   decorative lettermark ("A" in a circle), not a typographic heading.
+   All structural display usage has been migrated to Cormorant Garamond. */
 .footer-mark {
   background: var(--emerald);
   color: var(--ivory);
@@ -251,7 +265,11 @@ html[data-theme="dark"] .footer-mark {
 .brand-pill small {
   margin-top: 0.2rem;
   font-size: 0.82rem;
-  color: var(--text-main);
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--text-soft);
+  letter-spacing: 0.01em;
 }
 
 .header-actions {
@@ -260,7 +278,15 @@ html[data-theme="dark"] .footer-mark {
   gap: 0.65rem;
 }
 
+/* Admin entry: hidden from customer-facing UI.
+   Access via direct URL navigation: /#admin
+   The JS renderAdminRoute() handles hash-based routing — no link required. */
 .admin-entry {
+  display: none;
+}
+
+/* Restore when admin shell is active — admin navigates to /#admin directly */
+html[data-route="admin"] .admin-entry {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -272,23 +298,10 @@ html[data-theme="dark"] .footer-mark {
   color: var(--text-main);
   text-decoration: none;
   font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.22em;
+  font-weight: 600;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  box-shadow: 0 12px 32px rgba(18, 31, 29, 0.08);
-  backdrop-filter: saturate(128%) blur(14px);
-  -webkit-backdrop-filter: saturate(128%) blur(14px);
-  transition: transform 180ms var(--ease-out), border-color 180ms var(--ease-out), background 180ms var(--ease-out), color 180ms var(--ease-out);
-}
-
-.admin-entry:hover,
-.admin-entry.is-active {
-  border-color: var(--line-strong);
-  color: var(--emerald);
-}
-
-html[data-theme="dark"] .admin-entry {
-  background: rgba(7, 25, 24, 0.9);
+  transition: border-color 180ms var(--ease-out), color 180ms var(--ease-out);
 }
 
 .orb-button {
@@ -650,6 +663,11 @@ html[data-theme="dark"] .dock-link.is-active:hover {
 
 .tagline-label {
   margin: 0 0 1rem;
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.06em; /* reduce from micro-label 0.22em — taglines breathe differently */
+  text-transform: none;   /* override micro-label uppercase — taglines stay sentence case */
 }
 
 .hero-copy h1,
@@ -752,7 +770,8 @@ html[data-theme="dark"] .dock-link.is-active:hover {
   min-height: 3.2rem;
   padding: 0.82rem 1.3rem;
   border-radius: var(--radius-pill);
-  font-weight: 700;
+  font-weight: 600;        /* 700 → 600: more refined for luxury editorial context */
+  letter-spacing: 0.02em;  /* slight tracking lifts perceived quality */
 }
 
 .primary-button {
@@ -881,11 +900,13 @@ html[data-theme="dark"] .trust-rail__inner span {
 }
 
 .promise-band__inner p {
-  margin: 1rem 0 0;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  font-size: 0.75rem;
-  color: rgba(248, 245, 236, 0.8);
+  margin: 1.1rem 0 0;
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 0.92rem;
+  letter-spacing: 0.04em;
+  color: rgba(248, 245, 236, 0.72);
 }
 
 .section-heading {
@@ -1154,8 +1175,10 @@ html[data-theme="dark"] .admin-piece-row {
 }
 
 .collection-curation__lead {
-  font-family: "Playfair Display", serif;
-  font-size: 1.2rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.28rem;
+  letter-spacing: -0.02em;
   color: var(--text-main);
 }
 
@@ -1333,9 +1356,11 @@ html[data-theme="dark"] .product-card__media {
 
 .product-card__title {
   margin: 0.42rem 0 0;
-  font-family: "Playfair Display", serif;
-  font-size: 1.65rem;
-  line-height: 1.18;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.72rem;   /* slightly larger — Cormorant is more refined at this size */
+  line-height: 1.16;
+  letter-spacing: -0.02em;
 }
 
 .product-card__description {
@@ -1999,13 +2024,15 @@ html[data-theme="dark"] .teaser-modal__backdrop {
   white-space: nowrap; /* "Buy now" never wraps */
 }
 
-/* Short emotional hook below the price — italic, muted */
+/* Short emotional hook below the price — Baskerville italic per brand spec */
 .product-intro {
   margin: 0.28rem 0 1.15rem;
-  font-size: 0.96rem;
-  line-height: 1.78;
+  font-family: var(--font-editorial);
+  font-size: 0.95rem;
+  line-height: 1.82;
   color: var(--text-soft);
   font-style: italic;
+  font-weight: 400;
 }
 
 /* Thin divider between above-fold options and below-fold editorial content */
@@ -2150,9 +2177,11 @@ html[data-theme="dark"] .teaser-modal__backdrop {
 
 .product-soul-block p {
   margin: 0;
+  font-family: var(--font-editorial);
   font-size: 0.95rem;
   line-height: 1.88;
   font-style: italic;
+  font-weight: 400;
   color: var(--text-soft);
 }
 
@@ -2229,7 +2258,9 @@ html[data-theme="dark"] .teaser-modal__backdrop {
 
 .footer-tagline {
   margin: 1rem 0 0.45rem;
-  font-family: "Playfair Display", serif;
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-weight: 400;
   font-size: 1.5rem;
   color: var(--cream);
 }
