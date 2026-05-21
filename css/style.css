@@ -696,7 +696,6 @@ html[data-theme="dark"] .dock-link.is-active:hover {
 .footer-stack p,
 .footer-stack span,
 .product-description,
-.product-story-grid p,
 .cart-meta,
 .checkout-form span,
 .checkout-form input,
@@ -2088,23 +2087,73 @@ html[data-theme="dark"] .teaser-modal__backdrop {
   color: var(--emerald);
 }
 
-.product-story-grid {
+/* ─── Editorial story blocks ──────────────────────────────────────── */
+.editorial-story {
+  margin-top: 1.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.editorial-story__label {
+  margin: 0 0 0.6rem;
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.editorial-story__text {
+  margin: 0;
+  font-size: 0.97rem;
+  line-height: 1.9;
+  color: var(--text-soft);
+}
+
+/* ─── Soft moments vignette list ─────────────────────────────────── */
+.editorial-moments {
+  margin: 0;
+  padding: 0;
+  list-style: none;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.9rem;
-  margin-top: 1.2rem;
+  gap: 0.45rem;
 }
 
-.product-story-grid article {
-  padding: 1rem;
-  border-radius: 1rem;
-  border: 1px solid var(--line);
+.editorial-moments li {
+  position: relative;
+  padding: 0.7rem 1rem 0.7rem 2rem;
+  border-radius: 0.8rem;
   background: var(--surface-soft);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text-soft);
 }
 
-.product-story-grid p {
-  margin: 0.52rem 0 0;
-  line-height: 1.8;
+.editorial-moments li::before {
+  content: '✦';
+  position: absolute;
+  left: 0.75rem;
+  top: 0.78rem;
+  font-size: 0.5rem;
+  color: var(--gold);
+  line-height: 1;
+}
+
+/* ─── Soul signature block ────────────────────────────────────────── */
+.product-soul-block {
+  margin-top: 1.75rem;
+  padding: 1.25rem 1.35rem;
+  border-radius: 1.15rem;
+  background: var(--surface-soft);
+  border-left: 2px solid var(--gold);
+}
+
+.product-soul-block p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.88;
+  font-style: italic;
+  color: var(--text-soft);
 }
 
 .share-row {
@@ -2318,8 +2367,7 @@ html[data-theme="dark"] .toast {
 
   .teaser-grid,
   .account-features,
-  .trust-rail__inner,
-  .product-story-grid {
+  .trust-rail__inner {
     grid-template-columns: 1fr 1fr;
   }
 
@@ -2576,8 +2624,7 @@ html[data-theme="dark"] .toast {
 
   /* ─── LAYOUT GRIDS ────────────────────────────────────────────── */
   .teaser-grid,
-  .account-features,
-  .product-story-grid {
+  .account-features {
     grid-template-columns: 1fr;
   }
 
@@ -2771,6 +2818,22 @@ html[data-theme="dark"] .toast {
   /* Divider: compact on mobile */
   .sheet-divider {
     margin: 1rem 0 1rem;
+  }
+
+  /* Editorial story blocks: slightly tighter vertical rhythm on mobile */
+  .editorial-story {
+    margin-top: 1.35rem;
+    padding-top: 1.2rem;
+  }
+
+  .editorial-moments li {
+    font-size: 0.88rem;
+    padding: 0.65rem 0.9rem 0.65rem 1.85rem;
+  }
+
+  .product-soul-block {
+    margin-top: 1.35rem;
+    padding: 1rem 1.1rem;
   }
 
   /* ─── FOOTER ──────────────────────────────────────────────────── */

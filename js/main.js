@@ -98,6 +98,18 @@ const PRODUCTS = [
     soul: "For the woman who pours herself into her days with grace — let this softness hold you in return, just for today. 💛",
     styling:
       "Wear it with simple flats and a slim gold chain so the block print stays the centrepiece. A small jhumka and a lightly pleated dupatta bring it gently towards an afternoon visit without disturbing the calm ease that makes it yours.",
+    reach:
+      "It’s the set you reach for when the day is already long before it has begun — when softness isn’t indulgence but a quiet act of self-care that lets you give more to everyone else.",
+    madeFor:
+      "The woman who rises early and moves through her day with devotion. The one who folds prayer into errands, who is everywhere at once and still carries a calm that others notice and cannot quite name.",
+    pairsBeautifully:
+      "A light dupatta in matching indigo or undyed cotton worn loosely over one shoulder. Small gold jhumkas that catch the light without demanding it. Flat kolhapuris or simple juttis that let the fabric fall the way it wants to.",
+    softMoments: [
+      "A slow tea before anyone else is awake",
+      "The school run when you want to feel like yourself",
+      "A temple visit on an ordinary Tuesday",
+      "An afternoon at someone else’s home, feeling quietly gathered",
+    ],
     whatsappQuery:
       "Hi 💛, I’m interested in the Hand Block Print Kurti Set from ABDAN. Could you help me find the right size?",
     sizes: ["S", "M", "L", "XL", "2XL", "3XL"],
@@ -127,6 +139,18 @@ const PRODUCTS = [
     soul: "For the days when modesty feels like the most personal kind of beauty, this abaya keeps every line soft, composed, and deeply yours. 💛",
     styling:
       "Let the silhouette breathe with tonal layers and a softly draped scarf. Understated leather sandals and a single ring keep the line long and the mood unhurried. It travels beautifully — considered in appearance, effortless in feeling.",
+    reach:
+      "Because some days the gentlest thing you can do for yourself is reach for something that asks nothing of you — no adjustment, no deliberation. Just drape, move, breathe. This abaya understands that.",
+    madeFor:
+      "For the woman who lives inside full and layered days. The one who needs her clothing to be as thoughtful and undemanding as she herself tries to be — who knows that ease is its own kind of elegance.",
+    pairsBeautifully:
+      "A soft scarf in warm beige or dusty olive, draped loosely rather than pinned. Leather slides in tan or cognac. A small wristwatch and nothing more. The abaya already has everything it needs.",
+    softMoments: [
+      "Arriving at Jumu'ah feeling completely held",
+      "A long Friday of visiting and being visited",
+      "Travel days when you need to move and still arrive looking considered",
+      "A quiet afternoon that becomes an evening unexpectedly",
+    ],
     whatsappQuery:
       "Hi 💛, I would love to know more about the Pleated Modal Abaya on ABDAN.",
     sizes: ["S/M", "L/XL", "XXL"],
@@ -156,6 +180,18 @@ const PRODUCTS = [
     soul: "This is for the woman who lights up every gathering — let this sparkle remind you that you were always meant to shine. 💛",
     styling:
       "Drape it over a silk or satin base in ivory or deep gold. Light-catching earrings and a softly pinned bun let the embroidery lead without crowding it. Even worn simply over everyday wear, this dupatta transforms the entire mood of the moment.",
+    reach:
+      "Because there is one evening — or perhaps one afternoon — when you want to shimmer before you've said a word. When you want the room to warm around you simply because you arrived.",
+    madeFor:
+      "For the woman who understands that celebration dressing is an act of generosity. That choosing something beautiful is also how you show up for everyone around you — not just yourself.",
+    pairsBeautifully:
+      "A plain silk or satin kurta in deep ivory, antique gold, or blush. One strand of pearls or a single long earring — never both. Let the dupatta carry the evening entirely on its own.",
+    softMoments: [
+      "Eid morning when the room is already full of warmth",
+      "A mehendi afternoon where everyone is dressed to feel festive",
+      "A wedding day where you are not the bride but you are absolutely noticed",
+      "The dinner gathering that quietly becomes the one you keep thinking about",
+    ],
     whatsappQuery:
       "Hi 💛, I saw the Embroidered Festive Dupatta on ABDAN and would love to know more about it.",
     sizes: ["Free Size"],
@@ -185,6 +221,18 @@ const PRODUCTS = [
     soul: "For the woman who leads with quiet authority — dressed with the same thoughtfulness she brings to everything she does. 💛",
     styling:
       "Pair it with a structured tote, low block heels, and a slim watch. The optional dupatta adds softness to formal meetings without disturbing the tailored line. Keep jewellery restrained — one quiet piece is enough.",
+    reach:
+      "Because confidence at work begins before you enter the room. Choosing something with clean lines and honest tailoring is its own quiet preparation — a signal to yourself that today, you are ready.",
+    madeFor:
+      "For the woman who brings her whole self to her professional life. The one whose presence commands rooms gently, who understands that dressing with care is the first decision in a day full of them.",
+    pairsBeautifully:
+      "A structured tote in tan or dark leather. A simple watch with a clean face. Block heels or leather Oxford-style flats. The optional dupatta folded over one shoulder for moments that need a softer edge.",
+    softMoments: [
+      "The morning of a presentation when everything needs to feel right",
+      "A client meeting where you want your thinking to arrive before you speak",
+      "Friday afternoons that turn into early dinners without a change of clothes",
+      "Work-from-home days when dressing properly changes how you feel by noon",
+    ],
     whatsappQuery:
       "Hi 💛, I’m interested in the Tailored Workday Kurta Set from ABDAN. Could you help me with sizing and colours?",
     sizes: ["S", "M", "L", "XL", "XXL"],
@@ -214,6 +262,18 @@ const PRODUCTS = [
     soul: "For when you want to be remembered in the gentlest possible way — this piece lets softness become the whole statement. 💛",
     styling:
       "Keep the rest of the look restrained: a nude or blush sandal, one fine jewellery piece, and a soft hair arrangement. The organza is already leading the room. Let it.",
+    reach:
+      "Because you have spent enough quiet evenings in the background. Sometimes the gathering is an invitation — not to be loud, but to let the softness speak. This piece reaches back when you reach for it.",
+    madeFor:
+      "For the woman who knows how to be noticed without performing. The one who brings warmth to small gatherings and leaves an impression without needing to announce a thing. She is present. That is enough.",
+    pairsBeautifully:
+      "A fine gold chain — delicate, not layered. A nude or blush sandal with a small heel. Soft loose waves or a simple low bun that keeps the neckline clear and lets the organza do its quiet work.",
+    softMoments: [
+      "A birthday dinner where you want to feel special without being showy",
+      "A close family gathering where the question is always ‘where did you get that?’",
+      "An evening that begins as ordinary and slowly becomes the one you remember",
+      "A celebration where the photographs come back better than you expected",
+    ],
     whatsappQuery:
       "Hi 💛, I’d like more details about the Organza Layered Kurta from ABDAN.",
     sizes: ["S", "M", "L", "XL"],
@@ -243,6 +303,18 @@ const PRODUCTS = [
     soul: "For evenings that deserve peace as much as they deserve beauty — this set holds that feeling long after the gathering ends. 💛",
     styling:
       "Soft metallic earrings and a quiet bangle complement the sheen without competing with it. A low knot or soft plait keeps the neckline clear. A warm, clean lip is all the finish this set needs.",
+    reach:
+      "For the evenings that deserve to be slow. When the light is low and the conversation is warm and you want to feel like the whole night was arranged around you — not loudly, but privately, completely.",
+    madeFor:
+      "For the woman who knows the difference between dressed up and truly dressed. Who hosts with ease and sits across candlelight beautifully. Who understands that the finest evenings ask for calm, not performance.",
+    pairsBeautifully:
+      "A single metallic ear cuff or a long drop earring — one or the other. A fine bangle that moves with the satin. A warm, clean fragrance chosen for the quiet hours. Nothing else. The set carries the evening alone.",
+    softMoments: [
+      "Hosting a dinner where you want everything — including yourself — to feel attended to",
+      "Eid evening visits when the mood is already soft and the night is long",
+      "A quiet anniversary or milestone celebrated slowly at home",
+      "The night you go out and feel, for once, entirely like yourself",
+    ],
     whatsappQuery:
       "Hi 💛, could you tell me more about the Satin Drape Evening Set on ABDAN?",
     sizes: ["S", "M", "L", "XL"],
@@ -272,6 +344,18 @@ const PRODUCTS = [
     soul: "For the woman whose style is remembered because it is thoughtful, measured, and entirely her own. 💛",
     styling:
       "Let this piece be the entire statement. Pearl or simple gold earrings, careful tailoring underneath, and a softly done complexion. Confident posture is the only accessory this abaya truly needs.",
+    reach:
+      "Because there are occasions that deserve the very best of you — not the most decorated, but the most considered. This is the piece you reach for when you want every detail to feel placed with intention.",
+    madeFor:
+      "For the woman who has learned that restraint is the most sophisticated form of beauty. The one whose presence is felt before she speaks, whose style is remembered long after the occasion has ended.",
+    pairsBeautifully:
+      "Simple pearl studs or one small gold ear cuff. A fine string of prayer beads worn softly. Nothing on the wrists so the cuffs fall cleanly. The abaya tells the complete story — accompaniments are only witnesses.",
+    softMoments: [
+      "Eid morning when you want every detail to feel considered and calm",
+      "A walima or nikah gathering where you are arriving as family",
+      "The occasion you have been preparing for quietly for weeks",
+      "A moment when the photograph is taken and you don’t need to look at it to know it was right",
+    ],
     whatsappQuery:
       "Hi 💛, I’m interested in the Pearl Detail Occasion Abaya from ABDAN. Could you share more details?",
     sizes: ["S/M", "L/XL", "XXL"],
@@ -355,6 +439,10 @@ const dom = {
   productFacts: document.getElementById("productFacts"),
   productSoul: document.getElementById("productSoul"),
   productStyling: document.getElementById("productStyling"),
+  productReach: document.getElementById("productReach"),
+  productMadeFor: document.getElementById("productMadeFor"),
+  productPairs: document.getElementById("productPairs"),
+  productMoments: document.getElementById("productMoments"),
   sizeChips: document.getElementById("sizeChips"),
   colorChips: document.getElementById("colorChips"),
   selectedSizeLabel: document.getElementById("selectedSizeLabel"),
@@ -722,6 +810,14 @@ function openProduct(productId) {
   dom.productDescription.textContent = product.description;
   dom.productSoul.textContent = product.soul;
   dom.productStyling.textContent = product.styling;
+  if (dom.productReach) dom.productReach.textContent = product.reach || "";
+  if (dom.productMadeFor) dom.productMadeFor.textContent = product.madeFor || "";
+  if (dom.productPairs) dom.productPairs.textContent = product.pairsBeautifully || "";
+  if (dom.productMoments) {
+    dom.productMoments.innerHTML = (product.softMoments || [])
+      .map((m) => `<li>${m}</li>`)
+      .join("");
+  }
   dom.productFacts.innerHTML = product.specs
     .map(([label, value]) => `<div class="product-fact"><strong>${label}</strong><span>${value}</span></div>`)
     .join("");
