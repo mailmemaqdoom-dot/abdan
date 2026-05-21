@@ -566,7 +566,8 @@ html[data-theme="dark"] .dock-link.is-active:hover {
 }
 
 .section-frame {
-  padding: 2.4rem 0 0;
+  /* Editorial breathing room — space IS the separator between sections */
+  padding: clamp(3.5rem, 6vh, 5.5rem) 0 0;
   scroll-margin-top: 10rem;
 }
 
@@ -2034,15 +2035,29 @@ html[data-theme="dark"] .toast {
   transform: translateX(-50%) translateY(0) scale(1);
 }
 
+/* ─── LIQUID REVEAL ──────────────────────────────────────────────────────
+   Motion is almost invisible by design.
+   translateY(10px) — below the threshold of conscious perception.
+   720ms ease — calmer than a website, closer to editorial print rhythm.
+   The effect should feel like emergence, not animation.                    */
 .reveal {
   opacity: 0;
-  transform: translateY(22px);
-  transition: opacity 560ms var(--ease-out) var(--reveal-delay, 0ms), transform 560ms var(--ease-snap) var(--reveal-delay, 0ms);
+  transform: translateY(10px);
+  transition:
+    opacity  720ms var(--ease-out)  var(--reveal-delay, 0ms),
+    transform 720ms var(--ease-snap) var(--reveal-delay, 0ms);
 }
 
 .reveal.is-visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* Section headings: slightly deeper entrance — anchors the section before
+   content cards emerge. Readers sense the heading arriving first.         */
+.section-heading.reveal {
+  transform: translateY(16px);
+  transition-duration: 860ms, 860ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2265,7 +2280,7 @@ html[data-theme="dark"] .toast {
   }
 
   .section-frame {
-    padding-top: 2rem;
+    padding-top: 2.8rem; /* was 2rem — more editorial breathing on mobile */
     scroll-margin-top: 5.5rem;
   }
 

@@ -548,7 +548,7 @@ function renderProducts() {
 
   /* ── iOS motion: stagger delays + image fade-in ─────────────────────── */
   dom.productsGrid.querySelectorAll(".product-card").forEach((card, i) => {
-    card.style.setProperty("--reveal-delay", `${Math.min(i * 55, 330)}ms`);
+    card.style.setProperty("--reveal-delay", `${Math.min(i * 40, 200)}ms`);
   });
   dom.productsGrid.querySelectorAll(".product-card__media img").forEach((img) => {
     const onLoad = () => img.classList.add("img-loaded");
@@ -998,10 +998,32 @@ function revealElements() {
           }
         });
       },
-      { threshold: 0.12 },
+      /* threshold 0.1: element is 10% visible before reveal fires.
+         rootMargin -3% bottom: shrinks the observable area slightly,
+         so elements trigger when they're more solidly in view —
+         feels deliberate rather than reactive.                       */
+      { threshold: 0.1, rootMargin: "0px 0px -3% 0px" },
     );
   }
   document.querySelectorAll(".reveal:not(.is-visible)").forEach((element) => _revealObserver.observe(element));
+}
+
+/* ── Editorial stagger: grouped cards emerge in reading order ────────────
+   Story / testimonial / teaser cards stagger within their section.
+   Delays are gentle (60-80ms) — subtle enough to feel like breathing,
+   not so dramatic they draw attention to the animation itself.           */
+function applyRevealStagger() {
+  document.querySelectorAll(".story-grid .story-card").forEach((card, i) => {
+    card.style.setProperty("--reveal-delay", `${i * 80}ms`);
+  });
+  document.querySelectorAll(".testimonial-grid .testimonial-card").forEach((card, i) => {
+    card.style.setProperty("--reveal-delay", `${i * 65}ms`);
+  });
+  document.querySelectorAll(".teaser-grid .teaser-card").forEach((card, i) => {
+    card.style.setProperty("--reveal-delay", `${i * 80}ms`);
+  });
+  const accountFeatures = document.querySelector(".account-features");
+  if (accountFeatures) accountFeatures.style.setProperty("--reveal-delay", "100ms");
 }
 
 function updateDockActive(targetId) {
@@ -1158,6 +1180,7 @@ function init() {
   renderFooterContent();
   renderCart();
   attachEvents();
+  applyRevealStagger();
   revealElements();
   initDockObserver();
   initScrollChrome();
