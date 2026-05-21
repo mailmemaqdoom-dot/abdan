@@ -1105,6 +1105,22 @@ function attachEvents() {
     button.addEventListener("click", () => scrollToSection(button.dataset.target || "products"));
   });
 
+  /* ── iOS touch physics: pointer-driven press for product cards ────────
+     Bypasses browser scroll-detection delay so press feedback is instant.
+     Release is handled by removing the class → base spring transition fires. */
+  dom.productsGrid.addEventListener("pointerdown", (event) => {
+    const card = event.target.closest(".product-card");
+    if (!card) return;
+    card.classList.add("is-pressing");
+    const release = () => {
+      card.classList.remove("is-pressing");
+      window.removeEventListener("pointerup", release);
+      window.removeEventListener("pointercancel", release);
+    };
+    window.addEventListener("pointerup", release, { once: true });
+    window.addEventListener("pointercancel", release, { once: true });
+  });
+
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       closeCart();

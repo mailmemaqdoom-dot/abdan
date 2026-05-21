@@ -291,7 +291,7 @@ html[data-theme="dark"] .admin-entry {
   box-shadow: 0 12px 32px rgba(18, 31, 29, 0.08);
   backdrop-filter: saturate(128%) blur(14px);
   -webkit-backdrop-filter: saturate(128%) blur(14px);
-  transition: transform 180ms var(--ease-out), border-color 180ms var(--ease-out), background 180ms var(--ease-out), color 180ms var(--ease-out);
+  transition: transform 280ms var(--ease-spring), border-color 180ms var(--ease-out), background 180ms var(--ease-out), color 180ms var(--ease-out);
 }
 
 html[data-theme="dark"] .orb-button {
@@ -323,27 +323,58 @@ html[data-route="admin"] .admin-shell {
   display: block;
 }
 
-.orb-button:active,
-.primary-button:active,
-.secondary-button:active,
-.text-link:active,
-.filter-chip:active,
-.product-card:active,
-.ghost-button:active,
-.inline-copy:active,
-.option-chip:active,
-.qty-button:active,
-.remove-button:active {
-  transform: scale(0.97);
+/* ─── iOS TOUCH PHYSICS ───────────────────────────────────────────────────
+   Asymmetric timing: instant press (60ms linear) → spring release (see base).
+   Scale values are tuned per element type — restrained, subconscious.        */
+
+.orb-button:active {
+  transform: scale(0.91);
+  transition: transform 55ms linear;   /* circular button: instant depress */
 }
 
-/* dock-link tap: gentle compress — not combined with global 0.97 scale */
-.dock-link:active:not(.is-active) {
+.primary-button:active,
+.secondary-button:active {
+  transform: scale(0.96);
+  transition: transform 60ms linear;   /* pill button: clean compress */
+}
+
+.text-link:active,
+.inline-copy:active {
+  transform: scale(0.97);
+  transition: transform 60ms linear;   /* text elements: barely-there press */
+}
+
+.filter-chip:active {
   transform: scale(0.95);
+  transition: transform 55ms linear;   /* chip: satisfying pop */
+}
+
+.product-card:active {
+  transform: scale(0.98);
+  transition: transform 65ms linear;   /* card: depth without drama */
+}
+
+.ghost-button:active,
+.qty-button:active,
+.remove-button:active {
+  transform: scale(0.95);
+  transition: transform 55ms linear;
+}
+
+.option-chip:active {
+  transform: scale(0.94);
+  transition: transform 50ms linear;   /* size/color chip: crisp tap */
+}
+
+/* dock-link: press distinct from the global set (pill morph context) */
+.dock-link:active:not(.is-active) {
+  transform: scale(0.93);
+  transition: transform 55ms linear;   /* inactive tab: more visible press */
 }
 
 .dock-link.is-active:active {
-  transform: scale(0.97); /* active pill: very subtle press */
+  transform: scale(0.97);
+  transition: transform 60ms linear;   /* active pill: subtle pulse */
 }
 
 .orb-button:hover,
@@ -479,7 +510,7 @@ html[data-theme="dark"] .bottom-dock {
     background 300ms var(--ease-snap),
     color 240ms var(--ease-out),
     box-shadow 300ms var(--ease-out),
-    transform 160ms var(--ease-out);
+    transform 240ms var(--ease-spring);   /* spring release from tap press */
   white-space: nowrap;
   cursor: pointer;
 }
@@ -692,7 +723,13 @@ html[data-theme="dark"] .dock-link.is-active:hover {
   appearance: none;
   border: 1px solid transparent;
   text-decoration: none;
-  transition: transform 160ms var(--ease-out), background 200ms var(--ease-out), color 200ms var(--ease-out), border-color 200ms var(--ease-out), box-shadow 200ms var(--ease-out), opacity 160ms var(--ease-out);
+  transition:
+    transform 280ms var(--ease-spring),      /* release: spring back from press */
+    background 200ms var(--ease-out),
+    color 200ms var(--ease-out),
+    border-color 200ms var(--ease-out),
+    box-shadow 240ms var(--ease-out),
+    opacity 180ms var(--ease-out);
 }
 
 .primary-button,
@@ -1198,8 +1235,8 @@ html[data-theme="dark"] .filter-chip.is-active {
   flex-direction: column;
   min-height: 100%;
   background: linear-gradient(180deg, color-mix(in srgb, var(--card-bg) 96%, #ffffff 4%) 0%, var(--card-bg) 100%);
-  transition: transform 300ms var(--ease-snap), border-color 280ms var(--ease-out), box-shadow 300ms var(--ease-out);
-  backface-visibility: hidden; /* GPU compositing hint — smooth lift animation */
+  transition: transform 340ms var(--ease-spring), border-color 280ms var(--ease-out), box-shadow 300ms var(--ease-out);
+  backface-visibility: hidden; /* GPU compositing hint — smooth lift / press release */
 }
 
 .product-card:hover {
@@ -1208,11 +1245,20 @@ html[data-theme="dark"] .filter-chip.is-active {
   box-shadow: var(--shadow-lift);
 }
 
+/* JS-driven touch press — bypasses browser scroll-detection delay on iOS */
+.product-card.is-pressing {
+  transform: scale(0.978) translateY(1px);
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-lift);
+  transition: transform 65ms linear, border-color 65ms linear, box-shadow 65ms linear;
+}
+
 @media (hover: none) {
   .product-card:active {
-    transform: scale(0.97);
+    transform: scale(0.978) translateY(1px);
     border-color: var(--line-strong);
     box-shadow: var(--shadow-lift);
+    transition: transform 65ms linear, border-color 65ms linear, box-shadow 65ms linear;
   }
 }
 
@@ -1752,7 +1798,7 @@ html[data-theme="dark"] .upi-box {
   background: var(--chip-bg);
   color: var(--text-main);
   font-weight: 700;
-  transition: transform 180ms var(--ease-out), border-color 180ms var(--ease-out), background 180ms var(--ease-out), color 180ms var(--ease-out);
+  transition: transform 260ms var(--ease-spring), border-color 180ms var(--ease-out), background 180ms var(--ease-out), color 180ms var(--ease-out);
 }
 
 .option-chip.is-selected {
@@ -2091,7 +2137,7 @@ html[data-theme="dark"] .toast {
       color 240ms var(--ease-out),
       padding 300ms var(--ease-snap),
       box-shadow 280ms var(--ease-out),
-      transform 160ms var(--ease-out);
+      transform 240ms var(--ease-spring);  /* spring release from tap press */
   }
 
   .dock-link svg {
