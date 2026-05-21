@@ -461,7 +461,7 @@ function renderAdminRoute() {
   if (!adminRoute) return;
 
   window.scrollTo({ top: 0 });
-  dom.body.classList.remove("is-locked");
+  dom.body.classList.remove("is-locked", "has-overlay");
   closeCart();
   closeProduct();
   closeTeaser();
@@ -628,6 +628,15 @@ function renderOptionChips(container, values, selectedValue, onClick) {
   });
 }
 
+/* ── Overlay depth: body class drives support-pill fade + future depth hooks */
+function updateOverlayState() {
+  const anyOpen =
+    dom.cartDrawer.classList.contains("is-open") ||
+    dom.productSheet.classList.contains("is-open") ||
+    dom.teaserModal.classList.contains("is-open");
+  dom.body.classList.toggle("has-overlay", anyOpen);
+}
+
 function openProduct(productId) {
   const product = PRODUCTS.find((item) => item.id === productId);
   if (!product) return;
@@ -665,6 +674,7 @@ function openProduct(productId) {
   dom.productSheet.classList.add("is-open");
   dom.productSheet.setAttribute("aria-hidden", "false");
   dom.body.classList.add("is-locked");
+  updateOverlayState();
   safeCreateIcons();
 }
 
@@ -674,6 +684,7 @@ function closeProduct() {
   if (!dom.cartDrawer.classList.contains("is-open") && !dom.teaserModal.classList.contains("is-open")) {
     dom.body.classList.remove("is-locked");
   }
+  updateOverlayState();
 }
 
 function renderCart() {
@@ -781,6 +792,7 @@ function openCart() {
   dom.cartDrawer.classList.add("is-open");
   dom.cartDrawer.setAttribute("aria-hidden", "false");
   dom.body.classList.add("is-locked");
+  updateOverlayState();
 }
 
 function closeCart() {
@@ -789,6 +801,7 @@ function closeCart() {
   if (!dom.productSheet.classList.contains("is-open") && !dom.teaserModal.classList.contains("is-open")) {
     dom.body.classList.remove("is-locked");
   }
+  updateOverlayState();
 }
 
 function toggleBagCheckout() {
@@ -962,6 +975,7 @@ function openTeaser(key) {
   dom.teaserModal.classList.add("is-open");
   dom.teaserModal.setAttribute("aria-hidden", "false");
   dom.body.classList.add("is-locked");
+  updateOverlayState();
 }
 
 function closeTeaser() {
@@ -970,6 +984,7 @@ function closeTeaser() {
   if (!dom.productSheet.classList.contains("is-open") && !dom.cartDrawer.classList.contains("is-open")) {
     dom.body.classList.remove("is-locked");
   }
+  updateOverlayState();
 }
 
 function revealElements() {

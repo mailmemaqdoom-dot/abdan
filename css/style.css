@@ -89,6 +89,12 @@ body.is-locked {
   overflow: hidden;
 }
 
+/* ── Overlay depth: support pill recedes when any modal is open ───────── */
+body.has-overlay .support-pill {
+  opacity: 0;
+  pointer-events: none;
+}
+
 a,
 button,
 input,
@@ -427,7 +433,7 @@ html[data-theme="dark"] .cart-count {
   color: var(--text-main);
   backdrop-filter: saturate(128%) blur(14px);
   -webkit-backdrop-filter: saturate(128%) blur(14px);
-  transition: transform 240ms var(--ease-spring), border-color 180ms var(--ease-out), background 180ms var(--ease-out), box-shadow 240ms var(--ease-out);
+  transition: transform 240ms var(--ease-spring), border-color 180ms var(--ease-out), background 180ms var(--ease-out), box-shadow 240ms var(--ease-out), opacity 280ms var(--ease-out);
 }
 
 .support-pill:hover {
@@ -1471,7 +1477,30 @@ html[data-theme="dark"] .product-card__media {
 }
 
 .cart-drawer {
-  background: rgba(9, 18, 18, 0.2);
+  background: transparent; /* scrim handled by ::before pseudo-element */
+}
+
+/* Animated blurred scrim — fades in with backdrop-filter on open */
+.cart-drawer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 8, 8, 0.38);
+  backdrop-filter: saturate(60%) blur(8px);
+  -webkit-backdrop-filter: saturate(60%) blur(8px);
+  opacity: 0;
+  /* Close direction: slight delay so panel slides away first */
+  transition: opacity 300ms var(--ease-out) 60ms;
+}
+
+.cart-drawer.is-open::before {
+  opacity: 1;
+  /* Open direction: scrim appears immediately */
+  transition: opacity 380ms var(--ease-out) 0ms;
+}
+
+html[data-theme="dark"] .cart-drawer::before {
+  background: rgba(0, 0, 0, 0.58);
 }
 
 .cart-drawer__panel {
@@ -1482,10 +1511,11 @@ html[data-theme="dark"] .product-card__media {
   flex-direction: column;
   background: var(--surface-strong);
   border-left: 1px solid var(--line);
-  box-shadow: var(--shadow-lift);
+  box-shadow: -24px 0 80px rgba(2, 8, 8, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.04);
   transform: translateX(100%);
-  transition: transform 360ms var(--ease-snap);
+  transition: transform 380ms var(--ease-snap);
   will-change: transform; /* GPU compositing for smooth slide-in */
+  z-index: 1; /* above the ::before scrim */
 }
 
 .cart-drawer.is-open .cart-drawer__panel {
@@ -1688,7 +1718,24 @@ html[data-theme="dark"] .upi-box {
 .teaser-modal__backdrop {
   position: absolute;
   inset: 0;
-  background: var(--overlay);
+  background: rgba(2, 8, 8, 0.46);
+  backdrop-filter: saturate(50%) blur(20px);
+  -webkit-backdrop-filter: saturate(50%) blur(20px);
+  opacity: 0;
+  /* Close direction: delay so panel exits first, then scrim dissolves */
+  transition: opacity 280ms var(--ease-out) 120ms;
+}
+
+html[data-theme="dark"] .product-sheet__backdrop,
+html[data-theme="dark"] .teaser-modal__backdrop {
+  background: rgba(0, 0, 0, 0.68);
+}
+
+.product-sheet.is-open .product-sheet__backdrop,
+.teaser-modal.is-open .teaser-modal__backdrop {
+  opacity: 1;
+  /* Open direction: scrim blooms immediately, panel rises through it */
+  transition: opacity 420ms var(--ease-out) 0ms;
 }
 
 .product-sheet__panel,
@@ -1705,10 +1752,11 @@ html[data-theme="dark"] .upi-box {
   overflow: hidden;
   border-radius: 1.8rem;
   background: var(--surface-strong);
-  transform: translateY(24px) scale(0.982);
+  transform: translateY(32px) scale(0.975);
   opacity: 0;
-  transition: transform 380ms var(--ease-snap), opacity 300ms var(--ease-out);
+  transition: transform 420ms var(--ease-snap) 60ms, opacity 320ms var(--ease-out) 60ms;
   will-change: transform, opacity; /* GPU compositing for spring entrance */
+  box-shadow: 0 40px 120px rgba(2, 8, 8, 0.28), 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .product-sheet.is-open .product-sheet__panel,
@@ -2350,7 +2398,8 @@ html[data-theme="dark"] .toast {
     grid-template-rows: auto 1fr;
     transform: translateY(100%);
     opacity: 1;
-    transition: transform 440ms var(--ease-snap); /* premium bottom-sheet spring */
+    box-shadow: 0 -24px 80px rgba(2, 8, 8, 0.24), 0 -1px 0 rgba(255, 255, 255, 0.08);
+    transition: transform 460ms var(--ease-snap); /* premium bottom-sheet spring */
     will-change: transform;
   }
 
