@@ -1776,12 +1776,58 @@ html[data-theme="dark"] .teaser-modal__backdrop {
   object-fit: cover;
 }
 
+/* ─── Product sheet body — flex column: scrollable content + fixed CTA ── */
+.product-sheet__body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* clip so CTA bar stays pinned at bottom */
+  min-height: 0;   /* allow flex child to shrink in the grid cell */
+}
+
 .product-sheet__content {
   position: relative;
+  flex: 1;
+  min-height: 0;           /* critical: allows flex shrink below content height */
   overflow-y: auto;
-  padding: 1.45rem 1.45rem 1.55rem;
-  -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
-  overscroll-behavior: contain; /* prevent scroll chain to body */
+  padding: 1.45rem 1.45rem 1rem;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Sticky CTA bar — pinned at the bottom of the body column */
+.product-sheet__actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.45rem 1.2rem;
+  border-top: 1px solid var(--line);
+  background: var(--surface-strong);
+  backdrop-filter: saturate(120%) blur(8px);
+  -webkit-backdrop-filter: saturate(120%) blur(8px);
+}
+
+.product-sheet__actions .primary-button {
+  flex: 1; /* stretches to fill available width */
+}
+
+.product-sheet__actions .secondary-button {
+  white-space: nowrap; /* "Buy now" never wraps */
+}
+
+/* Short emotional hook below the price — italic, muted */
+.product-intro {
+  margin: 0.28rem 0 1.15rem;
+  font-size: 0.96rem;
+  line-height: 1.78;
+  color: var(--text-soft);
+  font-style: italic;
+}
+
+/* Thin divider between above-fold options and below-fold editorial content */
+.sheet-divider {
+  height: 1px;
+  background: var(--line);
+  margin: 1.4rem 0 1.35rem;
 }
 
 .product-sheet__close,
@@ -2311,10 +2357,14 @@ html[data-theme="dark"] .toast {
 
   /* ─── INTERACTIONS ────────────────────────────────────────────── */
   .hero-actions,
-  .payment-actions,
-  .sheet-actions {
+  .payment-actions {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  /* product-sheet__actions: side-by-side on mobile (add-to-bag fills, buy-now is compact) */
+  .product-sheet__actions {
+    flex-direction: row;
   }
 
   .trust-mini {
@@ -2450,18 +2500,24 @@ html[data-theme="dark"] .toast {
     align-items: flex-end;
   }
 
+  /* ── Key fix: explicit grid rows cap the image at 42svh ──────────
+     Before: grid-template-rows:auto 1fr let the portrait image use
+     its intrinsic ratio, consuming ~60% of the screen. Content was
+     crushed into ~40% — barely enough for 2 lines of text.
+     After: 42svh image | remaining space for body (content + CTA).
+     On a 812px phone: image≈341px, panel≈753px, body≈412px.        */
   .product-sheet__panel {
     width: 100%;
-    height: 92svh;
-    max-height: 92svh;
+    height: 94svh;
+    max-height: 94svh;
     margin: 0;
     border-radius: 1.6rem 1.6rem 0 0;
     grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
+    grid-template-rows: 42svh 1fr; /* explicit cap — the core fix */
     transform: translateY(100%);
     opacity: 1;
     box-shadow: 0 -24px 80px rgba(2, 8, 8, 0.24), 0 -1px 0 rgba(255, 255, 255, 0.08);
-    transition: transform 460ms var(--ease-snap); /* premium bottom-sheet spring */
+    transition: transform 460ms var(--ease-snap);
     will-change: transform;
   }
 
@@ -2488,16 +2544,18 @@ html[data-theme="dark"] .toast {
     opacity: 1;
   }
 
+  /* Image: explicit height matches the grid row — fills it with cover */
   .product-sheet__media {
-    min-height: 46vw;
+    height: 42svh;
+    min-height: unset; /* override previous min-height: 46vw */
   }
 
-  /* Close button: frosted, always visible over image */
+  /* Close button: frosted pill, legible over image in all conditions */
   .product-sheet__close {
-    background: rgba(248, 245, 236, 0.9);
+    background: rgba(248, 245, 236, 0.88);
     border-color: rgba(2, 61, 58, 0.12);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
   html[data-theme="dark"] .product-sheet__close {
@@ -2505,8 +2563,27 @@ html[data-theme="dark"] .toast {
     border-color: rgba(230, 223, 203, 0.15);
   }
 
+  /* Content: tighter, breathable padding on mobile */
   .product-sheet__content {
-    padding: 1.25rem 1.15rem 2.5rem;
+    padding: 1.1rem 1.15rem 0.65rem;
+  }
+
+  /* CTA bar: safe-area padding for devices with home indicators */
+  .product-sheet__actions {
+    padding: 0.8rem 1.15rem;
+    padding-bottom: max(0.8rem, env(safe-area-inset-bottom));
+    gap: 0.6rem;
+  }
+
+  /* Intro hook: slightly tighter on mobile */
+  .product-intro {
+    margin-bottom: 0.85rem;
+    font-size: 0.9rem;
+  }
+
+  /* Divider: compact on mobile */
+  .sheet-divider {
+    margin: 1rem 0 1rem;
   }
 
   /* ─── FOOTER ──────────────────────────────────────────────────── */

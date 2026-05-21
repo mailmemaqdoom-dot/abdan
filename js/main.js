@@ -93,9 +93,13 @@ const PRODUCTS = [
     ],
     history:
       "Hand block printing is a 4,500-year-old Indian textile art. Each wooden block is hand-carved and pressed onto fabric with practiced precision.",
-    soul: "This is for the woman who nurtures everyone through long days — let this softness hold you back, just for today. 💛",
+    description:
+      "There are mornings when the day begins before sunrise — when you are already giving before the world has woken up. This kurti set was chosen for those mornings. The hand-block printing is ancient, patient work, pressed by Jaipur artisans whose hands understand the weight of each stamp. In soft indigo and ivory, it carries a quiet radiance that feels composed without effort — the kind of ease that holds you gently through a full, devoted day.",
+    soul: "For the woman who pours herself into her days with grace — let this softness hold you in return, just for today. 💛",
+    styling:
+      "Wear it with simple flats and a slim gold chain so the block print stays the centrepiece. A small jhumka and a lightly pleated dupatta bring it gently towards an afternoon visit without disturbing the calm ease that makes it yours.",
     whatsappQuery:
-      "Hi 💛, I'm interested in the Hand Block Print Kurti Set from ABDAN. Could you help me find the right size?",
+      "Hi 💛, I’m interested in the Hand Block Print Kurti Set from ABDAN. Could you help me find the right size?",
     sizes: ["S", "M", "L", "XL", "2XL", "3XL"],
     colors: ["Indigo", "Ivory", "Sand"],
   },
@@ -118,7 +122,11 @@ const PRODUCTS = [
     ],
     history:
       "Modal is prized for its soft hand-feel and graceful fall, making it especially suited to modern modest silhouettes that prioritise movement and comfort.",
-    soul: "For the days when you want modesty to feel serene, this abaya keeps every line soft, composed, and deeply personal. 💛",
+    description:
+      "Some garments hold stillness in their fabric. This pleated abaya is one of those. Cut from a premium modal blend that settles softly and falls without effort, it moves with you through a prayer visit, a family lunch, and an unplanned errand — and looks considered through all three. The matte finish is deliberate: it keeps the mood serene, the silhouette long, and the attention where it belongs.",
+    soul: "For the days when modesty feels like the most personal kind of beauty, this abaya keeps every line soft, composed, and deeply yours. 💛",
+    styling:
+      "Let the silhouette breathe with tonal layers and a softly draped scarf. Understated leather sandals and a single ring keep the line long and the mood unhurried. It travels beautifully — considered in appearance, effortless in feeling.",
     whatsappQuery:
       "Hi 💛, I would love to know more about the Pleated Modal Abaya on ABDAN.",
     sizes: ["S/M", "L/XL", "XXL"],
@@ -142,8 +150,12 @@ const PRODUCTS = [
       ["Verified", "Handcrafted by Lucknow zardozi artisans"],
     ],
     history:
-      "Zardozi embroidery originated in Persia and was brought to India by Mughal royalty in the 16th century, using metallic threads to create raised patterns.",
-    soul: "This is for the woman who lights up every room she walks into — let this sparkle remind you of who you truly are. 💛",
+      "Zardozi embroidery was brought to India by Mughal royalty in the 16th century, using metallic threads to create raised patterns of lasting beauty.",
+    description:
+      "This dupatta carries centuries of Lucknow into the room with you. Zardozi embroidery was once reserved for royalty — metallic threads pressed onto fabric with an intimacy that no machine can replicate. The georgette chiffon base keeps it weightless even as the borders catch the light, and in shimmering crimson, every room becomes a little warmer when you enter it. It is the kind of piece that other women ask about at celebrations.",
+    soul: "This is for the woman who lights up every gathering — let this sparkle remind you that you were always meant to shine. 💛",
+    styling:
+      "Drape it over a silk or satin base in ivory or deep gold. Light-catching earrings and a softly pinned bun let the embroidery lead without crowding it. Even worn simply over everyday wear, this dupatta transforms the entire mood of the moment.",
     whatsappQuery:
       "Hi 💛, I saw the Embroidered Festive Dupatta on ABDAN and would love to know more about it.",
     sizes: ["Free Size"],
@@ -167,8 +179,12 @@ const PRODUCTS = [
       ["Verified", "Tailored in small-batch workshops in Bengaluru"],
     ],
     history:
-      "Contemporary Indian workwear continues to evolve by blending clean tailoring with breathable natural fabrics, creating silhouettes that feel formal without becoming rigid.",
-    soul: "For the woman who leads with quiet confidence, this set keeps the day polished without ever feeling severe. 💛",
+      "Contemporary Indian workwear blends clean tailoring with breathable natural fabrics, creating silhouettes that feel formal without becoming rigid.",
+    description:
+      "There is a particular confidence that comes not from loudness but from order — from knowing that what you are wearing reflects the same care you bring to everything else. This kurta set, cut from a linen-cotton suiting blend in Bengaluru workshops, was chosen for exactly that feeling. The tailoring is clean, the lines are measured, and the three colourways are selected to feel polished without performing. A set that holds its shape through a full and purposeful working day.",
+    soul: "For the woman who leads with quiet authority — dressed with the same thoughtfulness she brings to everything she does. 💛",
+    styling:
+      "Pair it with a structured tote, low block heels, and a slim watch. The optional dupatta adds softness to formal meetings without disturbing the tailored line. Keep jewellery restrained — one quiet piece is enough.",
     whatsappQuery:
       "Hi 💛, I’m interested in the Tailored Workday Kurta Set from ABDAN. Could you help me with sizing and colours?",
     sizes: ["S", "M", "L", "XL", "XXL"],
@@ -192,8 +208,12 @@ const PRODUCTS = [
       ["Verified", "Curated from occasionwear ateliers in Hyderabad"],
     ],
     history:
-      "Organza remains a favourite for occasionwear because it holds shape lightly, allowing volume and softness to coexist in a distinctly refined way.",
-    soul: "For when you want to feel memorable in the gentlest possible way, this piece lets softness become the statement. 💛",
+      "Organza holds shape lightly, allowing volume and softness to coexist in a distinctly refined way — favoured for occasions that ask for presence without weight.",
+    description:
+      "There are moments that ask you to be noticed — a birthday dinner, an intimate celebration, the afternoon that turns unexpectedly beautiful. This organza layered kurta was made for those moments. The layered sleeves carry a soft volume that moves as you do, and the tonal threadwork catches light in a way that feels deliberate without being obvious. It is expressive without effort — the kind of piece that makes the evening feel curated around it.",
+    soul: "For when you want to be remembered in the gentlest possible way — this piece lets softness become the whole statement. 💛",
+    styling:
+      "Keep the rest of the look restrained: a nude or blush sandal, one fine jewellery piece, and a soft hair arrangement. The organza is already leading the room. Let it.",
     whatsappQuery:
       "Hi 💛, I’d like more details about the Organza Layered Kurta from ABDAN.",
     sizes: ["S", "M", "L", "XL"],
@@ -217,8 +237,12 @@ const PRODUCTS = [
       ["Verified", "Selected from eveningwear specialists in Mumbai"],
     ],
     history:
-      "Soft-sheen evening fabrics are favoured when the goal is refined glow rather than overt shine, allowing light to move quietly across the garment.",
-    soul: "For evenings that ask for peace as much as beauty, this set keeps the atmosphere graceful and deeply at ease. 💛",
+      "Soft-sheen fabrics bring a luminous quality to evening wear — warmth and depth without the loudness of full sequin or metallic work.",
+    description:
+      "The finest evening pieces are those that glow without trying — that bring warmth to a dim room without announcing themselves the moment you enter it. This satin-viscose set does exactly that. The long tunic falls with a composed weight, the draped trouser keeps the silhouette fluid, and the tonal stole completes the look as though it was always part of you. In midnight blue or soft bronze, it holds the mood of an evening that is allowed to be slow, beautiful, and unhurried.",
+    soul: "For evenings that deserve peace as much as they deserve beauty — this set holds that feeling long after the gathering ends. 💛",
+    styling:
+      "Soft metallic earrings and a quiet bangle complement the sheen without competing with it. A low knot or soft plait keeps the neckline clear. A warm, clean lip is all the finish this set needs.",
     whatsappQuery:
       "Hi 💛, could you tell me more about the Satin Drape Evening Set on ABDAN?",
     sizes: ["S", "M", "L", "XL"],
@@ -242,14 +266,20 @@ const PRODUCTS = [
       ["Verified", "Finished in limited numbers by occasionwear specialists"],
     ],
     history:
-      "Signature occasion pieces often rely on meticulous finishing rather than loud ornament, using texture and proportion to create memorability that lasts beyond the event itself.",
-    soul: "For the woman whose style is remembered because it is measured, this abaya is a beautiful quiet finale. 💛",
+      "Signature occasion pieces rely on meticulous finishing rather than loud ornament — texture, proportion, and restraint create memorability that outlasts any single event.",
+    description:
+      "Some occasions ask for a presence that is measured, composed, and quietly unforgettable. This abaya answers that call. The hand-set pearl accents are placed onto a crepe-matte blend that absorbs light beautifully — adding warmth and dimension without sparkle. The A-line silhouette is proportioned for modesty and ease, and the detachable inner layer means it adapts gracefully between different environments. Finished in limited numbers by specialists who understand that the quietest things endure the longest.",
+    soul: "For the woman whose style is remembered because it is thoughtful, measured, and entirely her own. 💛",
+    styling:
+      "Let this piece be the entire statement. Pearl or simple gold earrings, careful tailoring underneath, and a softly done complexion. Confident posture is the only accessory this abaya truly needs.",
     whatsappQuery:
       "Hi 💛, I’m interested in the Pearl Detail Occasion Abaya from ABDAN. Could you share more details?",
     sizes: ["S/M", "L/XL", "XXL"],
     colors: ["Black Pearl", "Warm Ivory", "Date Brown"],
   },
-].map((product) => ({ ...product, ...buildProductNarrative(product) }));
+  /* Product fields (description, soul, styling) override buildProductNarrative fallbacks.
+     Spread order: generated fallback first, product’s own fields win. */
+].map((product) => ({ ...buildProductNarrative(product), ...product }));
 
 const FAQS = [
   ["How is each piece selected?", "Every piece is handpicked and verified by our team before we list it for you."],
@@ -320,6 +350,7 @@ const dom = {
   productTag: document.getElementById("productTag"),
   productName: document.getElementById("productName"),
   productPrice: document.getElementById("productPrice"),
+  productIntro: document.getElementById("productIntro"),
   productDescription: document.getElementById("productDescription"),
   productFacts: document.getElementById("productFacts"),
   productSoul: document.getElementById("productSoul"),
@@ -670,6 +701,7 @@ function openProduct(productId) {
   dom.productTag.textContent = product.primaryTag;
   dom.productName.textContent = product.name;
   dom.productPrice.textContent = product.priceLabel;
+  if (dom.productIntro) dom.productIntro.textContent = product.curationLine || "";
   dom.productDescription.textContent = product.description;
   dom.productSoul.textContent = product.soul;
   dom.productStyling.textContent = product.styling;
@@ -690,6 +722,10 @@ function openProduct(productId) {
   dom.selectedColorLabel.textContent = state.selectedColor || "Select";
   dom.productCheckoutPanel.hidden = true;
   renderShareButtons(product);
+
+  /* Reset scroll so every open starts from the top of the content area */
+  const contentEl = dom.productSheet.querySelector(".product-sheet__content");
+  if (contentEl) contentEl.scrollTop = 0;
 
   dom.productSheet.classList.add("is-open");
   dom.productSheet.setAttribute("aria-hidden", "false");

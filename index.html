@@ -524,101 +524,118 @@
           <i data-lucide="x"></i>
         </button>
 
+        <!-- Image — capped at 42svh on mobile, fills left column on desktop -->
         <div class="product-sheet__media">
           <img id="productImage" src="" alt="" loading="lazy" />
         </div>
 
-        <div class="product-sheet__content">
-          <p class="micro-label" id="productTag"></p>
-          <h2 id="productName"></h2>
-          <p class="product-price" id="productPrice"></p>
-          <p class="product-description" id="productDescription"></p>
+        <!-- Body: flex column → scrollable content + sticky CTA bar -->
+        <div class="product-sheet__body">
 
-          <div class="product-facts" id="productFacts"></div>
+          <div class="product-sheet__content">
+            <!-- Identity — always visible at top of content area -->
+            <p class="micro-label" id="productTag"></p>
+            <h2 id="productName"></h2>
+            <p class="product-price" id="productPrice"></p>
 
-          <div class="option-group">
-            <div class="option-head">
-              <span>Size</span>
-              <small id="selectedSizeLabel"></small>
+            <!-- Short emotional hook — curationLine, italicised -->
+            <p class="product-intro" id="productIntro"></p>
+
+            <!-- Size + colour — above the fold so user can act immediately -->
+            <div class="option-group">
+              <div class="option-head">
+                <span>Size</span>
+                <small id="selectedSizeLabel"></small>
+              </div>
+              <div class="chip-row" id="sizeChips"></div>
             </div>
-            <div class="chip-row" id="sizeChips"></div>
-          </div>
 
-          <div class="option-group">
-            <div class="option-head">
-              <span>Colour</span>
-              <small id="selectedColorLabel"></small>
+            <div class="option-group">
+              <div class="option-head">
+                <span>Colour</span>
+                <small id="selectedColorLabel"></small>
+              </div>
+              <div class="chip-row" id="colorChips"></div>
             </div>
-            <div class="chip-row" id="colorChips"></div>
-          </div>
 
-          <div class="product-story-grid">
-            <article>
-              <span class="micro-label">Why it matters</span>
-              <p id="productSoul"></p>
-            </article>
-            <article>
-              <span class="micro-label">Styling note</span>
-              <p id="productStyling"></p>
-            </article>
-          </div>
+            <!-- Below the fold: editorial content — revealed on first scroll -->
+            <div class="sheet-divider"></div>
 
-          <div class="sheet-actions">
+            <p class="product-description" id="productDescription"></p>
+
+            <div class="product-facts" id="productFacts"></div>
+
+            <div class="product-story-grid">
+              <article>
+                <span class="micro-label">What she feels</span>
+                <p id="productSoul"></p>
+              </article>
+              <article>
+                <span class="micro-label">How to wear it</span>
+                <p id="productStyling"></p>
+              </article>
+            </div>
+
+            <div class="share-row">
+              <span class="micro-label">Share this style</span>
+              <div id="shareButtons" class="share-buttons"></div>
+            </div>
+
+            <!-- Checkout panel — revealed when user taps "Buy now" -->
+            <div class="checkout-panel" id="productCheckoutPanel" hidden>
+              <div class="checkout-panel__intro">
+                <p class="micro-label">Complete your order</p>
+                <h3>A few quiet details</h3>
+                <p>ABDAN will confirm your selection personally before anything is dispatched.</p>
+              </div>
+
+              <form class="checkout-form" id="productCheckoutForm">
+                <label>
+                  <span>Name</span>
+                  <input type="text" name="name" placeholder="Your name" required />
+                </label>
+                <label>
+                  <span>Phone</span>
+                  <input type="tel" name="phone" placeholder="Your phone number" required />
+                </label>
+                <label>
+                  <span>Email</span>
+                  <input type="email" name="email" placeholder="Your email (optional)" />
+                </label>
+                <label>
+                  <span>Notes</span>
+                  <textarea name="notes" rows="3" placeholder="Anything ABDAN should know?"></textarea>
+                </label>
+              </form>
+
+              <div class="payment-actions">
+                <button type="button" class="primary-button" id="productRazorpayButton">Pay with Razorpay</button>
+                <button type="button" class="secondary-button" id="productUpiButton">Pay by UPI</button>
+              </div>
+
+              <div class="payment-block">
+                <div class="payment-block__copy">
+                  <p class="micro-label">Manual UPI option</p>
+                  <p class="payment-text">
+                    Transfer directly with the ABDAN UPI ID, then confirm via WhatsApp.
+                    Every payment is verified with care before dispatch.
+                  </p>
+                </div>
+                <div class="upi-box">
+                  <span id="upiIdLabel">mailme.maqdoom@okhdfcbank</span>
+                  <button type="button" class="inline-copy" data-copy-upi>Copy</button>
+                </div>
+              </div>
+            </div>
+          </div><!-- /.product-sheet__content -->
+
+          <!-- Sticky CTA — outside scroll area, always visible at bottom of panel -->
+          <div class="product-sheet__actions">
             <button type="button" class="primary-button" id="addToCartButton">Add to bag</button>
-            <button type="button" class="secondary-button" id="toggleProductCheckout">Open checkout</button>
+            <button type="button" class="secondary-button" id="toggleProductCheckout">Buy now</button>
           </div>
 
-          <div class="checkout-panel" id="productCheckoutPanel" hidden>
-            <div class="checkout-panel__intro">
-              <p class="micro-label">Payment</p>
-              <h3>Finish with confidence</h3>
-              <p>Choose your payment path and ABDAN will stay with you until confirmation.</p>
-            </div>
-
-            <form class="checkout-form" id="productCheckoutForm">
-              <label>
-                <span>Name</span>
-                <input type="text" name="name" placeholder="Your name" required />
-              </label>
-              <label>
-                <span>Phone</span>
-                <input type="tel" name="phone" placeholder="Your phone number" required />
-              </label>
-              <label>
-                <span>Email</span>
-                <input type="email" name="email" placeholder="Your email (optional)" />
-              </label>
-              <label>
-                <span>Notes</span>
-                <textarea name="notes" rows="3" placeholder="Anything ABDAN should know?"></textarea>
-              </label>
-            </form>
-
-            <div class="payment-actions">
-              <button type="button" class="primary-button" id="productRazorpayButton">Pay with Razorpay</button>
-              <button type="button" class="secondary-button" id="productUpiButton">Pay by UPI</button>
-            </div>
-
-            <div class="payment-block">
-              <div class="payment-block__copy">
-                <p class="micro-label">Manual UPI option</p>
-                <p class="payment-text">
-                  If you prefer, you can also complete payment with the ABDAN UPI ID and send the
-                  confirmation through WhatsApp.
-                </p>
-              </div>
-              <div class="upi-box">
-                <span id="upiIdLabel">mailme.maqdoom@okhdfcbank</span>
-                <button type="button" class="inline-copy" data-copy-upi>Copy</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="share-row">
-            <span class="micro-label">Share this style</span>
-            <div id="shareButtons" class="share-buttons"></div>
-          </div>
-        </div>
+        </div><!-- /.product-sheet__body -->
       </div>
     </div>
 
