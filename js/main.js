@@ -744,12 +744,22 @@ function closeProduct() {
 }
 
 function renderCart() {
+  /* ── reset checkout button visibility ──────────────────────────────── */
+  dom.cartCheckoutButton.hidden = false;
+  dom.cartCheckoutButton.disabled = false;
+  dom.cartCheckoutButton.style.opacity = "1";
+
   if (!state.cart.length) {
-    dom.cartItems.innerHTML = `<div class="cart-empty">Your bag is empty. When a piece feels like it belongs to you, it will wait here. 💛</div>`;
+    dom.cartItems.innerHTML = `
+      <div class="cart-empty">
+        <div class="cart-empty__icon">💛</div>
+        <p class="cart-empty__heading">Your bag is waiting</p>
+        <p>When a piece feels like it belongs to you, it will hold its place here — quietly, patiently, just for you.</p>
+      </div>`;
     dom.cartTotal.textContent = formatCurrency(0);
     dom.cartCount.textContent = "0";
     dom.cartCheckoutButton.disabled = true;
-    dom.cartCheckoutButton.style.opacity = "0.55";
+    dom.cartCheckoutButton.style.opacity = "0.45";
     dom.bagCheckoutPanel.hidden = true;
     return;
   }
@@ -759,20 +769,26 @@ function renderCart() {
     .map(
       (item) => `
         <article class="cart-item">
-          <img src="${item.image}" alt="${item.name}" loading="lazy" />
-          <div>
-            <h3>${item.name}</h3>
+          <div class="cart-item__thumb">
+            <img src="${item.image}" alt="${item.name}" loading="lazy" />
+          </div>
+          <div class="cart-item__info">
+            <div class="cart-item__header">
+              <h3>${item.name}</h3>
+              <button type="button" class="remove-button" data-remove="${item.key}" aria-label="Remove ${item.name}">
+                <i data-lucide="x"></i>
+              </button>
+            </div>
             <div class="cart-meta">${item.size} · ${item.color}</div>
-            <div class="cart-price">${item.priceLabel}</div>
-            <div class="cart-controls">
-              <button type="button" class="qty-button" data-qty="decrease" data-cart-key="${item.key}">−</button>
-              <span>${item.quantity}</span>
-              <button type="button" class="qty-button" data-qty="increase" data-cart-key="${item.key}">+</button>
+            <div class="cart-item__footer">
+              <span class="cart-price">${item.priceLabel}</span>
+              <div class="cart-qty">
+                <button type="button" class="qty-button" data-qty="decrease" data-cart-key="${item.key}">−</button>
+                <span>${item.quantity}</span>
+                <button type="button" class="qty-button" data-qty="increase" data-cart-key="${item.key}">+</button>
+              </div>
             </div>
           </div>
-          <button type="button" class="remove-button" data-remove="${item.key}" aria-label="Remove ${item.name}">
-            <i data-lucide="trash-2"></i>
-          </button>
         </article>
       `,
     )
@@ -780,8 +796,22 @@ function renderCart() {
 
   dom.cartTotal.textContent = formatCurrency(total);
   dom.cartCount.textContent = String(state.cart.reduce((sum, item) => sum + item.quantity, 0));
-  dom.cartCheckoutButton.disabled = false;
-  dom.cartCheckoutButton.style.opacity = "1";
+  safeCreateIcons();
+}
+
+function showOrderSuccess(customerName) {
+  const first = (customerName || "").split(" ")[0] || "lovely";
+  dom.cartItems.innerHTML = `
+    <div class="cart-success">
+      <div class="cart-success__mark">✦</div>
+      <p class="cart-success__title">Order received, ${first}</p>
+      <p class="cart-success__body">Your selection has been received with the same care you put into choosing it. ABDAN will confirm and prepare your pieces personally.</p>
+      <p class="cart-success__note">Opening WhatsApp now so you can follow up directly with us. 💛</p>
+    </div>`;
+  dom.cartTotal.textContent = formatCurrency(0);
+  dom.cartCount.textContent = "0";
+  dom.cartCheckoutButton.hidden = true;
+  dom.bagCheckoutPanel.hidden = true;
   safeCreateIcons();
 }
 
@@ -939,10 +969,8 @@ function launchRazorpay(details, items) {
       const url = buildWhatsAppOrderMessage(details, items, "Razorpay", { paymentId: response.razorpay_payment_id });
       state.cart = [];
       saveCart();
-      renderCart();
-      closeCart();
-      closeProduct();
-      window.open(url, "_blank", "noopener,noreferrer");
+      showOrderSuccess(details.name);
+      setTimeout(() => window.open(url, "_blank", "noopener,noreferrer"), 900);
     },
   };
 
@@ -953,12 +981,10 @@ function launchRazorpay(details, items) {
 function launchUpi(details, items) {
   const url = buildWhatsAppOrderMessage(details, items, "UPI / Manual confirmation");
   window.open(BRAND.upiLink, "_blank", "noopener,noreferrer");
-  window.open(url, "_blank", "noopener,noreferrer");
   state.cart = [];
   saveCart();
-  renderCart();
-  closeCart();
-  closeProduct();
+  showOrderSuccess(details.name);
+  setTimeout(() => window.open(url, "_blank", "noopener,noreferrer"), 900);
 }
 
 function handleBagRazorpay() {

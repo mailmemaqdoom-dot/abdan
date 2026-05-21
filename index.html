@@ -469,11 +469,26 @@
         <div class="drawer-body">
           <div id="cartItems" class="cart-items"></div>
 
+          <div class="cart-trust-rail" aria-hidden="true">
+            <div class="cart-trust-item">
+              <i data-lucide="shield-check"></i>
+              <span>Secure checkout</span>
+            </div>
+            <div class="cart-trust-item">
+              <i data-lucide="heart-handshake"></i>
+              <span>Personally confirmed</span>
+            </div>
+            <div class="cart-trust-item">
+              <i data-lucide="package"></i>
+              <span>Careful dispatch</span>
+            </div>
+          </div>
+
           <div class="checkout-panel" id="bagCheckoutPanel" hidden>
             <div class="checkout-panel__intro">
-              <p class="micro-label">Checkout details</p>
-              <h3>Complete this step gently</h3>
-              <p>Share the details we need so ABDAN can confirm your selection with care.</p>
+              <p class="micro-label">A few gentle details</p>
+              <h3>Almost there</h3>
+              <p>So ABDAN can prepare your pieces and reach you with care.</p>
             </div>
 
             <form class="checkout-form" id="bagCheckoutForm">
@@ -491,7 +506,7 @@
               </label>
               <label>
                 <span>Notes</span>
-                <textarea name="notes" rows="3" placeholder="Anything ABDAN should know?"></textarea>
+                <textarea name="notes" rows="3" placeholder="Any special requests or questions?"></textarea>
               </label>
             </form>
 
@@ -501,7 +516,7 @@
             </div>
 
             <div class="payment-note">
-              <p><strong>No hidden charges.</strong> ABDAN confirms every order personally before dispatch.</p>
+              <p><strong>No hidden charges.</strong> Every order is confirmed personally by ABDAN before it leaves our hands.</p>
               <button type="button" class="inline-copy" id="copyUpiButton">Copy UPI ID</button>
             </div>
           </div>
@@ -512,6 +527,7 @@
             <span>Total</span>
             <strong id="cartTotal">₹0</strong>
           </div>
+          <p class="drawer-trust-note">Your details are safe. ABDAN never shares them.</p>
           <button type="button" class="primary-button" id="cartCheckoutButton">Continue to checkout</button>
         </footer>
       </div>
