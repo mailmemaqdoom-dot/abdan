@@ -602,12 +602,15 @@ function renderProducts() {
     card.style.setProperty("--reveal-delay", `${Math.min(i * 40, 200)}ms`);
   });
   dom.productsGrid.querySelectorAll(".product-card__media img").forEach((img) => {
-    const onLoad = () => img.classList.add("img-loaded");
+    const onLoad = () => {
+      img.classList.add("img-loaded");
+      img.closest(".product-card__media")?.classList.add("img-loaded"); /* stops skeleton breath */
+    };
     if (img.complete && img.naturalWidth > 0) {
       onLoad();
     } else {
       img.addEventListener("load", onLoad, { once: true });
-      img.addEventListener("error", onLoad, { once: true }); /* show on error — no broken placeholder */
+      img.addEventListener("error", onLoad, { once: true }); /* reveal on error — no broken placeholder */
     }
   });
 
@@ -696,8 +699,22 @@ function openProduct(productId) {
   state.selectedSize = product.sizes?.[0] || DEFAULT_SIZES[0];
   state.selectedColor = product.colors?.[0] || DEFAULT_COLORS[0];
 
+  /* ── Modal image: reset skeleton + fade-in on load ─────────────────── */
+  const mediaEl = dom.productSheet.querySelector(".product-sheet__media");
+  dom.productImage.classList.remove("img-loaded");
+  if (mediaEl) mediaEl.classList.remove("img-loaded");
   dom.productImage.src = product.image;
   dom.productImage.alt = product.name;
+  const onModalLoad = () => {
+    dom.productImage.classList.add("img-loaded");
+    if (mediaEl) mediaEl.classList.add("img-loaded");
+  };
+  if (dom.productImage.complete && dom.productImage.naturalWidth > 0) {
+    requestAnimationFrame(onModalLoad); /* rAF ensures CSS transition fires */
+  } else {
+    dom.productImage.addEventListener("load", onModalLoad, { once: true });
+    dom.productImage.addEventListener("error", onModalLoad, { once: true });
+  }
   dom.productTag.textContent = product.primaryTag;
   dom.productName.textContent = product.name;
   dom.productPrice.textContent = product.priceLabel;
@@ -796,6 +813,21 @@ function renderCart() {
 
   dom.cartTotal.textContent = formatCurrency(total);
   dom.cartCount.textContent = String(state.cart.reduce((sum, item) => sum + item.quantity, 0));
+
+  /* ── Cart image fade-in — same pattern as product cards ─────────────── */
+  dom.cartItems.querySelectorAll(".cart-item__thumb img").forEach((img) => {
+    const thumb = img.closest(".cart-item__thumb");
+    const onLoad = () => {
+      img.classList.add("img-loaded");
+      thumb?.classList.add("img-loaded"); /* stops skeleton breath on thumb */
+    };
+    if (img.complete && img.naturalWidth > 0) requestAnimationFrame(onLoad);
+    else {
+      img.addEventListener("load", onLoad, { once: true });
+      img.addEventListener("error", onLoad, { once: true });
+    }
+  });
+
   safeCreateIcons();
 }
 
@@ -987,15 +1019,34 @@ function launchUpi(details, items) {
   setTimeout(() => window.open(url, "_blank", "noopener,noreferrer"), 900);
 }
 
+function setButtonLoading(button, loadingLabel) {
+  button._originalText = button.textContent;
+  button.textContent = loadingLabel;
+  button.classList.add("is-loading");
+  button.disabled = true;
+}
+
+function resetButtonLoading(button) {
+  button.textContent = button._originalText || button.textContent;
+  button.classList.remove("is-loading");
+  button.disabled = false;
+  delete button._originalText;
+}
+
 function handleBagRazorpay() {
   const details = getFormPayload(dom.bagCheckoutForm);
   if (!validateCheckoutDetails(details)) return;
+  setButtonLoading(dom.bagRazorpayButton, "Opening payment…");
+  /* Reset after Razorpay opens its modal — brief feedback window */
+  setTimeout(() => resetButtonLoading(dom.bagRazorpayButton), 1800);
   launchRazorpay(details, state.cart);
 }
 
 function handleBagUpi() {
   const details = getFormPayload(dom.bagCheckoutForm);
   if (!validateCheckoutDetails(details)) return;
+  setButtonLoading(dom.bagUpiButton, "Redirecting…");
+  setTimeout(() => resetButtonLoading(dom.bagUpiButton), 1800);
   launchUpi(details, state.cart);
 }
 
@@ -1016,6 +1067,8 @@ function handleProductRazorpay() {
       quantity: 1,
     },
   ];
+  setButtonLoading(dom.productRazorpayButton, "Opening payment…");
+  setTimeout(() => resetButtonLoading(dom.productRazorpayButton), 1800);
   launchRazorpay(details, lineItems);
 }
 
@@ -1036,6 +1089,8 @@ function handleProductUpi() {
       quantity: 1,
     },
   ];
+  setButtonLoading(dom.productUpiButton, "Redirecting…");
+  setTimeout(() => resetButtonLoading(dom.productUpiButton), 1800);
   launchUpi(details, lineItems);
 }
 
@@ -1268,6 +1323,8 @@ function init() {
   initScrollChrome();
   renderAdminRoute();
   safeCreateIcons();
+  /* ── Page entrance: fade body in after full hydration ──────────────── */
+  requestAnimationFrame(() => document.body.classList.add("page-ready"));
 }
 
 window.addEventListener("DOMContentLoaded", init);
