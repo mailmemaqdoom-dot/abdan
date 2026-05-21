@@ -545,6 +545,21 @@ function renderProducts() {
       `,
     )
     .join("");
+
+  /* ── iOS motion: stagger delays + image fade-in ─────────────────────── */
+  dom.productsGrid.querySelectorAll(".product-card").forEach((card, i) => {
+    card.style.setProperty("--reveal-delay", `${Math.min(i * 55, 330)}ms`);
+  });
+  dom.productsGrid.querySelectorAll(".product-card__media img").forEach((img) => {
+    const onLoad = () => img.classList.add("img-loaded");
+    if (img.complete && img.naturalWidth > 0) {
+      onLoad();
+    } else {
+      img.addEventListener("load", onLoad, { once: true });
+      img.addEventListener("error", onLoad, { once: true }); /* show on error — no broken placeholder */
+    }
+  });
+
   revealElements();
 }
 
@@ -732,6 +747,15 @@ function addToCart() {
   renderCart();
   closeProduct();
   openCart();
+
+  /* ── iOS motion: cart button spring pop ─────────────────────────────── */
+  dom.cartToggle.classList.remove("is-popping");
+  requestAnimationFrame(() => {
+    dom.cartToggle.classList.add("is-popping");
+    dom.cartToggle.addEventListener("animationend", () => {
+      dom.cartToggle.classList.remove("is-popping");
+    }, { once: true });
+  });
 }
 
 function updateCartQuantity(key, delta) {
