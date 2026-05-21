@@ -329,13 +329,21 @@ html[data-route="admin"] .admin-shell {
 .text-link:active,
 .filter-chip:active,
 .product-card:active,
-.dock-link:active,
 .ghost-button:active,
 .inline-copy:active,
 .option-chip:active,
 .qty-button:active,
 .remove-button:active {
   transform: scale(0.97);
+}
+
+/* dock-link tap: gentle compress — not combined with global 0.97 scale */
+.dock-link:active:not(.is-active) {
+  transform: scale(0.95);
+}
+
+.dock-link.is-active:active {
+  transform: scale(0.97); /* active pill: very subtle press */
 }
 
 .orb-button:hover,
@@ -461,13 +469,19 @@ html[data-theme="dark"] .bottom-dock {
   align-items: center;
   justify-content: center;
   gap: 0.42rem;
-  padding: 0.76rem 0.88rem;
+  padding: 0.66rem 0.96rem;
   border: 0;
   border-radius: var(--radius-pill);
   background: transparent;
   color: var(--text-soft);
-  transition: background 220ms var(--ease-snap), color 220ms var(--ease-snap), transform 160ms var(--ease-out);
+  /* pill morph: background fills, color lifts, shadow blooms */
+  transition:
+    background 300ms var(--ease-snap),
+    color 240ms var(--ease-out),
+    box-shadow 300ms var(--ease-out),
+    transform 160ms var(--ease-out);
   white-space: nowrap;
+  cursor: pointer;
 }
 
 .dock-link svg {
@@ -477,7 +491,7 @@ html[data-theme="dark"] .bottom-dock {
 .dock-link span {
   font-size: 0.63rem;
   font-weight: 700;
-  letter-spacing: 0.07em; /* reduced from 0.22em — essential for full-length labels */
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -487,14 +501,27 @@ html[data-theme="dark"] .bottom-dock {
   transform: translateY(-1px);
 }
 
+/* ── Desktop pill morph: active tab becomes a filled emerald pill ─────── */
 .dock-link.is-active {
-  background: rgba(2, 61, 58, 0.08);
-  color: var(--text-main);
+  background: var(--emerald);
+  color: var(--ivory);
+  box-shadow: 0 3px 14px rgba(2, 61, 58, 0.18);
+}
+
+.dock-link.is-active:hover {
+  background: var(--emerald); /* hold the active fill on hover */
+  transform: none;            /* active tab stays grounded */
 }
 
 html[data-theme="dark"] .dock-link.is-active {
-  background: rgba(230, 223, 203, 0.08);
-  color: var(--text-main);
+  background: var(--gold);
+  color: var(--emerald);
+  box-shadow: 0 3px 14px rgba(197, 161, 59, 0.2);
+}
+
+html[data-theme="dark"] .dock-link.is-active:hover {
+  background: var(--gold);
+  transform: none;
 }
 
 .luxury-shell {
@@ -1109,7 +1136,7 @@ html[data-theme="dark"] .admin-piece-row {
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  transition: border-color 160ms var(--ease-snap), background-color 160ms var(--ease-snap), color 160ms var(--ease-snap), transform 200ms var(--ease-snap);
+  transition: border-color 200ms var(--ease-snap), background-color 200ms var(--ease-snap), color 180ms var(--ease-out), transform 220ms var(--ease-snap), box-shadow 220ms var(--ease-out);
 }
 
 .filter-chip:hover {
@@ -1121,12 +1148,15 @@ html[data-theme="dark"] .admin-piece-row {
   background: var(--emerald);
   border-color: var(--emerald);
   color: var(--ivory);
+  transform: scale(1.03);
+  box-shadow: 0 3px 12px rgba(2, 61, 58, 0.16);
 }
 
 html[data-theme="dark"] .filter-chip.is-active {
   background: var(--gold);
   border-color: var(--gold);
   color: var(--emerald);
+  box-shadow: 0 3px 12px rgba(197, 161, 59, 0.2);
 }
 
 .products-grid,
@@ -2045,28 +2075,74 @@ html[data-theme="dark"] .toast {
     background: rgba(5, 18, 17, 0.97);
   }
 
+  /* ── Mobile: pill morph — icon only (inactive) → icon + label (active) ── */
   .dock-link {
-    flex: 0 0 auto; /* size to content; dock scrolls to show all */
-    flex-direction: column;
-    gap: 0.2rem;
-    padding: 0.5rem 0.7rem;
-    border-radius: 0.85rem;
+    flex: 0 0 auto;
+    flex-direction: row;           /* horizontal: icon beside text */
+    align-items: center;
+    gap: 0.32rem;
+    padding: 0.54rem 0.72rem;
+    border-radius: var(--radius-pill);
     min-width: 0;
     max-width: none;
     white-space: nowrap;
+    transition:
+      background 300ms var(--ease-snap),
+      color 240ms var(--ease-out),
+      padding 300ms var(--ease-snap),
+      box-shadow 280ms var(--ease-out),
+      transform 160ms var(--ease-out);
   }
 
   .dock-link svg {
     display: block;
-    width: 1.15rem;
-    height: 1.15rem;
+    width: 1.1rem;
+    height: 1.1rem;
     flex-shrink: 0;
   }
 
+  /* Label collapses to nothing on inactive tabs — only icon shown */
   .dock-link span {
-    font-size: 0.46rem;
-    letter-spacing: 0.05em;
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: none;           /* sentence-case inside pill */
+    max-width: 0;                   /* collapsed — no space taken */
+    opacity: 0;
+    overflow: hidden;
     white-space: nowrap;
+    transition:
+      max-width 320ms var(--ease-snap),
+      opacity 220ms var(--ease-out);
+  }
+
+  /* Active tab: pill fills, label slides in */
+  .dock-link.is-active {
+    background: var(--emerald);
+    color: var(--ivory);
+    padding: 0.54rem 0.9rem;        /* slightly wider for text clearance */
+    box-shadow: 0 4px 16px rgba(2, 61, 58, 0.22);
+  }
+
+  .dock-link.is-active span {
+    max-width: 8rem;                /* expands to fit any label */
+    opacity: 1;
+  }
+
+  .dock-link.is-active:hover {
+    background: var(--emerald);
+    transform: none;
+  }
+
+  html[data-theme="dark"] .dock-link.is-active {
+    background: var(--gold);
+    color: var(--emerald-deep);
+    box-shadow: 0 4px 16px rgba(197, 161, 59, 0.24);
+  }
+
+  html[data-theme="dark"] .dock-link.is-active:hover {
+    background: var(--gold);
+    transform: none;
   }
 
   /* Support pill floats above bottom nav */

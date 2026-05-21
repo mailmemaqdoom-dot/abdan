@@ -993,6 +993,17 @@ function updateDockActive(targetId) {
   dom.bottomDock.querySelectorAll(".dock-link").forEach((button) => {
     button.classList.toggle("is-active", button.dataset.target === targetId);
   });
+
+  /* Pill morph: center the active tab within the scrollable dock.
+     Uses requestAnimationFrame so the pill has already expanded
+     before we measure its post-transition width.                    */
+  requestAnimationFrame(() => {
+    const activeBtn = dom.bottomDock.querySelector(".dock-link.is-active");
+    if (!activeBtn) return;
+    const dock = dom.bottomDock;
+    const scrollTarget = activeBtn.offsetLeft - (dock.offsetWidth / 2) + (activeBtn.offsetWidth / 2);
+    dock.scrollTo({ left: Math.max(0, scrollTarget), behavior: "smooth" });
+  });
 }
 
 function scrollToSection(targetId) {
