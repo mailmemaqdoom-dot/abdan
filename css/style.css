@@ -2345,10 +2345,49 @@ html[data-theme="dark"] .toast {
     grid-template-columns: 1fr;
   }
 
-  .products-grid,
+  /* Story / testimonial: vertical stack stays editorial */
   .story-grid,
   .testimonial-grid {
     grid-template-columns: 1fr;
+  }
+
+  /* ─── PRODUCT CAROUSEL ────────────────────────────────────────────────
+     Converts the 3-col product grid into a horizontal momentum carousel
+     on mobile — inspired by Apple App Store's collection rows.
+
+     scroll-snap-type: proximity → gentle settle after swipe.
+     "proximity" is deliberately chosen over "mandatory" — it lets the
+     physics breathe without forcing a rigid snap every single pixel.
+
+     76vw card width → leaves ≈18–20vw of the next card peeking in,
+     communicating scrollability without arrows or dots.
+
+     margin breakout: extends the carousel to viewport edges while the
+     section heading and filter row remain within the container.           */
+  .products-grid {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;      /* native iOS momentum physics */
+    overscroll-behavior-x: contain;         /* prevent lateral page scroll */
+    scrollbar-width: none;
+    gap: 0.95rem;
+    padding: 0.5rem 1.2rem 1.4rem 0.7rem;  /* trailing 1.2rem = space after last card */
+    margin-inline: -0.7rem;                 /* break out of container — full-bleed feel */
+    scroll-padding-inline-start: 0.7rem;    /* snap aligns with content left edge */
+    align-items: stretch;                   /* uniform card heights */
+  }
+
+  .products-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .product-card {
+    flex: 0 0 76vw;       /* ≈76% viewport — next card peeks at ≈18vw */
+    max-width: 22rem;     /* cap on large phones (iPhone Pro Max etc.)  */
+    scroll-snap-align: start;
+    min-height: unset;
   }
 
   .collection-curation {
@@ -2361,8 +2400,15 @@ html[data-theme="dark"] .toast {
     overflow-x: auto;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scroll-padding-inline-start: 0.15rem;
     margin-bottom: 1.8rem;
-    padding-bottom: 0.3rem;
+    padding-bottom: 0.55rem;
+    padding-top: 0.15rem;
+    /* Right-edge fade — hints at more chips without arrows.
+       Only right edge fades: left edge is always fully visible at load. */
+    -webkit-mask-image: linear-gradient(to right, black 0%, black 80%, transparent 100%);
+    mask-image: linear-gradient(to right, black 0%, black 80%, transparent 100%);
   }
 
   .filter-row::-webkit-scrollbar {
@@ -2373,6 +2419,7 @@ html[data-theme="dark"] .toast {
     flex-shrink: 0;
     font-size: 0.68rem;
     letter-spacing: 0.12em;
+    scroll-snap-align: start;
   }
 
   /* ─── PRODUCT CARD ────────────────────────────────────────────── */

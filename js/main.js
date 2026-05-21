@@ -516,6 +516,22 @@ function renderFilters() {
   dom.filterRow.querySelectorAll("[data-filter]").forEach((button) => {
     button.classList.toggle("is-active", button.dataset.filter === state.filter);
   });
+
+  /* Scroll the active filter chip into view — important on mobile when the
+     carousel resets and a non-"All" chip may be off-screen to the right.
+     Uses direct scrollTo so we don't fight the IntersectionObserver.       */
+  requestAnimationFrame(() => {
+    const activeChip = dom.filterRow.querySelector(".filter-chip.is-active");
+    if (!activeChip) return;
+    const chipLeft = activeChip.offsetLeft;
+    const rowScroll = dom.filterRow.scrollLeft;
+    const rowWidth = dom.filterRow.offsetWidth;
+    const chipRight = chipLeft + activeChip.offsetWidth;
+    /* Only scroll if the chip is not already fully visible */
+    if (chipLeft < rowScroll || chipRight > rowScroll + rowWidth) {
+      dom.filterRow.scrollTo({ left: Math.max(0, chipLeft - 12), behavior: "smooth" });
+    }
+  });
 }
 
 function renderProducts() {
@@ -545,6 +561,10 @@ function renderProducts() {
       `,
     )
     .join("");
+
+  /* Reset carousel scroll position — ensures filter changes always start
+     from the first card, not from wherever the user left off.             */
+  dom.productsGrid.scrollLeft = 0;
 
   /* ── iOS motion: stagger delays + image fade-in ─────────────────────── */
   dom.productsGrid.querySelectorAll(".product-card").forEach((card, i) => {
