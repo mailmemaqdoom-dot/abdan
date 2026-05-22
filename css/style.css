@@ -3812,3 +3812,314 @@ html[data-theme="dark"] .lx-saved-soft {
   animation: lx-save-glow-soft 620ms var(--ease-out) forwards;
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   15. ORDER CONFIRMATION — animated SVG checkmark + state timeline
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Animated SVG checkmark ─────────────────────────────────────────
+   Circle draws first (640ms), tick mark follows (420ms) — GPU paths. */
+.order-check {
+  display: block;
+  margin: 0 auto 1.1rem;
+  width: 72px;
+  height: 72px;
+  overflow: visible;
+}
+@keyframes lx-circle-draw {
+  from { stroke-dashoffset: 226; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes lx-mark-draw {
+  from { stroke-dashoffset: 60; }
+  to   { stroke-dashoffset: 0; }
+}
+.order-check__circle {
+  stroke-dasharray: 226;
+  stroke-dashoffset: 226;
+  animation: lx-circle-draw 640ms cubic-bezier(0.4, 0, 0.2, 1) 120ms forwards;
+}
+.order-check__mark {
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: lx-mark-draw 420ms cubic-bezier(0.4, 0, 0.2, 1) 680ms forwards;
+}
+
+/* ── Staggered success card content ──────────────────────────────── */
+@keyframes lx-success-enter {
+  from { opacity: 0; transform: translateY(9px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.cart-success {
+  padding: 2rem 1.5rem 2.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+.cart-success__ref {
+  font-size: 0.68rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 500;
+  margin-bottom: 1.25rem;
+  opacity: 0;
+  animation: lx-success-enter 440ms var(--ease-out) 1180ms forwards;
+}
+.cart-success__title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 0.6rem;
+  opacity: 0;
+  animation: lx-success-enter 500ms var(--ease-out) 820ms forwards;
+}
+.cart-success__body {
+  font-size: 0.875rem;
+  color: var(--muted);
+  line-height: 1.65;
+  max-width: 30ch;
+  margin: 0 0 0.6rem;
+  opacity: 0;
+  animation: lx-success-enter 500ms var(--ease-out) 980ms forwards;
+}
+.cart-success__note {
+  font-size: 0.78rem;
+  color: var(--muted);
+  opacity: 0;
+  animation: lx-success-enter 400ms var(--ease-out) 1120ms forwards;
+}
+
+/* ── Order state timeline ─────────────────────────────────────────── */
+.order-timeline {
+  width: 100%;
+  max-width: 300px;
+  margin: 1.25rem auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  opacity: 0;
+  animation: lx-success-enter 560ms var(--ease-out) 1320ms forwards;
+}
+.order-state {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+}
+.order-state__left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 18px;
+  flex-shrink: 0;
+}
+.order-state__dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--line-strong);
+  border: 2px solid transparent;
+  flex-shrink: 0;
+  position: relative;
+  transition: background 300ms ease, border-color 300ms ease;
+}
+.order-state--done .order-state__dot {
+  background: var(--emerald);
+  border-color: var(--emerald);
+}
+.order-state--active .order-state__dot {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+@keyframes lx-state-pulse {
+  0%   { box-shadow: 0 0 0 0   rgba(197, 161, 59, 0.45); }
+  70%  { box-shadow: 0 0 0 7px rgba(197, 161, 59, 0); }
+  100% { box-shadow: 0 0 0 0   rgba(197, 161, 59, 0); }
+}
+.order-state--active .order-state__dot {
+  animation: lx-state-pulse 1.8s ease-in-out infinite;
+}
+.order-state__line {
+  width: 2px;
+  flex: 1;
+  min-height: 22px;
+  background: var(--line);
+  position: relative;
+  overflow: hidden;
+}
+.order-state__line--filled {
+  background: var(--emerald);
+}
+.order-state__line--filling::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, var(--emerald), var(--gold));
+  animation: lx-line-fill 800ms var(--ease-out) forwards;
+}
+@keyframes lx-line-fill {
+  from { transform: scaleY(0); transform-origin: top; }
+  to   { transform: scaleY(1); transform-origin: top; }
+}
+.order-state__content {
+  padding-bottom: 1rem;
+  flex: 1;
+}
+.order-state__label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  line-height: 1.3;
+  padding-top: 0;
+}
+.order-state--done .order-state__label,
+.order-state--active .order-state__label {
+  color: var(--ink);
+}
+.order-state__note {
+  font-size: 0.71rem;
+  color: var(--muted);
+  margin-top: 0.15rem;
+  line-height: 1.4;
+}
+
+/* ── Checkout panel animated reveal / hide ───────────────────────── */
+@keyframes lx-panel-reveal {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes lx-panel-hide {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(8px); }
+}
+.checkout-panel.is-revealing {
+  display: block !important;
+  animation: lx-panel-reveal 340ms var(--ease-snap) forwards;
+}
+.checkout-panel.is-hiding {
+  display: block !important;
+  animation: lx-panel-hide 200ms var(--ease-out) forwards;
+}
+
+/* ── Enhanced button loading: breathing glow ─────────────────────── */
+@keyframes lx-btn-breathe {
+  0%, 100% { box-shadow: 0 10px 28px rgba(2, 61, 58, 0.16); }
+  50%       { box-shadow: 0 10px 28px rgba(2, 61, 58, 0.32), 0 0 0 4px rgba(2, 61, 58, 0.09); }
+}
+.is-loading {
+  animation: lx-btn-breathe 1.4s ease-in-out infinite !important;
+  cursor: not-allowed !important;
+}
+
+/* ── Toast type system ────────────────────────────────────────────── */
+.toast[data-type="error"] {
+  background: #3b0f0a;
+  color: #ffd5cf;
+}
+.toast[data-type="info"] {
+  background: var(--emerald-deep);
+  color: var(--cream);
+  opacity: 0.94;
+}
+
+/* ── Space orders panel ───────────────────────────────────────────── */
+.space-orders {
+  width: 100%;
+  margin-top: 1.75rem;
+}
+.space-orders__heading {
+  font-size: 0.72rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+  margin-bottom: 0.9rem;
+  padding: 0 0.1rem;
+}
+.space-order-card {
+  background: var(--paper-strong);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.2rem;
+  margin-bottom: 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: box-shadow 240ms var(--ease-out);
+}
+.space-order-card:hover {
+  box-shadow: var(--shadow-sm);
+}
+.space-order-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.space-order-card__ref {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--ink);
+}
+.space-order-card__status {
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-pill);
+  line-height: 1;
+  white-space: nowrap;
+}
+.space-order-card__status[data-status="confirmed"]       { background: rgba(197,161,59,0.12);   color: #8c6b10; }
+.space-order-card__status[data-status="preparing"]       { background: rgba(2,61,58,0.1);        color: var(--emerald); }
+.space-order-card__status[data-status="shipped"]         { background: rgba(59,130,246,0.1);     color: #2563eb; }
+.space-order-card__status[data-status="out_for_delivery"]{ background: rgba(234,88,12,0.1);      color: #c2410c; }
+.space-order-card__status[data-status="delivered"]       { background: rgba(22,163,74,0.12);     color: #15803d; }
+.space-order-card__items {
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
+.space-order-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.space-order-card__total {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.space-order-card__date {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+.space-orders__empty {
+  text-align: center;
+  padding: 1.75rem 1rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* ── Dark mode order confirmation ─────────────────────────────────── */
+html[data-theme="dark"] .space-order-card {
+  background: rgba(255, 252, 245, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+html[data-theme="dark"] .order-check__circle {
+  stroke: rgba(197, 161, 59, 0.9);
+}
+html[data-theme="dark"] .order-check__mark {
+  stroke: rgba(197, 161, 59, 1);
+}
+html[data-theme="dark"] .order-state--done .order-state__dot {
+  background: rgba(197, 161, 59, 0.7);
+  border-color: rgba(197, 161, 59, 0.7);
+}
+

@@ -13,6 +13,16 @@ const BRAND = {
   razorpayKey: "rzp_live_SkPERat9HcpiCb",
 };
 
+/* ── Order lifecycle states (boutique fulfilment stages) ─────────────────
+   Used to build the order timeline shown in confirmation + Your Space.    */
+const ORDER_STATES = [
+  { key: "confirmed",        label: "Order Confirmed",    note: "We've received your order with gratitude." },
+  { key: "preparing",        label: "Being Prepared",     note: "Your pieces are being carefully packed." },
+  { key: "shipped",          label: "Shipped",            note: "On its way — tracking shared via WhatsApp." },
+  { key: "out_for_delivery", label: "Out for Delivery",   note: "Your order is almost with you." },
+  { key: "delivered",        label: "Delivered",          note: "Enjoy your new pieces. 💛" },
+];
+
 const FILTERS = [
   "All",
   "Everyday Grace",
@@ -741,10 +751,54 @@ function showSpaceView(viewId) {
   }, 200);
 }
 
+/* ── Render order history cards for a phone number in Your Space ─────────
+   Matches orders where customerPhone === phone (same device = same LS).    */
+function renderSpaceOrders(phone) {
+  const panel = document.getElementById("spaceOrdersPanel");
+  if (!panel) return;
+  let orders = [];
+  try {
+    const all = JSON.parse(localStorage.getItem("abdan-studio-orders") || "[]");
+    orders = all.filter((o) => String(o.customerPhone || "").replace(/\D/g, "") === String(phone || "").replace(/\D/g, ""));
+  } catch { /* ignore */ }
+  if (!orders.length) {
+    panel.innerHTML = `
+      <p class="space-orders__heading">Your Orders</p>
+      <p class="space-orders__empty">No orders yet — when you place one, it'll appear here as a quiet reminder of the day you chose something just for yourself. 💛</p>`;
+    return;
+  }
+  const statusLabel = {
+    confirmed:        "Confirmed",
+    preparing:        "Preparing",
+    shipped:          "Shipped",
+    out_for_delivery: "Out for Delivery",
+    delivered:        "Delivered",
+  };
+  const cards = orders.map((order) => {
+    const dateStr = order.createdAt
+      ? new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+      : "";
+    const itemsSummary = (order.items || []).map((i) => `${i.name} (${i.size}/${i.color} ×${i.quantity})`).join(", ");
+    return `
+      <div class="space-order-card">
+        <div class="space-order-card__header">
+          <span class="space-order-card__ref">${order.ref || order.id || "—"}</span>
+          <span class="space-order-card__status" data-status="${order.status || "confirmed"}">${statusLabel[order.status] || "Confirmed"}</span>
+        </div>
+        <div class="space-order-card__items">${itemsSummary || "—"}</div>
+        <div class="space-order-card__footer">
+          <span class="space-order-card__total">${formatCurrency(order.total || 0)}</span>
+          <span class="space-order-card__date">${dateStr}</span>
+        </div>
+      </div>`;
+  }).join("");
+  panel.innerHTML = `<p class="space-orders__heading">Your Orders</p>${cards}`;
+}
+
 function showSpaceDashboard(profile, isNew = false) {
   const first = (profile.displayName || profile.fullName || "").split(" ")[0] || "you";
   const greetingEl = document.getElementById("spaceDashGreeting");
-  const taglineEl = document.getElementById("spaceDashTagline");
+  const taglineEl  = document.getElementById("spaceDashTagline");
   if (greetingEl) {
     greetingEl.textContent = isNew
       ? `Your Space is Ready, ${first} 💛`
@@ -756,6 +810,8 @@ function showSpaceDashboard(profile, isNew = false) {
       : "Your space is exactly as you left it.";
   }
   showSpaceView("spaceDashboard");
+  /* Render order history for this phone number */
+  renderSpaceOrders(profile.phone || "");
   if (isNew) showToast("Your Space is ready 💛");
 }
 
@@ -1206,14 +1262,35 @@ function renderCart() {
   safeCreateIcons();
 }
 
-function showOrderSuccess(customerName) {
+function showOrderSuccess(customerName, order) {
   const first = (customerName || "").split(" ")[0] || "lovely";
+  const ref   = order?.ref || "";
+  /* SVG checkmark: circle (r=36, circumference≈226) + tick mark (path len≈60) */
+  const checkSvg = `
+    <svg class="order-check" viewBox="0 0 72 72" fill="none" aria-hidden="true">
+      <circle
+        class="order-check__circle"
+        cx="36" cy="36" r="35"
+        stroke="var(--emerald)" stroke-width="2.5"
+        fill="none"
+      />
+      <polyline
+        class="order-check__mark"
+        points="20,37 30,48 52,25"
+        stroke="var(--emerald)" stroke-width="2.8"
+        stroke-linecap="round" stroke-linejoin="round"
+        fill="none"
+      />
+    </svg>`;
+  const timeline = renderOrderTimeline("confirmed");
   dom.cartItems.innerHTML = `
     <div class="cart-success">
-      <div class="cart-success__mark">✦</div>
+      ${checkSvg}
       <p class="cart-success__title">Order received, ${first}</p>
       <p class="cart-success__body">Your selection has been received with the same care you put into choosing it. ABDAN will confirm and prepare your pieces personally.</p>
       <p class="cart-success__note">Opening WhatsApp now so you can follow up directly with us. 💛</p>
+      ${ref ? `<p class="cart-success__ref">Ref · ${ref}</p>` : ""}
+      ${timeline}
     </div>`;
   dom.cartTotal.textContent = formatCurrency(0);
   dom.cartCount.textContent = "0";
@@ -1272,6 +1349,93 @@ function lxPulseCart() {
       dom.cartCount.classList.remove("is-counting");
     }, { once: true });
   });
+}
+
+/* ── Create and persist an order record ──────────────────────────────────
+   Saves to abdan-studio-orders (same key the Studio reads).
+   Returns the generated order object.                                      */
+function lxCreateOrder(details, items, paymentMethod, extra = {}) {
+  const total = items.reduce((sum, item) => sum + getNumericPrice(item.priceLabel) * item.quantity, 0);
+  const ref   = `ABD-${Date.now().toString(36).toUpperCase().slice(-6)}`;
+  const order = {
+    id:            ref,
+    ref,
+    customerName:  details.name,
+    customerPhone: details.phone,
+    customerEmail: details.email || "",
+    status:        "confirmed",
+    paymentMethod,
+    paymentId:     extra.paymentId || "",
+    total,
+    items: items.map((item) => ({
+      name:       item.name,
+      size:       item.size,
+      color:      item.color,
+      quantity:   item.quantity,
+      priceLabel: item.priceLabel,
+    })),
+    notes:     details.notes || "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  try {
+    const existing = JSON.parse(localStorage.getItem("abdan-studio-orders") || "[]");
+    existing.unshift(order);
+    localStorage.setItem("abdan-studio-orders", JSON.stringify(existing));
+  } catch { /* quota — continue silently */ }
+  return order;
+}
+
+/* ── Build HTML for the vertical order state timeline ────────────────────
+   currentStatus: one of ORDER_STATES[].key                                */
+function renderOrderTimeline(currentStatus) {
+  const activeIdx = ORDER_STATES.findIndex((s) => s.key === currentStatus);
+  const rows = ORDER_STATES.map((state, idx) => {
+    const isDone   = idx < activeIdx;
+    const isActive = idx === activeIdx;
+    const stateClass = isDone ? "order-state--done" : isActive ? "order-state--active" : "";
+    const isLast     = idx === ORDER_STATES.length - 1;
+    const lineClass  = isDone ? "order-state__line--filled" : (idx === activeIdx - 1 ? "order-state__line--filling" : "");
+    return `
+      <div class="order-state ${stateClass}">
+        <div class="order-state__left">
+          <div class="order-state__dot"></div>
+          ${!isLast ? `<div class="order-state__line ${lineClass}"></div>` : ""}
+        </div>
+        <div class="order-state__content">
+          <div class="order-state__label">${state.label}</div>
+          ${isActive ? `<div class="order-state__note">${state.note}</div>` : ""}
+        </div>
+      </div>`;
+  }).join("");
+  return `<div class="order-timeline" role="list" aria-label="Order status">${rows}</div>`;
+}
+
+/* ── Smooth checkout panel reveal / hide (respects hidden attribute) ─────
+   The `hidden` attribute means `display:none` — CSS transitions won't fire.
+   We bridge the gap with .is-revealing / .is-hiding classes that force
+   `display:block` during the animation window, then settle hidden state.   */
+function lxShowCheckoutPanel(panel) {
+  if (!panel) return;
+  panel.removeAttribute("hidden");
+  panel.classList.remove("is-hiding");
+  panel.classList.add("is-revealing");
+  const onDone = () => {
+    panel.classList.remove("is-revealing");
+    panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  };
+  panel.addEventListener("animationend", onDone, { once: true });
+}
+
+function lxHideCheckoutPanel(panel) {
+  if (!panel || panel.hidden) return;
+  panel.classList.remove("is-revealing");
+  panel.classList.add("is-hiding");
+  const onDone = () => {
+    panel.classList.remove("is-hiding");
+    panel.hidden = true;
+  };
+  panel.addEventListener("animationend", onDone, { once: true });
 }
 
 function addToCart() {
@@ -1379,16 +1543,18 @@ function closeCart() {
 
 function toggleBagCheckout() {
   if (!state.cart.length) return;
-  dom.bagCheckoutPanel.hidden = !dom.bagCheckoutPanel.hidden;
-  if (!dom.bagCheckoutPanel.hidden) {
-    dom.bagCheckoutPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  if (dom.bagCheckoutPanel.hidden) {
+    lxShowCheckoutPanel(dom.bagCheckoutPanel);
+  } else {
+    lxHideCheckoutPanel(dom.bagCheckoutPanel);
   }
 }
 
 function toggleProductCheckout() {
-  dom.productCheckoutPanel.hidden = !dom.productCheckoutPanel.hidden;
-  if (!dom.productCheckoutPanel.hidden) {
-    dom.productCheckoutPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  if (dom.productCheckoutPanel.hidden) {
+    lxShowCheckoutPanel(dom.productCheckoutPanel);
+  } else {
+    lxHideCheckoutPanel(dom.productCheckoutPanel);
   }
 }
 
@@ -1453,10 +1619,11 @@ function launchRazorpay(details, items) {
     },
     theme: { color: "#023D3A" },
     handler(response) {
-      const url = buildWhatsAppOrderMessage(details, items, "Razorpay", { paymentId: response.razorpay_payment_id });
-      state.cart = [];
+      const url   = buildWhatsAppOrderMessage(details, items, "Razorpay", { paymentId: response.razorpay_payment_id });
+      const order = lxCreateOrder(details, items, "Razorpay", { paymentId: response.razorpay_payment_id });
+      state.cart  = [];
       saveCart();
-      showOrderSuccess(details.name);
+      showOrderSuccess(details.name, order);
       setTimeout(() => window.open(url, "_blank", "noopener,noreferrer"), 900);
     },
   };
@@ -1466,19 +1633,31 @@ function launchRazorpay(details, items) {
 }
 
 function launchUpi(details, items) {
-  const url = buildWhatsAppOrderMessage(details, items, "UPI / Manual confirmation");
+  const url   = buildWhatsAppOrderMessage(details, items, "UPI / Manual confirmation");
+  const order = lxCreateOrder(details, items, "UPI");
   window.open(BRAND.upiLink, "_blank", "noopener,noreferrer");
-  state.cart = [];
+  state.cart  = [];
   saveCart();
-  showOrderSuccess(details.name);
+  showOrderSuccess(details.name, order);
   setTimeout(() => window.open(url, "_blank", "noopener,noreferrer"), 900);
 }
 
 function setButtonLoading(button, loadingLabel) {
   button._originalText = button.textContent;
-  button.textContent = loadingLabel;
+  button.textContent   = loadingLabel;
   button.classList.add("is-loading");
   button.disabled = true;
+  /* WAAPI gentle compress → settle — signals something is happening */
+  if (typeof button.animate === "function") {
+    button.animate(
+      [
+        { transform: "scale(1)" },
+        { transform: "scale(0.96)", offset: 0.18 },
+        { transform: "scale(1)" },
+      ],
+      { duration: 320, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" }
+    );
+  }
 }
 
 function resetButtonLoading(button) {
