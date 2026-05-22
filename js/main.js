@@ -631,6 +631,198 @@ function handleAdminSignout() {
   setAdminSession(false);
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   YOUR SPACE — customer identity ecosystem
+   localStorage profiles · sessionStorage active session
+   Silent admin routing via credential check
+   ═══════════════════════════════════════════════════════════════════ */
+
+const SPACE_STORAGE_KEY = "abdan-space-profiles";
+const SPACE_SESSION_KEY = "abdan-space-session";
+
+function getSpaceProfiles() {
+  try { return JSON.parse(localStorage.getItem(SPACE_STORAGE_KEY) || "{}"); }
+  catch { return {}; }
+}
+
+function getSpaceSession() {
+  try { return JSON.parse(sessionStorage.getItem(SPACE_SESSION_KEY) || "null"); }
+  catch { return null; }
+}
+
+function setSpaceSession(profile) {
+  sessionStorage.setItem(SPACE_SESSION_KEY, JSON.stringify({
+    email: profile.email,
+    displayName: profile.displayName,
+    fullName: profile.fullName,
+  }));
+}
+
+function clearSpaceSession() {
+  sessionStorage.removeItem(SPACE_SESSION_KEY);
+}
+
+async function createSpaceProfile(data) {
+  const profiles = getSpaceProfiles();
+  const email = data.email.toLowerCase().trim();
+  if (profiles[email]) {
+    throw new Error("A space already exists for this email. Continue Your Space to sign in.");
+  }
+  const passwordHash = await hashValue(data.password);
+  const profile = {
+    fullName: data.fullName.trim(),
+    displayName: data.displayName.trim(),
+    email,
+    phone: data.phone?.trim() || "",
+    passwordHash,
+    createdAt: new Date().toISOString(),
+  };
+  profiles[email] = profile;
+  localStorage.setItem(SPACE_STORAGE_KEY, JSON.stringify(profiles));
+  return profile;
+}
+
+async function authenticateSpace(email, password) {
+  if (await verifyAdminPasscode(password)) return { type: "admin" };
+  const profiles = getSpaceProfiles();
+  const profile = profiles[email.toLowerCase().trim()];
+  if (!profile) return null;
+  const hash = await hashValue(password);
+  if (hash !== profile.passwordHash) return null;
+  return { type: "customer", profile };
+}
+
+function showSpaceError(errorId, message) {
+  const el = document.getElementById(errorId);
+  if (!el) return;
+  el.textContent = message;
+  el.hidden = false;
+}
+
+function clearSpaceError(errorId) {
+  const el = document.getElementById(errorId);
+  if (el) { el.hidden = true; el.textContent = ""; }
+}
+
+function showSpaceView(viewId) {
+  const views = document.querySelectorAll(".space-view");
+  const target = document.getElementById(viewId);
+  if (!target) return;
+
+  views.forEach((v) => {
+    if (!v.hidden) {
+      v.style.opacity = "0";
+      v.style.transform = "translateY(8px)";
+      setTimeout(() => {
+        v.hidden = true;
+        v.style.opacity = "";
+        v.style.transform = "";
+      }, 180);
+    }
+  });
+
+  setTimeout(() => {
+    target.hidden = false;
+    target.classList.add("is-entering");
+    setTimeout(() => target.classList.remove("is-entering"), 460);
+    target.querySelectorAll(".reveal:not(.is-visible)").forEach((el) => _revealObserver?.observe(el));
+    safeCreateIcons();
+    const section = document.getElementById("account");
+    if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 200);
+}
+
+function showSpaceDashboard(profile, isNew = false) {
+  const first = (profile.displayName || profile.fullName || "").split(" ")[0] || "you";
+  const greetingEl = document.getElementById("spaceDashGreeting");
+  const taglineEl = document.getElementById("spaceDashTagline");
+  if (greetingEl) {
+    greetingEl.textContent = isNew
+      ? `Your Space is Ready, ${first} 💛`
+      : `Welcome back, ${first} 💛`;
+  }
+  if (taglineEl) {
+    taglineEl.textContent = isNew
+      ? "Everything you love, thoughtfully kept in one place."
+      : "Your space is exactly as you left it.";
+  }
+  showSpaceView("spaceDashboard");
+  if (isNew) showToast("Your Space is ready 💛");
+}
+
+async function handleSpaceSignin(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const email = form.email.value.trim();
+  const password = form.password.value;
+  const submitBtn = form.querySelector("[type='submit']");
+  clearSpaceError("spaceSigninError");
+  setButtonLoading(submitBtn, "Entering your space…");
+  try {
+    const result = await authenticateSpace(email, password);
+    if (!result) {
+      showSpaceError("spaceSigninError", "These details don't match a space. Please try again.");
+      resetButtonLoading(submitBtn);
+      return;
+    }
+    if (result.type === "admin") {
+      resetButtonLoading(submitBtn);
+      window.location.hash = "#admin";
+      return;
+    }
+    setSpaceSession(result.profile);
+    showSpaceDashboard(result.profile, false);
+    resetButtonLoading(submitBtn);
+  } catch {
+    showSpaceError("spaceSigninError", "Something gentle went wrong. Please try once more.");
+    resetButtonLoading(submitBtn);
+  }
+}
+
+async function handleSpaceCreate(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const data = {
+    fullName: form.fullName.value,
+    displayName: form.displayName.value,
+    email: form.email.value,
+    phone: form.phone?.value || "",
+    password: form.password.value,
+    confirmPassword: form.confirmPassword.value,
+  };
+  clearSpaceError("spaceCreateError");
+  if (data.password.length < 6) {
+    showSpaceError("spaceCreateError", "Your password needs at least 6 characters.");
+    return;
+  }
+  if (data.password !== data.confirmPassword) {
+    showSpaceError("spaceCreateError", "Your passwords don't match. Please try again.");
+    return;
+  }
+  const submitBtn = form.querySelector("[type='submit']");
+  setButtonLoading(submitBtn, "Creating your space…");
+  try {
+    const profile = await createSpaceProfile(data);
+    setSpaceSession(profile);
+    showSpaceDashboard(profile, true);
+    resetButtonLoading(submitBtn);
+  } catch (err) {
+    showSpaceError("spaceCreateError", err instanceof Error ? err.message : "Something gentle went wrong. Please try once more.");
+    resetButtonLoading(submitBtn);
+  }
+}
+
+function handleSpaceSignout() {
+  clearSpaceSession();
+  showSpaceView("spaceEntry");
+  showToast("You've left your space. Come back anytime 💛");
+}
+
+function initSpaceAuth() {
+  const session = getSpaceSession();
+  if (session) showSpaceDashboard(session, false);
+}
+
 function renderFilters() {
   dom.filterRow.querySelectorAll("[data-filter]").forEach((button) => {
     button.classList.toggle("is-active", button.dataset.filter === state.filter);
@@ -1398,6 +1590,17 @@ function attachEvents() {
       closeTeaser();
     }
   });
+
+  /* ── Your Space view navigation ──────────────────────────────────── */
+  document.getElementById("spaceSigninBtn")?.addEventListener("click", () => showSpaceView("spaceSignin"));
+  document.getElementById("spaceCreateBtn")?.addEventListener("click", () => showSpaceView("spaceCreate"));
+  document.getElementById("spaceSigninBack")?.addEventListener("click", () => showSpaceView("spaceEntry"));
+  document.getElementById("spaceCreateBack")?.addEventListener("click", () => showSpaceView("spaceEntry"));
+  document.getElementById("spaceToCreate")?.addEventListener("click", () => showSpaceView("spaceCreate"));
+  document.getElementById("spaceToSignin")?.addEventListener("click", () => showSpaceView("spaceSignin"));
+  document.getElementById("spaceSignoutBtn")?.addEventListener("click", handleSpaceSignout);
+  document.getElementById("spaceSigninForm")?.addEventListener("submit", (e) => void handleSpaceSignin(e));
+  document.getElementById("spaceCreateForm")?.addEventListener("submit", (e) => void handleSpaceCreate(e));
 }
 
 function init() {
@@ -1418,6 +1621,7 @@ function init() {
   initDockObserver();
   initScrollChrome();
   renderAdminRoute();
+  initSpaceAuth();
   safeCreateIcons();
   /* ── Page entrance: fade body in after full hydration ──────────────── */
   requestAnimationFrame(() => document.body.classList.add("page-ready"));

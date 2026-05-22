@@ -3060,3 +3060,313 @@ body.page-ready {
 .product-card:hover .product-card__media {
   animation: none;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   YOUR SPACE — luxury identity ecosystem
+   4 views: Entry · Sign In · Create · Dashboard
+   ═══════════════════════════════════════════════════════════════════ */
+
+@keyframes spaceViewEnter {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── View container ───────────────────────────────────────────────── */
+.space-view {
+  animation: none;
+}
+.space-view.is-entering {
+  animation: spaceViewEnter 420ms var(--ease-snap) forwards;
+}
+
+/* ─── Entry view: two-column editorial layout ──────────────────────── */
+.space-entry-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: start;
+}
+
+.space-heading {
+  font-family: var(--font-display);
+  font-size: var(--type-heading-xl);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: var(--leading-tight);
+  margin: 0.4rem 0 0.9rem;
+  color: var(--text-main);
+}
+
+.space-heading-tagline {
+  font-family: var(--font-editorial);
+  font-size: 1.05rem;
+  font-style: italic;
+  font-weight: 400;
+  line-height: var(--leading-relaxed);
+  color: var(--text-soft);
+  margin: 0 0 1.8rem;
+  max-width: 36rem;
+}
+
+.space-why {
+  margin-bottom: 2rem;
+  padding: 1.35rem 1.5rem;
+  border-radius: var(--radius-md);
+  background: var(--surface-soft);
+  border-left: 2px solid var(--gold);
+}
+
+.space-why__text {
+  margin: 0;
+  font-size: var(--type-body);
+  line-height: var(--leading-relaxed);
+  color: var(--text-soft);
+}
+
+.space-entry-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+}
+
+/* ─── Auth views: centred single-column card ───────────────────────── */
+.space-auth-wrap {
+  max-width: 38rem;
+  margin: 0 auto;
+  display: grid;
+  gap: 2rem;
+}
+
+.space-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  background: transparent;
+  border: none;
+  color: var(--text-soft);
+  font-size: var(--type-body-sm);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 0;
+  transition: color var(--t-fast), transform var(--t-fast);
+}
+.space-back-btn:hover {
+  color: var(--text-main);
+  transform: translateX(-3px);
+}
+
+.space-auth-intro {
+  font-family: var(--font-editorial);
+  font-size: var(--type-body);
+  font-style: italic;
+  font-weight: 400;
+  line-height: var(--leading-relaxed);
+  color: var(--text-soft);
+  margin: 0.35rem 0 1.75rem;
+}
+
+/* ─── Form ─────────────────────────────────────────────────────────── */
+.space-form {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.space-field {
+  display: grid;
+  gap: 0.28rem;
+}
+
+.space-field__label {
+  font-size: var(--type-body-sm);
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: 0.01em;
+}
+
+.space-field__hint {
+  font-size: var(--type-micro);
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.space-field input {
+  width: 100%;
+  min-height: 3.2rem;
+  padding: 0.88rem 1.15rem;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  color: var(--text-main);
+  font-size: var(--type-body);
+  font-family: var(--font-body);
+  outline: none;
+  transition: border-color var(--t-fast), box-shadow var(--t-base), background var(--t-fast);
+}
+.space-field input::placeholder {
+  color: var(--text-dim);
+  opacity: 0.8;
+}
+.space-field input:focus {
+  border-color: var(--gold);
+  background: var(--paper-strong);
+  box-shadow: 0 0 0 4px rgba(197, 161, 59, 0.12);
+}
+
+html[data-theme="dark"] .space-field input {
+  background: rgba(230, 223, 203, 0.04);
+}
+html[data-theme="dark"] .space-field input:focus {
+  background: rgba(230, 223, 203, 0.07);
+}
+
+/* ─── Inline error message ─────────────────────────────────────────── */
+.space-form__error {
+  font-size: var(--type-body-sm);
+  color: #b85a55;
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-xs);
+  background: rgba(184, 90, 85, 0.08);
+  border: 1px solid rgba(184, 90, 85, 0.2);
+}
+html[data-theme="dark"] .space-form__error {
+  color: #e08880;
+  background: rgba(224, 136, 128, 0.1);
+}
+
+/* ─── Submit button ────────────────────────────────────────────────── */
+.space-form__submit {
+  width: 100%;
+  min-height: 3.4rem;
+  margin-top: 0.35rem;
+  font-size: var(--type-body);
+}
+
+/* ─── "Switch to" link row ─────────────────────────────────────────── */
+.space-auth-switch {
+  margin: 1.5rem 0 0;
+  font-size: var(--type-body-sm);
+  color: var(--text-soft);
+  text-align: center;
+}
+.space-auth-switch button {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  color: var(--gold);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: opacity var(--t-fast);
+}
+.space-auth-switch button:hover {
+  opacity: 0.75;
+}
+
+/* ─── Trust block ──────────────────────────────────────────────────── */
+.space-trust-block {
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--surface-soft);
+  text-align: center;
+}
+
+.space-trust-block__lead {
+  font-family: var(--font-display);
+  font-size: var(--type-heading-md);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+  margin: 0 0 0.65rem;
+}
+
+.space-trust-block__body {
+  font-size: var(--type-body-sm);
+  color: var(--text-soft);
+  line-height: var(--leading-normal);
+  margin: 0 0 1.25rem;
+  max-width: 28rem;
+  margin-inline: auto;
+  margin-bottom: 1.25rem;
+}
+
+.space-trust-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem 1.5rem;
+}
+
+.space-trust-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: var(--type-label);
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.space-trust-list [data-lucide] {
+  color: var(--gold);
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+/* ─── Dashboard ────────────────────────────────────────────────────── */
+.space-dashboard {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.space-dashboard__header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1.5rem 2rem;
+  align-items: center;
+}
+
+.space-dashboard__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.space-dashboard__tagline {
+  font-family: var(--font-editorial);
+  font-size: var(--type-body);
+  font-style: italic;
+  color: var(--text-soft);
+  margin: 0.35rem 0 0;
+  line-height: var(--leading-relaxed);
+}
+
+/* ─── Mobile ───────────────────────────────────────────────────────── */
+@media (max-width: 720px) {
+  .space-entry-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .space-dashboard__header {
+    grid-template-columns: 1fr;
+  }
+
+  .space-dashboard__actions {
+    justify-content: flex-start;
+  }
+
+  .space-auth-wrap {
+    max-width: 100%;
+  }
+}

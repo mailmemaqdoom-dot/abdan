@@ -318,43 +318,224 @@
         </div>
       </section>
 
+      <!-- ═══════════════════════════════════════════════════════════════════
+           YOUR SPACE 💛 — Customer identity & relationship ecosystem
+           Four in-section views managed by JS:
+             spaceEntry     → Editorial welcome + CTAs (default)
+             spaceSignin    → Continue Your Space (sign-in form)
+             spaceCreate    → Create Your Space (registration form)
+             spaceDashboard → Personalised customer space after auth
+           Admin routing continues via /#admin hash — silently handled.
+           ═══════════════════════════════════════════════════════════════════ -->
       <section class="account-section section-frame" id="account">
-        <div class="container account-grid">
-          <article class="account-copy reveal">
-            <p class="section-kicker">A softer personal corner</p>
-            <h2>Your Space 💛</h2>
-            <p>
-              A future home for favourites, keepsakes, style notes, and thoughtful reminders. Even
-              before it grows into a fuller account area, the feeling is the same: this space remembers
-              what moved you.
-            </p>
-            <a class="primary-button" href="https://wa.me/918760595307" target="_blank" rel="noreferrer">
-              Create My Space
-            </a>
-          </article>
+        <div class="container">
 
-          <div class="account-features reveal">
-            <article class="feature-card">
-              <i data-lucide="heart"></i>
-              <h3>Moments Loved</h3>
-              <p>Save the pieces that caught your eye. Your favourites wait here, quietly and beautifully.</p>
-            </article>
-            <article class="feature-card">
-              <i data-lucide="shopping-bag"></i>
-              <h3>Your Keepsakes</h3>
-              <p>Every order becomes a memory of the day you chose something just for yourself.</p>
-            </article>
-            <article class="feature-card">
-              <i data-lucide="sparkles"></i>
-              <h3>Style Profile</h3>
-              <p>So ABDAN can remember what you love and recommend with intimacy rather than noise.</p>
-            </article>
-            <article class="feature-card">
-              <i data-lucide="mail"></i>
-              <h3>Personal Notes</h3>
-              <p>Festival greetings, style updates, and contact that feels warm, measured, and welcome.</p>
-            </article>
+          <!-- ── VIEW: Entry ────────────────────────────────────────────── -->
+          <div class="space-view" id="spaceEntry">
+            <div class="space-entry-grid">
+
+              <article class="space-editorial reveal">
+                <p class="section-kicker">A personal place of your own</p>
+                <h2 class="space-heading">Your Space <span aria-hidden="true">💛</span></h2>
+                <p class="space-heading-tagline">A softer place for the pieces, moments, and preferences that feel most like you.</p>
+
+                <div class="space-why">
+                  <p class="space-why__text">Your Space was created to make discovering, saving, and returning to the pieces you love feel calmer, easier, and more personal.</p>
+                </div>
+
+                <div class="space-entry-actions">
+                  <button type="button" class="primary-button" id="spaceSigninBtn">
+                    <i data-lucide="log-in"></i>
+                    Continue Your Space
+                  </button>
+                  <button type="button" class="secondary-button" id="spaceCreateBtn">
+                    Create Your Space
+                  </button>
+                </div>
+              </article>
+
+              <div class="account-features reveal">
+                <article class="feature-card">
+                  <i data-lucide="heart"></i>
+                  <h3>Moments Loved</h3>
+                  <p>Save the pieces that caught your eye. Your favourites wait here, quietly and beautifully.</p>
+                </article>
+                <article class="feature-card">
+                  <i data-lucide="shopping-bag"></i>
+                  <h3>Your Keepsakes</h3>
+                  <p>Every order becomes a memory of the day you chose something just for yourself.</p>
+                </article>
+                <article class="feature-card">
+                  <i data-lucide="sparkles"></i>
+                  <h3>Style Profile</h3>
+                  <p>So ABDAN can remember what you love and recommend with intimacy rather than noise.</p>
+                </article>
+                <article class="feature-card">
+                  <i data-lucide="mail"></i>
+                  <h3>Personal Notes</h3>
+                  <p>Greetings, style updates, and contact that feels warm, measured, and welcome.</p>
+                </article>
+              </div>
+
+            </div>
           </div>
+
+          <!-- ── VIEW: Continue Your Space (Sign In) ────────────────────── -->
+          <div class="space-view" id="spaceSignin" hidden>
+            <div class="space-auth-wrap">
+
+              <button type="button" class="space-back-btn" id="spaceSigninBack" aria-label="Back to Your Space">
+                <i data-lucide="arrow-left"></i>
+                <span>Back</span>
+              </button>
+
+              <div class="space-auth-card editorial-panel">
+                <p class="section-kicker">Welcome back</p>
+                <h2 class="space-heading">Continue Your Space</h2>
+                <p class="space-auth-intro">Your carefully chosen pieces and quiet favorites are waiting.</p>
+
+                <form class="space-form" id="spaceSigninForm" novalidate>
+                  <label class="space-field">
+                    <span class="space-field__label">Where shall we find you?</span>
+                    <small class="space-field__hint">Email address</small>
+                    <input type="email" name="email" placeholder="your@email.com" required autocomplete="email" />
+                  </label>
+                  <label class="space-field">
+                    <span class="space-field__label">Your private space</span>
+                    <small class="space-field__hint">Password</small>
+                    <input type="password" name="password" placeholder="••••••••" required autocomplete="current-password" />
+                  </label>
+                  <p class="space-form__error" id="spaceSigninError" role="alert" hidden></p>
+                  <button type="submit" class="primary-button space-form__submit">Continue Your Space</button>
+                </form>
+
+                <p class="space-auth-switch">
+                  New to ABDAN? <button type="button" class="text-link" id="spaceToCreate">Create Your Space →</button>
+                </p>
+              </div>
+
+              <div class="space-trust-block">
+                <p class="space-trust-block__lead">Your space is personal.</p>
+                <p class="space-trust-block__body">Everything you share with ABDAN stays secure, private, and thoughtfully protected.</p>
+                <ul class="space-trust-list" aria-label="Privacy assurances">
+                  <li><i data-lucide="check-circle"></i> Private &amp; Secure</li>
+                  <li><i data-lucide="check-circle"></i> Carefully Protected</li>
+                  <li><i data-lucide="check-circle"></i> Always Under Your Control</li>
+                </ul>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ── VIEW: Create Your Space ────────────────────────────────── -->
+          <div class="space-view" id="spaceCreate" hidden>
+            <div class="space-auth-wrap">
+
+              <button type="button" class="space-back-btn" id="spaceCreateBack" aria-label="Back to Your Space">
+                <i data-lucide="arrow-left"></i>
+                <span>Back</span>
+              </button>
+
+              <div class="space-auth-card editorial-panel">
+                <p class="section-kicker">A new beginning</p>
+                <h2 class="space-heading">Create Your Space</h2>
+                <p class="space-auth-intro">A personal space shaped around your style, comfort, and the way you love to feel seen.</p>
+
+                <form class="space-form" id="spaceCreateForm" novalidate>
+                  <label class="space-field">
+                    <span class="space-field__label">What should we call you?</span>
+                    <small class="space-field__hint">Full Name</small>
+                    <input type="text" name="fullName" placeholder="Your full name" required autocomplete="name" />
+                  </label>
+                  <label class="space-field">
+                    <span class="space-field__label">What name feels most like you here?</span>
+                    <small class="space-field__hint">Display Name — how you'll appear in your space</small>
+                    <input type="text" name="displayName" placeholder="Your chosen name" required autocomplete="nickname" />
+                  </label>
+                  <label class="space-field">
+                    <span class="space-field__label">Where shall we stay connected?</span>
+                    <small class="space-field__hint">Email Address</small>
+                    <input type="email" name="email" placeholder="your@email.com" required autocomplete="email" />
+                  </label>
+                  <label class="space-field">
+                    <span class="space-field__label">Where may we reach you when needed?</span>
+                    <small class="space-field__hint">Mobile Number (optional)</small>
+                    <input type="tel" name="phone" placeholder="+91 00000 00000" autocomplete="tel" />
+                  </label>
+                  <label class="space-field">
+                    <span class="space-field__label">Create your private space</span>
+                    <small class="space-field__hint">Password — minimum 6 characters</small>
+                    <input type="password" name="password" placeholder="••••••••" required autocomplete="new-password" minlength="6" />
+                  </label>
+                  <label class="space-field">
+                    <span class="space-field__label">Confirm your space</span>
+                    <small class="space-field__hint">Confirm Password</small>
+                    <input type="password" name="confirmPassword" placeholder="••••••••" required autocomplete="new-password" />
+                  </label>
+                  <p class="space-form__error" id="spaceCreateError" role="alert" hidden></p>
+                  <button type="submit" class="primary-button space-form__submit">Create Your Space</button>
+                </form>
+
+                <p class="space-auth-switch">
+                  Already have a space? <button type="button" class="text-link" id="spaceToSignin">Continue Your Space →</button>
+                </p>
+              </div>
+
+              <div class="space-trust-block">
+                <p class="space-trust-block__lead">Your space is personal.</p>
+                <p class="space-trust-block__body">Everything you share with ABDAN stays secure, private, and thoughtfully protected.</p>
+                <ul class="space-trust-list" aria-label="Privacy assurances">
+                  <li><i data-lucide="check-circle"></i> Private &amp; Secure</li>
+                  <li><i data-lucide="check-circle"></i> Carefully Protected</li>
+                  <li><i data-lucide="check-circle"></i> Always Under Your Control</li>
+                </ul>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ── VIEW: Customer Dashboard ───────────────────────────────── -->
+          <div class="space-view" id="spaceDashboard" hidden>
+            <div class="space-dashboard">
+
+              <header class="space-dashboard__header editorial-panel reveal">
+                <div class="space-dashboard__greeting">
+                  <p class="section-kicker">Your personal space</p>
+                  <h2 id="spaceDashGreeting">Your Space 💛</h2>
+                  <p class="space-auth-intro" id="spaceDashTagline">Everything you love, thoughtfully kept in one place.</p>
+                </div>
+                <div class="space-dashboard__actions">
+                  <a class="secondary-button" href="#products">Browse collection</a>
+                  <button type="button" class="ghost-button" id="spaceSignoutBtn">Leave your space</button>
+                </div>
+              </header>
+
+              <div class="account-features reveal">
+                <article class="feature-card">
+                  <i data-lucide="heart"></i>
+                  <h3>Moments Loved</h3>
+                  <p>The pieces you've saved, quietly kept for when you're ready to return to them.</p>
+                </article>
+                <article class="feature-card">
+                  <i data-lucide="shopping-bag"></i>
+                  <h3>Your Keepsakes</h3>
+                  <p>Every order becomes a memory of the day you chose something just for yourself.</p>
+                </article>
+                <article class="feature-card">
+                  <i data-lucide="sparkles"></i>
+                  <h3>Style Profile</h3>
+                  <p>So ABDAN can remember what you love and recommend with intimacy rather than noise.</p>
+                </article>
+                <article class="feature-card">
+                  <i data-lucide="mail"></i>
+                  <h3>Personal Notes</h3>
+                  <p>Greetings, style updates, and contact that feels warm and welcome.</p>
+                </article>
+              </div>
+
+            </div>
+          </div>
+
         </div>
       </section>
     </main>
