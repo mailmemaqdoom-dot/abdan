@@ -627,6 +627,7 @@ async function handleAdminLogin(event) {
   if (dom.adminEmail)    dom.adminEmail.value    = "";
   if (dom.adminPasscode) dom.adminPasscode.value = "";
   setAdminSession(true);
+  window.location.href = "/studio.html";
 }
 
 function handleAdminSignout() {
@@ -775,7 +776,7 @@ async function handleSpaceSignin(event) {
     }
     if (result.type === "admin") {
       resetButtonLoading(submitBtn);
-      window.location.hash = "#admin";
+      window.location.href = "/studio.html";
       return;
     }
     setSpaceSession(result.profile);
@@ -1699,6 +1700,43 @@ function init() {
   renderAdminRoute();
   initSpaceAuth();
   safeCreateIcons();
+
+  /* ── Seed studio product catalog (first run only) ──────────────────── */
+  if (!localStorage.getItem("abdan-studio-products")) {
+    try {
+      localStorage.setItem("abdan-studio-products", JSON.stringify(
+        PRODUCTS.map((p) => ({
+          id:           p.id,
+          name:         p.name,
+          price:        p.price,
+          comparePrice: p.comparePrice || "",
+          category:     p.primaryTag || "",
+          sizes:        p.sizes || [],
+          image:        p.image || "",
+          image2:       p.image2 || "",
+          image3:       p.image3 || "",
+          description:  p.description || "",
+          curationLine: p.curationLine || "",
+          tags:         (p.tags || []).join(", "),
+          inStock:      p.inStock !== false,
+          status:       p.status || "active",
+          featured:     !!p.featured,
+          updatedAt:    new Date().toISOString(),
+        }))
+      ));
+    } catch { /* quota */ }
+  }
+
+  /* ── Show active studio notices ─────────────────────────────────────── */
+  try {
+    const notices = JSON.parse(localStorage.getItem("abdan-studio-notices") || "[]");
+    const active  = notices.filter((n) => n.active);
+    const bar     = document.getElementById("studioNoticeBar");
+    if (bar && active.length) {
+      bar.textContent = active[0].text;
+      bar.hidden = false;
+    }
+  } catch { /* ignore */ }
 
   /* ── Deep-link: auto-open product from ?product=ID URL param ──────── */
   const deepProduct = new URLSearchParams(window.location.search).get("product");

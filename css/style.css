@@ -3475,3 +3475,20 @@ html[data-theme="dark"] .space-form__error {
     max-width: 100%;
   }
 }
+
+/* ─── Studio notice bar ───────────────────────────────────────────── */
+.studio-notice-bar {
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  background: var(--gold);
+  color: #fff;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 0.45rem 1rem;
+  line-height: 1.4;
+}
+.studio-notice-bar[hidden] { display: none; }
+
