@@ -25,8 +25,9 @@ const FILTERS = [
 ];
 const DEFAULT_SIZES = ["S", "M", "L", "XL", "XXL"];
 const DEFAULT_COLORS = ["Ivory", "Emerald", "Crimson"];
-const ADMIN_ACCESS_HASH = "23e6902e2651c457f6086da8d743bf2c5b4e2a34dfeef05c80571ca9758aeeda";
-const ADMIN_ACCESS_FALLBACK = "YWJkYW4tYWRtaW4=";
+const ADMIN_ACCESS_HASH     = "025bfb58e58724ad81f9328ea387fc7e7edc7acb0f87863569c6b9a02173405e";
+const ADMIN_EMAIL_HASH      = "8589552fb01f8ba47965e76d121b39cf800de9c22d347e8efb8bab5970677dc8";
+const ADMIN_ACCESS_FALLBACK = "YWRtaW5AYWJkYW4uY29tOkFiZHVsbGFoQDE2MjQ=";
 
 function buildProductNarrative(product) {
   const fabric = product.specs.find(([label]) => label.includes("Fabric"))?.[1] ?? "fine fabric";
@@ -468,6 +469,7 @@ const dom = {
   adminLoginPanel: document.getElementById("adminLoginPanel"),
   adminPanel: document.getElementById("adminPanel"),
   adminLoginForm: document.getElementById("adminLoginForm"),
+  adminEmail: document.getElementById("adminEmail"),
   adminPasscode: document.getElementById("adminPasscode"),
   adminError: document.getElementById("adminError"),
   adminSignout: document.getElementById("adminSignout"),
@@ -536,13 +538,16 @@ async function hashValue(value) {
     .join("");
 }
 
-async function verifyAdminPasscode(passcode) {
-  const normalized = passcode.trim();
-  if (!normalized) return false;
+async function verifyAdminPasscode(email, passcode) {
+  const normEmail    = (email    || "").trim().toLowerCase();
+  const normPasscode = (passcode || "").trim();
+  if (!normEmail || !normPasscode) return false;
   if (window.crypto?.subtle) {
-    return (await hashValue(normalized)) === ADMIN_ACCESS_HASH;
+    const [emailHash, pwHash] = await Promise.all([hashValue(normEmail), hashValue(normPasscode)]);
+    return emailHash === ADMIN_EMAIL_HASH && pwHash === ADMIN_ACCESS_HASH;
   }
-  return normalized === window.atob(ADMIN_ACCESS_FALLBACK);
+  const [fallbackEmail, fallbackPw] = window.atob(ADMIN_ACCESS_FALLBACK).split(":");
+  return normEmail === fallbackEmail && normPasscode === fallbackPw;
 }
 
 function setAdminSession(authenticated) {
@@ -604,8 +609,9 @@ function renderAdminRoute() {
 
 async function handleAdminLogin(event) {
   event.preventDefault();
+  const email   = dom.adminEmail?.value   || "";
   const passcode = dom.adminPasscode?.value || "";
-  const verified = await verifyAdminPasscode(passcode);
+  const verified = await verifyAdminPasscode(email, passcode);
   if (!verified) {
     if (dom.adminError) {
       dom.adminError.hidden = false;
@@ -618,6 +624,7 @@ async function handleAdminLogin(event) {
     dom.adminError.hidden = true;
     dom.adminError.textContent = "";
   }
+  if (dom.adminEmail)    dom.adminEmail.value    = "";
   if (dom.adminPasscode) dom.adminPasscode.value = "";
   setAdminSession(true);
 }
@@ -627,6 +634,7 @@ function handleAdminSignout() {
     dom.adminError.hidden = true;
     dom.adminError.textContent = "";
   }
+  if (dom.adminEmail)    dom.adminEmail.value    = "";
   if (dom.adminPasscode) dom.adminPasscode.value = "";
   setAdminSession(false);
 }
@@ -683,7 +691,7 @@ async function createSpaceProfile(data) {
 }
 
 async function authenticateSpace(email, password) {
-  if (await verifyAdminPasscode(password)) return { type: "admin" };
+  if (await verifyAdminPasscode(email, password)) return { type: "admin" };
   const profiles = getSpaceProfiles();
   const profile = profiles[email.toLowerCase().trim()];
   if (!profile) return null;
