@@ -914,39 +914,107 @@ function renderFooterContent() {
   ).join("");
 }
 
-function renderShareButtons(product) {
-  const shareUrl = window.location.href.split("#")[0];
-  const text = `${product.name} — ${BRAND.tagline}`;
-  const encodedText = encodeURIComponent(text);
-  const encodedUrl = encodeURIComponent(shareUrl);
+/* ── Build a product-specific deep-link URL ──────────────────────────── */
+function buildShareUrl(product) {
+  const base = window.location.href.split("?")[0].split("#")[0];
+  return `${base}?product=${encodeURIComponent(product.id)}`;
+}
 
-  const links = [
-    { href: `https://wa.me/?text=${encodedText}%20${encodedUrl}`, icon: "message-circle", label: "WhatsApp" },
-    { href: `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`, icon: "send", label: "Telegram" },
-    { href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, icon: "globe", label: "Facebook" },
-    { href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`, icon: "linkedin", label: "LinkedIn" },
+function renderShareButtons(product) {
+  const shareUrl = buildShareUrl(product);
+  const tagline  = product.curationLine || BRAND.tagline;
+  const imgUrl   = product.image.startsWith("http") ? product.image : shareUrl;
+
+  /* ── Editorial share text per platform ─────────────────────────── */
+  const waText    = `✨ ${product.name} — ABDAN\n\n${tagline}\n\n→ ${shareUrl}`;
+  const tgText    = `✨ ${product.name} — ABDAN\n${tagline}`;
+  const xText     = `${product.name} — quietly chosen for you ✨\n\n${tagline}`;
+  const pinDesc   = `${product.name} | ABDAN — ${tagline}`;
+
+  const eUrl      = encodeURIComponent(shareUrl);
+  const eWaText   = encodeURIComponent(waText);
+  const eTgText   = encodeURIComponent(tgText);
+  const eXText    = encodeURIComponent(xText);
+  const eImg      = encodeURIComponent(imgUrl);
+  const ePin      = encodeURIComponent(pinDesc);
+
+  /* ── Share chips — WhatsApp first, Copy last ────────────────────── */
+  const buttons = [
+    ...(navigator.share ? [{
+      platform: "native", href: "#native-share", icon: "icon-native-share",
+      label: "Share", native: true,
+    }] : []),
+    {
+      platform: "whatsapp",
+      href: `https://wa.me/?text=${eWaText}`,
+      icon: "icon-whatsapp", label: "WhatsApp",
+    },
+    {
+      platform: "telegram",
+      href: `https://t.me/share/url?url=${eUrl}&text=${eTgText}`,
+      icon: "icon-telegram", label: "Telegram",
+    },
+    {
+      platform: "x",
+      href: `https://x.com/intent/tweet?text=${eXText}&url=${eUrl}&hashtags=ABDAN,ModestFashion`,
+      icon: "icon-x", label: "X",
+    },
+    {
+      platform: "pinterest",
+      href: `https://pinterest.com/pin/create/button/?url=${eUrl}&media=${eImg}&description=${ePin}`,
+      icon: "icon-pinterest", label: "Pinterest",
+    },
+    {
+      platform: "facebook",
+      href: `https://www.facebook.com/sharer/sharer.php?u=${eUrl}`,
+      icon: "icon-facebook", label: "Facebook",
+    },
+    {
+      platform: "copy", href: "#copy-link", icon: "icon-copy-link",
+      label: "Copy link", copy: true,
+    },
   ];
 
-  if (navigator.share) {
-    links.unshift({ href: "#native-share", icon: "share-2", label: "Share" });
-  }
+  dom.shareButtons.innerHTML = buttons.map((btn) => `
+    <a class="share-btn" data-platform="${btn.platform}"
+       href="${btn.href}"
+       ${btn.native || btn.copy ? "" : 'target="_blank" rel="noreferrer"'}
+       ${btn.native ? 'data-native-share="true"' : ""}
+       ${btn.copy   ? 'data-copy-link="true"'    : ""}
+       aria-label="Share on ${btn.label}"
+       role="listitem">
+      <svg class="social-icon" aria-hidden="true"><use href="#${btn.icon}"/></svg>
+      <span>${btn.label}</span>
+    </a>
+  `).join("");
 
-  dom.shareButtons.innerHTML = links
-    .map(
-      (link) => `
-        <a href="${link.href}" ${link.href === "#native-share" ? 'data-native-share="true"' : 'target="_blank" rel="noreferrer"'} aria-label="${link.label}">
-          <i data-lucide="${link.icon}"></i>
-        </a>
-      `,
-    )
-    .join("");
-
-  dom.shareButtons.querySelector('[data-native-share="true"]')?.addEventListener("click", async (event) => {
-    event.preventDefault();
+  /* Native share handler */
+  dom.shareButtons.querySelector('[data-native-share="true"]')?.addEventListener("click", async (e) => {
+    e.preventDefault();
     try {
-      await navigator.share({ title: text, text, url: shareUrl });
+      await navigator.share({
+        title: `${product.name} — ABDAN`,
+        text: tagline,
+        url: shareUrl,
+      });
+    } catch { /* user cancelled — silent */ }
+  });
+
+  /* Copy link handler */
+  dom.shareButtons.querySelector('[data-copy-link="true"]')?.addEventListener("click", async (e) => {
+    e.preventDefault();
+    try {
+      await navigator.clipboard.writeText(shareUrl);
     } catch {
+      /* Clipboard API unavailable — execCommand fallback */
+      const tmp = document.createElement("input");
+      tmp.value = shareUrl;
+      document.body.appendChild(tmp);
+      tmp.select();
+      document.execCommand("copy");
+      document.body.removeChild(tmp);
     }
+    showToast("Link copied 💛");
   });
 }
 
@@ -1631,6 +1699,13 @@ function init() {
   renderAdminRoute();
   initSpaceAuth();
   safeCreateIcons();
+
+  /* ── Deep-link: auto-open product from ?product=ID URL param ──────── */
+  const deepProduct = new URLSearchParams(window.location.search).get("product");
+  if (deepProduct) {
+    const found = PRODUCTS.find((p) => p.id === deepProduct);
+    if (found) requestAnimationFrame(() => openProduct(found.id));
+  }
   /* ── Page entrance: fade body in after full hydration ──────────────── */
   requestAnimationFrame(() => document.body.classList.add("page-ready"));
 }
