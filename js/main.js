@@ -1034,6 +1034,16 @@ function renderOptionChips(container, values, selectedValue, onClick) {
       container.querySelectorAll(".option-chip").forEach((chip) => {
         chip.classList.toggle("is-selected", chip.dataset.optionValue === button.dataset.optionValue);
       });
+
+      /* ── Chip spring selection micro-interaction ──────────────────── */
+      button.classList.remove("lx-selecting");
+      requestAnimationFrame(() => {
+        button.classList.add("lx-selecting");
+        button.addEventListener("animationend", () => {
+          button.classList.remove("lx-selecting");
+        }, { once: true });
+      });
+
       onClick(button.dataset.optionValue || "");
     });
   });
@@ -1212,6 +1222,58 @@ function showOrderSuccess(customerName) {
   safeCreateIcons();
 }
 
+/* ── Luxury cart fly: thumbnail glides from product image → cart icon ── */
+function lxCartFly(srcRect, destRect, imageSrc) {
+  if (!imageSrc || typeof Element.prototype.animate !== "function") return;
+
+  const size   = 60;
+  const startX = srcRect.left  + srcRect.width  / 2 - size / 2;
+  const startY = srcRect.top   + srcRect.height / 2 - size / 2;
+  const endX   = destRect.left + destRect.width  / 2 - size / 2;
+  const endY   = destRect.top  + destRect.height / 2 - size / 2;
+
+  /* Arc midpoint: lifts toward the top of the viewport for natural arc */
+  const arcLift = Math.abs(endX - startX) * 0.18;
+  const midX    = startX + (endX - startX) * 0.5;
+  const midY    = Math.min(startY, endY) - arcLift;
+
+  const orb = document.createElement("img");
+  orb.src       = imageSrc;
+  orb.className = "lx-cart-orb";
+  orb.setAttribute("aria-hidden", "true");
+  orb.style.cssText = `width:${size}px;height:${size}px;left:0;top:0;transform:translate(${startX}px,${startY}px)`;
+  document.body.appendChild(orb);
+
+  orb.animate(
+    [
+      { transform: `translate(${startX}px,${startY}px) scale(1)`,    opacity: 1                 },
+      { transform: `translate(${midX}px,${midY}px) scale(0.72)`,     opacity: 0.88, offset: 0.44 },
+      { transform: `translate(${endX}px,${endY}px) scale(0.22)`,     opacity: 0                 },
+    ],
+    { duration: 560, easing: "cubic-bezier(0.4, 0, 0.55, 1)", fill: "forwards" }
+  ).onfinish = () => orb.remove();
+}
+
+/* ── Luxury cart pulse helper ────────────────────────────────────────── */
+function lxPulseCart() {
+  dom.cartToggle.classList.remove("is-popping", "is-pulsing");
+  requestAnimationFrame(() => {
+    dom.cartToggle.classList.add("is-pulsing");
+    dom.cartToggle.addEventListener("animationend", () => {
+      dom.cartToggle.classList.remove("is-pulsing");
+    }, { once: true });
+  });
+
+  /* Count bubble pop */
+  dom.cartCount.classList.remove("is-counting");
+  requestAnimationFrame(() => {
+    dom.cartCount.classList.add("is-counting");
+    dom.cartCount.addEventListener("animationend", () => {
+      dom.cartCount.classList.remove("is-counting");
+    }, { once: true });
+  });
+}
+
 function addToCart() {
   const product = getActiveProduct();
   if (!product) return;
@@ -1221,6 +1283,26 @@ function addToCart() {
     return;
   }
 
+  /* ── Capture geometry BEFORE any DOM changes ─────────────────────────
+     Both elements must be in the viewport at this moment.                */
+  const imgRect  = dom.productImage?.getBoundingClientRect();
+  const cartRect = dom.cartToggle?.getBoundingClientRect();
+
+  /* ── Button spring compress ──────────────────────────────────────────
+     WAAPI: instant depress → spring release, all GPU-composited.         */
+  if (dom.addToCartButton && typeof dom.addToCartButton.animate === "function") {
+    dom.addToCartButton.animate(
+      [
+        { transform: "scale(1)" },
+        { transform: "scale(0.91)", offset: 0.14 },
+        { transform: "scale(1.025)", offset: 0.62 },
+        { transform: "scale(1)" },
+      ],
+      { duration: 420, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" }
+    );
+  }
+
+  /* ── State update ────────────────────────────────────────────────── */
   const key = `${product.id}::${state.selectedSize}::${state.selectedColor}`;
   const existing = state.cart.find((item) => item.key === key);
   if (existing) {
@@ -1228,28 +1310,36 @@ function addToCart() {
   } else {
     state.cart.push({
       key,
-      id: product.id,
-      name: product.name,
+      id:         product.id,
+      name:       product.name,
       priceLabel: product.priceLabel,
-      image: product.image,
-      size: state.selectedSize,
-      color: state.selectedColor,
-      quantity: 1,
+      image:      product.image,
+      size:       state.selectedSize,
+      color:      state.selectedColor,
+      quantity:   1,
     });
   }
   saveCart();
   renderCart();
+
+  /* ── Launch fly orb (geometry captured above) ────────────────────── */
+  if (imgRect && cartRect) lxCartFly(imgRect, cartRect, product.image);
+
   closeProduct();
   openCart();
 
-  /* ── iOS motion: cart button spring pop ─────────────────────────────── */
-  dom.cartToggle.classList.remove("is-popping");
-  requestAnimationFrame(() => {
-    dom.cartToggle.classList.add("is-popping");
-    dom.cartToggle.addEventListener("animationend", () => {
-      dom.cartToggle.classList.remove("is-popping");
-    }, { once: true });
-  });
+  /* ── Cart pulse + count pop: timed to fly-orb arrival (~560ms) ────── */
+  setTimeout(lxPulseCart, 520);
+
+  /* ── Success glow on button — fires while sheet is sliding out ────── */
+  if (dom.addToCartButton) {
+    setTimeout(() => {
+      dom.addToCartButton.classList.add("lx-success");
+      dom.addToCartButton.addEventListener("animationend", () => {
+        dom.addToCartButton.classList.remove("lx-success");
+      }, { once: true });
+    }, 60);
+  }
 }
 
 function updateCartQuantity(key, delta) {
@@ -1595,6 +1685,16 @@ function attachEvents() {
     const button = event.target.closest("[data-filter]");
     if (!button) return;
     state.filter = button.dataset.filter || "All";
+
+    /* ── Filter chip spring micro-interaction ─────────────────────── */
+    button.classList.remove("lx-selecting");
+    requestAnimationFrame(() => {
+      button.classList.add("lx-selecting");
+      button.addEventListener("animationend", () => {
+        button.classList.remove("lx-selecting");
+      }, { once: true });
+    });
+
     renderFilters();
     renderProducts();
   });

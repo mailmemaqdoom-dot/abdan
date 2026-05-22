@@ -3492,3 +3492,323 @@ html[data-theme="dark"] .space-form__error {
 }
 .studio-notice-bar[hidden] { display: none; }
 
+/* ═══════════════════════════════════════════════════════════════════
+   ✦ LUXURY MICRO-INTERACTION SYSTEM  v2
+   "Felt, not seen." — timing over drama, restraint over spectacle.
+   Apple-level tactile quality with luxury editorial restraint.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── GPU hints — promote animated elements to their own compositor layer */
+.product-card,
+.option-chip,
+#addToCartButton,
+.cart-button,
+.dock-link,
+.filter-chip {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   1. CART FLY ORB — thumbnail glides from product image → cart icon
+   ════════════════════════════════════════════════════════════════════ */
+/* Positioning & clipping — animation driven entirely by JS WAAPI */
+.lx-cart-orb {
+  position: fixed;
+  border-radius: 50%;
+  object-fit: cover;
+  pointer-events: none;
+  z-index: 9998;
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.22),
+    0 0 0 2px rgba(255, 255, 255, 0.35);
+  will-change: transform, opacity;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   2. CART TOGGLE — refined pulse on item added
+   ════════════════════════════════════════════════════════════════════ */
+@keyframes lx-cart-pulse {
+  0%   { transform: scale(1); }
+  22%  { transform: scale(1.16); }
+  50%  { transform: scale(0.95); }
+  76%  { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+.cart-button.is-pulsing {
+  animation: lx-cart-pulse 460ms cubic-bezier(0.33, 1, 0.68, 1) forwards;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   3. CART COUNT — bubble pop on increment
+   ════════════════════════════════════════════════════════════════════ */
+@keyframes lx-count-pop {
+  0%   { transform: scale(1); }
+  38%  { transform: scale(1.52); }
+  68%  { transform: scale(0.91); }
+  100% { transform: scale(1); }
+}
+#cartCount {
+  display: inline-block;       /* ensures transform applies to the number */
+  will-change: transform;
+}
+#cartCount.is-counting {
+  animation: lx-count-pop 340ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   4. ADD-TO-CART BUTTON — spring compress → release → success glow
+   ════════════════════════════════════════════════════════════════════ */
+@keyframes lx-btn-success-glow {
+  0%   { box-shadow: 0 10px 28px rgba(2, 61, 58, 0.16); }
+  40%  { box-shadow: 0 0 0 8px rgba(2, 61, 58, 0.12), 0 12px 32px rgba(2, 61, 58, 0.28); }
+  100% { box-shadow: 0 10px 28px rgba(2, 61, 58, 0.16); }
+}
+#addToCartButton.lx-success {
+  animation: lx-btn-success-glow 580ms var(--ease-out) forwards;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   5. PRODUCT CARD — hover lift + layered shadow
+   ════════════════════════════════════════════════════════════════════ */
+/* Card-level hover: adds vertical lift — image zoom handled on the img */
+.product-card {
+  will-change: transform, box-shadow;
+  transition:
+    transform   340ms var(--ease-snap),
+    box-shadow  340ms var(--ease-snap);
+}
+.product-card:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 28px 56px rgba(18, 31, 29, 0.09),
+    0 8px  20px rgba(18, 31, 29, 0.055);
+}
+/* Active: pull lift back to zero before scale-down */
+.product-card:active {
+  transform: translateY(0) scale(0.98);
+  transition: transform 65ms linear;
+  box-shadow: var(--shadow-sm);
+}
+html[data-theme="dark"] .product-card:hover {
+  box-shadow:
+    0 28px 56px rgba(0, 0, 0, 0.36),
+    0 8px  20px rgba(0, 0, 0, 0.22);
+}
+
+/* Image zoom: extended range, liquid easing */
+.product-card__media img {
+  transition:
+    transform 520ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    opacity   420ms var(--ease-out);
+  will-change: transform;
+}
+.product-card:hover .product-card__media img {
+  transform: scale(1.06);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   6. OPTION CHIP — ring crown + spring depress on selection
+   ════════════════════════════════════════════════════════════════════ */
+.option-chip {
+  transition:
+    transform      280ms var(--ease-spring),
+    background     180ms var(--ease-out),
+    border-color   180ms var(--ease-out),
+    color          180ms var(--ease-out),
+    box-shadow     240ms var(--ease-out);
+}
+/* Ring appears on selection — adds outer glow ring to gold fill */
+.option-chip.is-selected {
+  box-shadow:
+    0 0 0 2.5px rgba(197, 161, 59, 0.9),
+    0 0 0 5.5px rgba(197, 161, 59, 0.16);
+}
+@keyframes lx-chip-select {
+  0%   { transform: scale(1); }
+  32%  { transform: scale(0.88); }
+  66%  { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+.option-chip.lx-selecting {
+  animation: lx-chip-select 300ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   7. FORM FIELD FOCUS — warm gold illumination, mobile-first
+   ════════════════════════════════════════════════════════════════════ */
+/* Covers :focus (not just :focus-visible) for mobile touch UX */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--gold) !important;
+  box-shadow:
+    0 0 0 3px  rgba(197, 161, 59, 0.14),
+    0 0 22px   rgba(197, 161, 59, 0.06);
+  transition:
+    border-color 200ms var(--ease-out),
+    box-shadow   220ms var(--ease-out);
+}
+/* Studio page fields — mirrored with --s- token */
+.s-field__input:focus,
+.s-field__textarea:focus,
+.s-field__select:focus {
+  outline: none;
+  border-color: var(--s-gold) !important;
+  box-shadow:
+    0 0 0 3px rgba(197, 161, 59, 0.13),
+    0 0 16px rgba(197, 161, 59, 0.06);
+  transition:
+    border-color 200ms ease,
+    box-shadow   220ms ease;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   8. BUTTON HOVER DEPTH — shadow elevation shift on hover
+   ════════════════════════════════════════════════════════════════════ */
+/* Deepens the existing shadow on hover — adds perceived lift */
+.primary-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 40px rgba(2, 61, 58, 0.28);
+}
+html[data-theme="dark"] .primary-button:hover {
+  box-shadow: 0 18px 40px rgba(2, 61, 58, 0.52);
+}
+
+/* Orb button: scale + border illuminate on hover */
+.orb-button:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-sm), 0 0 0 1.5px rgba(197, 161, 59, 0.3);
+}
+
+/* Ghost button: subtle border glow */
+.ghost-button:hover {
+  box-shadow: 0 0 0 1.5px var(--line-strong), inset 0 0 0 1px transparent;
+  transform: translateY(-1px);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   9. IMAGE REVEAL — cinematic scale-settle entrance
+   ════════════════════════════════════════════════════════════════════ */
+/* Product cards get compound entrance: lift + micro-scale settle */
+.product-card.reveal {
+  transform: translateY(14px) scale(0.992);
+  will-change: opacity, transform;
+}
+.product-card.reveal.is-visible {
+  transform: translateY(0) scale(1);
+  transition:
+    opacity   760ms var(--ease-out)  var(--reveal-delay, 0ms),
+    transform 760ms var(--ease-snap) var(--reveal-delay, 0ms);
+}
+/* Section headings: deeper anchor, slightly longer */
+.section-heading.reveal {
+  transform: translateY(20px) scale(0.996);
+}
+.section-heading.reveal.is-visible {
+  transform: translateY(0) scale(1);
+  transition-duration: 900ms, 900ms;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   10. NAVIGATION DOCK — enriched active-tab transition
+   ════════════════════════════════════════════════════════════════════ */
+.dock-link {
+  transition:
+    background    240ms var(--ease-out),
+    color         200ms var(--ease-out),
+    border-color  220ms var(--ease-out),
+    box-shadow    220ms var(--ease-out),
+    transform     200ms var(--ease-out),
+    padding       240ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* Active tab: soft glow ring that pulses in */
+@keyframes lx-dock-active {
+  0%   { box-shadow: 0 3px 14px rgba(2, 61, 58, 0.0); }
+  100% { box-shadow: 0 3px 14px rgba(2, 61, 58, 0.18); }
+}
+html[data-theme="light"] .dock-link.is-active {
+  animation: lx-dock-active 300ms var(--ease-out) both;
+}
+@keyframes lx-dock-active-dark {
+  0%   { box-shadow: 0 3px 14px rgba(197, 161, 59, 0.0); }
+  100% { box-shadow: 0 3px 14px rgba(197, 161, 59, 0.2); }
+}
+html[data-theme="dark"] .dock-link.is-active {
+  animation: lx-dock-active-dark 300ms var(--ease-out) both;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   11. SAVE GLOW — success state for save / settings / form actions
+   ════════════════════════════════════════════════════════════════════ */
+@keyframes lx-save-glow {
+  0%   { box-shadow: 0 10px 28px rgba(2, 61, 58, 0.16); }
+  42%  { box-shadow: 0 0 0 8px rgba(197, 161, 59, 0.18), 0 10px 28px rgba(2, 61, 58, 0.24); }
+  100% { box-shadow: 0 10px 28px rgba(2, 61, 58, 0.16); }
+}
+@keyframes lx-save-glow-soft {
+  0%   { box-shadow: none; }
+  42%  { box-shadow: 0 0 0 7px rgba(197, 161, 59, 0.2); }
+  100% { box-shadow: none; }
+}
+.lx-saved      { animation: lx-save-glow      660ms var(--ease-out) forwards; }
+.lx-saved-soft { animation: lx-save-glow-soft 620ms var(--ease-out) forwards; }
+
+/* ════════════════════════════════════════════════════════════════════
+   12. FILTER CHIP — smooth active transition
+   ════════════════════════════════════════════════════════════════════ */
+.filter-chip {
+  transition:
+    transform      260ms var(--ease-spring),
+    background     200ms var(--ease-out),
+    border-color   200ms var(--ease-out),
+    color          200ms var(--ease-out),
+    box-shadow     220ms var(--ease-out);
+}
+.filter-chip.is-active {
+  box-shadow: 0 4px 14px rgba(197, 161, 59, 0.22);
+}
+@keyframes lx-filter-active {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(0.93); }
+  100% { transform: scale(1); }
+}
+.filter-chip.lx-selecting {
+  animation: lx-filter-active 240ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   13. PRODUCT SHEET IMAGE — refined entrance on open
+   ════════════════════════════════════════════════════════════════════ */
+.product-sheet__media img {
+  transition:
+    opacity   640ms var(--ease-out),
+    transform 640ms var(--ease-snap);
+}
+/* Start slightly zoomed in; settle to 1:1 when loaded */
+.product-sheet__media img:not(.img-loaded) {
+  transform: scale(1.025);
+}
+.product-sheet__media img.img-loaded {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   14. DARK MODE MICRO-POLISH
+   ════════════════════════════════════════════════════════════════════ */
+html[data-theme="dark"] .option-chip.is-selected {
+  box-shadow:
+    0 0 0 2px rgba(197, 161, 59, 0.85),
+    0 0 0 5px rgba(197, 161, 59, 0.18);
+}
+html[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):focus,
+html[data-theme="dark"] textarea:focus {
+  box-shadow:
+    0 0 0 3px  rgba(197, 161, 59, 0.18),
+    0 0 28px   rgba(197, 161, 59, 0.08);
+}
+html[data-theme="dark"] .lx-saved-soft {
+  animation: lx-save-glow-soft 620ms var(--ease-out) forwards;
+}
+

@@ -1326,3 +1326,165 @@ html[data-theme="light"] .s-search { border-color: rgba(28,31,28,0.15); }
 .s-stat--green  .s-stat__icon { color: var(--s-success); }
 .s-stat--purple .s-stat__icon { color: #7c3aed; }
 .s-stat--gold   .s-stat__icon { color: var(--s-gold); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   ✦ STUDIO MICRO-INTERACTION SYSTEM
+   GPU-composited, felt-not-seen, premium-mobile-native.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── GPU hints ──────────────────────────────────────────────────── */
+.s-btn,
+.s-nav-item,
+.s-tab,
+.s-qaction,
+.s-size-chip span,
+.s-list-item {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* ── Button tactile depth ───────────────────────────────────────── */
+.s-btn {
+  will-change: transform, box-shadow;
+}
+.s-btn--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 28px rgba(2, 61, 58, 0.28);
+}
+.s-btn--primary:active {
+  transform: scale(0.96) translateY(0);
+  box-shadow: none;
+  transition: transform 55ms linear, box-shadow 55ms linear;
+}
+.s-btn--gold:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(197, 161, 59, 0.3);
+}
+.s-btn--secondary:hover,
+.s-btn--ghost:hover {
+  transform: translateY(-1px);
+}
+
+/* ── Save glow — fires via JS .lx-saved-soft class ─────────────── */
+@keyframes s-save-glow {
+  0%   { box-shadow: none; }
+  40%  { box-shadow: 0 0 0 7px rgba(197, 161, 59, 0.22); }
+  100% { box-shadow: none; }
+}
+.lx-saved-soft {
+  animation: s-save-glow 640ms ease forwards;
+}
+
+/* ── Nav item micro-response ────────────────────────────────────── */
+.s-nav-item {
+  transition:
+    background  200ms ease,
+    color       180ms ease,
+    transform   180ms ease;
+}
+.s-nav-item:not(.s-nav-item--active):hover {
+  transform: translateX(2px);
+}
+
+/* ── Quick action hover ─────────────────────────────────────────── */
+.s-qaction {
+  will-change: transform, border-color, color;
+}
+
+/* ── Form field focus — warm gold ring ──────────────────────────── */
+.s-field__input:focus,
+.s-field__textarea:focus,
+.s-field__select:focus {
+  outline: none;
+  border-color: var(--s-gold) !important;
+  box-shadow:
+    0 0 0 3px rgba(197, 161, 59, 0.14),
+    0 0 16px rgba(197, 161, 59, 0.06);
+  transition:
+    border-color 200ms ease,
+    box-shadow   220ms ease;
+}
+
+/* ── Tab bar response ───────────────────────────────────────────── */
+.s-tab {
+  transition:
+    color     200ms ease,
+    transform 180ms ease;
+}
+.s-tab:not(.is-active):hover {
+  transform: translateY(-1px);
+}
+@keyframes s-tab-active {
+  0%   { opacity: 0.7; transform: translateY(1px); }
+  100% { opacity: 1;   transform: translateY(0); }
+}
+.s-tab.is-active {
+  animation: s-tab-active 220ms ease both;
+}
+
+/* ── Toggle switch — smooth track transition ────────────────────── */
+.s-toggle__track {
+  transition:
+    background 220ms ease,
+    box-shadow 220ms ease;
+}
+.s-toggle input:checked + .s-toggle__track {
+  box-shadow: 0 0 0 3px rgba(197, 161, 59, 0.18);
+}
+
+/* ── Size chip selection spring ─────────────────────────────────── */
+@keyframes s-size-select {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(0.88); }
+  68%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+.s-size-chip span {
+  transition:
+    border-color 180ms ease,
+    background   180ms ease,
+    color        180ms ease;
+}
+.s-size-chip.lx-selecting span {
+  animation: s-size-select 280ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ── List item hover lift ───────────────────────────────────────── */
+.s-list-item {
+  transition:
+    background  180ms ease,
+    transform   180ms ease,
+    box-shadow  180ms ease;
+}
+.s-list-item:hover {
+  transform: translateX(1px);
+}
+
+/* ── Product card hover (studio grid) ──────────────────────────── */
+.s-product-card {
+  transition:
+    transform   280ms ease,
+    box-shadow  280ms ease;
+}
+.s-product-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+}
+html[data-theme="dark"] .s-product-card:hover {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32);
+}
+
+/* ── Toast — refined entrance/exit ──────────────────────────────── */
+.s-toast {
+  transition:
+    opacity   200ms ease,
+    transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.s-toast.is-visible {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── Dark mode micro-polish ─────────────────────────────────────── */
+html[data-theme="dark"] .s-btn--primary:hover {
+  box-shadow: 0 10px 28px rgba(2, 61, 58, 0.5);
+}

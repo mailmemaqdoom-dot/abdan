@@ -190,6 +190,31 @@ function toast(msg, type = "ok") {
   toastTimer = setTimeout(() => dom.toast.classList.remove("is-visible"), 3200);
 }
 
+/* ── Save glow micro-interaction ────────────────────────────── */
+function lxSaveGlow(btnId, toastMsg) {
+  const btn = document.getElementById(btnId);
+  if (btn) {
+    btn.classList.remove("lx-saved-soft");
+    requestAnimationFrame(() => {
+      btn.classList.add("lx-saved-soft");
+      btn.addEventListener("animationend", () => btn.classList.remove("lx-saved-soft"), { once: true });
+    });
+    /* Button compress spring via WAAPI */
+    if (typeof btn.animate === "function") {
+      btn.animate(
+        [
+          { transform: "scale(1)" },
+          { transform: "scale(0.93)", offset: 0.15 },
+          { transform: "scale(1.02)", offset: 0.62 },
+          { transform: "scale(1)" },
+        ],
+        { duration: 380, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" }
+      );
+    }
+  }
+  toast(toastMsg);
+}
+
 /* ── Panel ──────────────────────────────────────────────────── */
 function openPanel(title, bodyHTML, saveFn = null) {
   dom.panelTitle.textContent = title;
@@ -757,7 +782,7 @@ function renderHomepage() {
       storyHeadline: val("hpStoryHL"),
       storyBody:     val("hpStoryBody"),
     });
-    toast("Homepage mood saved 🌿");
+    lxSaveGlow("sHpSave", "Homepage mood saved 🌿");
   });
 }
 
@@ -1069,7 +1094,7 @@ function renderVoice() {
       heroHeadline: val("vfHeroHL"),
       heroSubline:  val("vfHeroSub"),
     });
-    toast("Brand voice saved ✨");
+    lxSaveGlow("sVoiceSave", "Brand voice saved ✨");
   });
 }
 
@@ -1106,7 +1131,7 @@ function renderSocial() {
       pinterestBoard:  val("sfPin"),
       shareTagline:    val("sfTagline"),
     });
-    toast("Social settings saved");
+    lxSaveGlow("sSocialSave", "Social settings saved");
   });
 }
 
@@ -1188,7 +1213,7 @@ function renderSettings() {
       razorpayKey:    val("stRPay"),
       currency:       val("stCurrency"),
     });
-    toast("Settings saved ✨");
+    lxSaveGlow("sSettingsSave", "Settings saved ✨");
   });
 }
 
