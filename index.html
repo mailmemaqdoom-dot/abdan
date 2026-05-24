@@ -25,6 +25,8 @@
     <meta name="twitter:description" content="Thoughtfully curated modest fashion for the woman who moves through her days with devotion, grace, and quiet intention." />
     <meta name="twitter:image"       content="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=85" />
     <title>ABDAN | Your Devotion Meets Style</title>
+    <!-- ── Entry skip: runs before first paint so overlay never flickers ── -->
+    <script>try{if(sessionStorage.getItem("abdan-entry-seen")){document.documentElement.dataset.entrySkip="1"}}catch(e){}</script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -35,6 +37,25 @@
     <link rel="preload" as="image" href="./assets/embroidered-festive-dupatta.jpg" />
   </head>
   <body>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         LUXURY ENTRY EXPERIENCE
+         Cinematic branded opening — shown once per session.
+         Overlay matches site background so there is no colour clash.
+         JS controls the sequence; CSS controls the motion.
+         data-entry-skip="1" on <html> (set by inline script in <head>)
+         tells CSS to hide this before it ever paints.
+         ══════════════════════════════════════════════════════════════════ -->
+    <div id="lxEntry" class="lx-entry" aria-hidden="true" role="presentation">
+      <div class="lx-entry__inner">
+        <div class="lx-entry__wordmark" aria-label="ABDAN">ABDAN</div>
+        <p class="lx-entry__tagline">
+          You always think of everyone…<br>
+          this time, the thought belongs to you. 💛
+        </p>
+        <div class="lx-entry__breathe" aria-hidden="true"></div>
+      </div>
+    </div>
 
     <!-- ══════════════════════════════════════════════════════════════════
          SVG ICON SPRITE — social / share icons
@@ -157,22 +178,25 @@
     <main class="luxury-shell">
       <section class="hero-section section-frame" id="hero">
         <div class="container hero-grid">
-          <article class="hero-copy editorial-panel reveal">
-            <div class="eyebrow-row">
+          <!-- Hero copy: progressive reveal — each child fades in sequentially.
+               Parent article is always visible; children carry reveal classes.
+               Stagger offsets create the editorial "opening" feel.           -->
+          <article class="hero-copy editorial-panel">
+            <div class="eyebrow-row reveal" style="--reveal-delay:0ms">
               <span>Editorial modest fashion</span>
               <span>Curated with patience</span>
             </div>
-            <p class="tagline-label">Your Devotion Meets Style</p>
-            <h1>
+            <p class="tagline-label reveal" style="--reveal-delay:110ms">Your Devotion Meets Style</p>
+            <h1 class="reveal" style="--reveal-delay:230ms">
               You always think of everyone…
               <span>this time, the thought belongs to you. 💛</span>
             </h1>
-            <p class="hero-body">
+            <p class="hero-body reveal" style="--reveal-delay:390ms">
               A quieter kind of fashion space — for the woman who moves through her days with grace,
               devotion, and depth. Every piece is selected to feel considered, elegant, and worthy of the
               woman who so often chooses herself last.
             </p>
-            <div class="hero-actions">
+            <div class="hero-actions reveal" style="--reveal-delay:560ms">
               <a class="primary-button" href="#products">
                 Enter the collection
                 <i data-lucide="arrow-right"></i>
@@ -181,7 +205,7 @@
                 Speak with ABDAN
               </a>
             </div>
-            <div class="trust-mini">
+            <div class="trust-mini reveal" style="--reveal-delay:700ms">
               <p>
                 Carefully verified pieces. Personal support before payment. A journey that stays gentle
                 from the first scroll to the piece arriving at the door.

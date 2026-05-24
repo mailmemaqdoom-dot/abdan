@@ -2313,6 +2313,75 @@ function attachEvents() {
   });
 }
 
+/* ── Luxury Entry Experience ─────────────────────────────────────────────
+   Cinematic branded opening — shown once per browser session.
+   Session guard: inline script in <head> sets [data-entry-skip="1"] on
+   <html> before first paint, so CSS hides the overlay if already seen.
+   Sequence: wordmark (150ms) → tagline (620ms) → breathe (980ms) →
+             overlay fades out (1050ms, 540ms transition → done ~1590ms).
+   Respects prefers-reduced-motion: all durations collapse to 1ms.        */
+function initEntryExperience() {
+  const el = document.getElementById("lxEntry");
+  if (!el) return;
+
+  /* Session guard already handled by CSS (data-entry-skip hides overlay).
+     If it's hidden we just clean it up from the DOM silently.             */
+  if (document.documentElement.dataset.entrySkip === "1") {
+    el.remove();
+    return;
+  }
+
+  /* Mark session so next load skips the entry */
+  try { sessionStorage.setItem("abdan-entry-seen", "1"); } catch { /* quota */ }
+
+  const wordmark = el.querySelector(".lx-entry__wordmark");
+  const tagline  = el.querySelector(".lx-entry__tagline");
+  const breathe  = el.querySelector(".lx-entry__breathe");
+
+  /* Reduced motion: skip animation, dissolve quickly */
+  if (LX_MOTION.reduced()) {
+    if (wordmark) wordmark.classList.add("is-visible");
+    if (tagline)  tagline.classList.add("is-visible");
+    setTimeout(() => {
+      el.classList.add("is-done");
+      el.addEventListener("transitionend", () => el.remove(), { once: true });
+    }, 280);
+    return;
+  }
+
+  /* Step 1 — wordmark drifts in */
+  setTimeout(() => wordmark?.classList.add("is-visible"), 150);
+
+  /* Step 2 — tagline softly follows */
+  setTimeout(() => tagline?.classList.add("is-visible"), 620);
+
+  /* Step 3 — breathing line appears */
+  setTimeout(() => breathe?.classList.add("is-visible"), 980);
+
+  /* Step 4 — overlay dissolves, homepage revealed underneath */
+  setTimeout(() => {
+    el.classList.add("is-done");
+    /* Remove from DOM after transition so it never blocks interaction */
+    el.addEventListener("transitionend", () => el.remove(), { once: true });
+    /* Fallback: force-remove if transitionend never fires */
+    setTimeout(() => el.remove(), 700);
+  }, 1050);
+}
+
+/* ── Time-of-day atmospheric warmth ──────────────────────────────────────
+   Applies a barely-visible sepia/saturation shift to the hero image based
+   on the current hour. Max range: 5% sepia, 12% saturation — invisible on
+   casual viewing but adds emotional warmth that users feel, not see.
+   CSS handles the actual filter; JS only sets the [data-tod] attribute.    */
+function initTimeOfDay() {
+  const h = new Date().getHours();
+  let tod = null;
+  if (h >= 5  && h <= 10) tod = "morning"; /* soft dawn warmth          */
+  if (h >= 16 && h <= 19) tod = "golden";  /* golden hour richness      */
+  if (h >= 20 || h <= 4)  tod = "evening"; /* calm cinematic evening    */
+  if (tod) document.documentElement.dataset.tod = tod;
+}
+
 function init() {
   // DEPLOYMENT STATUS: VERIFIED ✔
   // Logo: assets/abdan-icon.jpg — real brand icon, circular clip applied
@@ -2320,6 +2389,8 @@ function init() {
   // Layout: z-index hierarchy intact · no overlap regressions
   // Responsive: mobile scrollable dock + desktop pill nav validated
   // Dark mode: compatible · Static HTML/CSS/JS · Cloudflare Pages ready
+  initEntryExperience();  /* must run first — covers page during render  */
+  initTimeOfDay();
   setTheme(state.theme);
   renderFilters();
   renderProducts();

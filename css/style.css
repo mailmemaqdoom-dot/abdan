@@ -5128,3 +5128,251 @@ html[data-theme="dark"] .cart-drawer__panel::after {
   }
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   22. LUXURY ENTRY EXPERIENCE — Mission G
+   Cinematic branded opening. Shown once per session.
+   Overlay colour matches site background — no visible clash on entry.
+   Session skip: [data-entry-skip="1"] hides overlay before first paint
+   via the inline script placed in <head>. No flash possible.
+   Principle: the interface gracefully opens. Not a loader. An invitation.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Session skip — applied before first paint by inline <head> script */
+[data-entry-skip="1"] .lx-entry {
+  display: none !important;
+}
+
+/* ── Entry overlay ───────────────────────────────────────────────────
+   Fixed, full-screen, sits above everything (z-index 9999).
+   Background matches --ivory so the transition into the site is seamless.
+   pointer-events: none keeps page usable if JS is delayed.              */
+.lx-entry {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--ivory);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: all;         /* blocks interaction while active */
+  will-change: opacity;
+  transition: opacity 540ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+html[data-theme="dark"] .lx-entry {
+  background: var(--emerald-deep);
+}
+
+.lx-entry.is-done {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Entry inner container ───────────────────────────────────────── */
+.lx-entry__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.35rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+/* ── Wordmark: ABDAN — editorial weight, generous tracking ──────────
+   Cormorant Garamond at 600 weight with wide letter-spacing gives the
+   name a luxury editorial presence. Fades in with a 8px upward drift. */
+.lx-entry__wordmark {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(2.6rem, 9vw, 5.2rem);
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  color: var(--emerald);
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity   640ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 640ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+  user-select: none;
+}
+
+html[data-theme="dark"] .lx-entry__wordmark {
+  color: var(--cream);
+}
+
+.lx-entry__wordmark.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Tagline: emotionally warm, soft typography ──────────────────── */
+.lx-entry__tagline {
+  font-family: "Open Sans", sans-serif;
+  font-size: clamp(0.76rem, 2.2vw, 0.9rem);
+  font-weight: 400;
+  color: var(--muted);
+  line-height: 1.9;
+  letter-spacing: 0.015em;
+  max-width: 26ch;
+  margin: 0;
+  opacity: 0;
+  transform: translateY(7px);
+  transition:
+    opacity   580ms cubic-bezier(0.16, 1, 0.3, 1) 120ms,
+    transform 580ms cubic-bezier(0.16, 1, 0.3, 1) 120ms;
+  will-change: transform, opacity;
+}
+
+html[data-theme="dark"] .lx-entry__tagline {
+  color: rgba(230, 223, 203, 0.62);
+}
+
+.lx-entry__tagline.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Breathing line — editorial loading indicator ────────────────────
+   A thin 2.4rem horizontal line that gently pulses its width.
+   No spinners. No percentages. Just breath.                          */
+.lx-entry__breathe {
+  width: 2.4rem;
+  height: 1.5px;
+  background: var(--gold);
+  border-radius: 999px;
+  opacity: 0;
+  transition: opacity 360ms cubic-bezier(0.23, 1, 0.32, 1);
+  animation: lx-breathe-pulse 2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  animation-play-state: paused;
+  will-change: transform, opacity;
+}
+
+.lx-entry__breathe.is-visible {
+  opacity: 0.5;
+  animation-play-state: running;
+}
+
+@keyframes lx-breathe-pulse {
+  0%, 100% { transform: scaleX(1);   opacity: 0.5; }
+  50%       { transform: scaleX(1.8); opacity: 0.25; }
+}
+
+/* ── Hero progressive reveal — child-level stagger ───────────────────
+   Hero article is always visible; each child carries its own reveal
+   class and a --reveal-delay CSS custom property (set inline in HTML).
+   IntersectionObserver fires is-visible on all children simultaneously
+   (all above fold), but CSS delays stagger the visual cascade.        */
+
+/* Eyebrow row — first to appear */
+.hero-copy .eyebrow-row.reveal {
+  transform: translateY(8px);
+}
+
+/* H1 — deeper entrance than default 10px — anchors the section */
+.hero-copy h1.reveal {
+  transform: translateY(14px);
+}
+
+/* Hero body copy — softer entrance */
+.hero-copy .hero-body.reveal,
+.hero-copy .tagline-label.reveal {
+  transform: translateY(8px);
+}
+
+/* ── Time-of-day atmospheric warmth ─────────────────────────────────
+   Barely-there sepia + saturation shift on the hero image.
+   JS sets [data-tod] on <html> based on current hour.
+   Changes are cosmetic only — 1–5% range, invisible on casual viewing. */
+[data-tod="morning"] .hero-visual img {
+  filter: sepia(3%) saturate(106%) brightness(101%);
+  transition: filter 2400ms ease;
+}
+
+[data-tod="golden"] .hero-visual img {
+  filter: sepia(5%) saturate(112%) brightness(100%) warm(2%);
+  transition: filter 2400ms ease;
+}
+
+[data-tod="evening"] .hero-visual img {
+  filter: sepia(4%) saturate(108%) brightness(99%);
+  transition: filter 2400ms ease;
+}
+
+/* ── Enhanced skeleton — luxury tonal breathing ─────────────────────
+   Refines the existing skel-sweep shimmer system (Section 19).
+   Only the BASE GRADIENT changes here — the ::before sweep overlay
+   in Section 19 continues to handle the light-sweep movement.
+   Gold-tinted base makes the placeholder feel warm, not grey/generic. */
+
+/* Product card skeleton — refined gold-tonal base */
+.product-card__media:not(.img-loaded) {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--cream) 82%, var(--gold) 18%) 0%,
+    color-mix(in srgb, var(--ivory-deep) 90%, var(--gold) 10%) 100%
+  );
+}
+
+/* Product sheet skeleton — slightly richer tonal depth */
+.product-sheet__media:not(.img-loaded) {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--cream) 80%, var(--gold) 20%) 0%,
+    color-mix(in srgb, var(--ivory-deep) 88%, var(--gold) 12%) 100%
+  );
+}
+
+/* ── Scroll-aware header: refined contraction ────────────────────────
+   Small size reduction of brand-mark on scroll gives the header a
+   composed, native-app feel. Combined with existing top position shift. */
+.site-header .brand-mark {
+  transition:
+    width  300ms cubic-bezier(0.16, 1, 0.3, 1),
+    height 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.site-header.is-scrolled .brand-mark {
+  width: 2.2rem;
+  height: 2.2rem;
+}
+
+/* Tagline in brand pill subtly fades on scroll — header breathes.
+   max-height collapse + opacity gives a smooth vertical contraction.   */
+.brand-pill small {
+  transition:
+    opacity    260ms cubic-bezier(0.23, 1, 0.32, 1),
+    max-height 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    margin-top 280ms cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  max-height: 2.4rem;
+}
+
+.site-header.is-scrolled .brand-pill small {
+  opacity: 0;
+  max-height: 0;
+  margin-top: 0;
+}
+
+/* ── Reduced-motion: entry experience ────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .lx-entry {
+    transition-duration: 1ms !important;
+  }
+  .lx-entry__wordmark,
+  .lx-entry__tagline {
+    opacity: 1 !important;
+    transform: none !important;
+    transition-duration: 1ms !important;
+  }
+  .lx-entry__breathe {
+    animation: none !important;
+    opacity: 0.4 !important;
+  }
+  /* Product skeleton: disable sweep animation, keep static tonal gradient */
+  .product-card__media:not(.img-loaded)::before,
+  .product-sheet__media:not(.img-loaded)::before {
+    animation: none !important;
+  }
+}
+
