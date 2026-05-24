@@ -911,55 +911,87 @@ function renderFilters() {
 }
 
 function renderProducts() {
-  const filteredProducts = state.filter === "All" ? PRODUCTS : PRODUCTS.filter((product) => product.primaryTag === state.filter);
-  dom.productsGrid.innerHTML = filteredProducts
-    .map(
-      (product, index) => `
-        <article class="product-card reveal" data-product-card="${product.id}">
-          <div class="product-card__media">
-            <img src="${product.image}" alt="${product.name}" loading="lazy" />
-            <div class="product-card__overlay"></div>
-          </div>
-          <div class="product-card__content">
-            <div class="product-card__header">
-              <p class="section-kicker">${product.primaryTag}</p>
-              <span class="product-card__index">${String(index + 1).padStart(2, "0")}</span>
-            </div>
-            <h3 class="product-card__title">${product.name}</h3>
-            <p class="product-card__description">${buildEditorialExcerpt(product)}</p>
-            <p class="product-card__meta">${product.secondaryTags.occasion}</p>
-            <div class="product-card__footer">
-              <span class="product-card__price">${product.priceLabel}</span>
-              <button class="text-link" type="button" data-preview="${product.id}">View details</button>
-            </div>
-          </div>
-        </article>
-      `,
-    )
-    .join("");
+  const filteredProducts = state.filter === "All"
+    ? PRODUCTS
+    : PRODUCTS.filter((product) => product.primaryTag === state.filter);
 
-  /* Reset carousel scroll position — ensures filter changes always start
-     from the first card, not from wherever the user left off.             */
-  dom.productsGrid.scrollLeft = 0;
+  const wl = getWishlist();
 
-  /* ── iOS motion: stagger delays + image fade-in ─────────────────────── */
-  dom.productsGrid.querySelectorAll(".product-card").forEach((card, i) => {
-    card.style.setProperty("--reveal-delay", `${Math.min(i * 40, 200)}ms`);
-  });
-  dom.productsGrid.querySelectorAll(".product-card__media img").forEach((img) => {
-    const onLoad = () => {
-      img.classList.add("img-loaded");
-      img.closest(".product-card__media")?.classList.add("img-loaded"); /* stops skeleton breath */
-    };
-    if (img.complete && img.naturalWidth > 0) {
-      onLoad();
-    } else {
-      img.addEventListener("load", onLoad, { once: true });
-      img.addEventListener("error", onLoad, { once: true }); /* reveal on error — no broken placeholder */
-    }
-  });
+  const paintCards = () => {
+    dom.productsGrid.innerHTML = filteredProducts
+      .map(
+        (product, index) => {
+          const saved = wl.has(product.id);
+          return `
+            <article class="product-card reveal" data-product-card="${product.id}">
+              <div class="product-card__media">
+                <img src="${product.image}" alt="${product.name}" loading="lazy" />
+                <div class="product-card__overlay"></div>
+              </div>
+              <button class="product-card__save${saved ? " is-saved" : ""}"
+                      type="button"
+                      data-wishlist="${product.id}"
+                      aria-label="${saved ? "Remove from wishlist" : "Save to wishlist"}">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </button>
+              <div class="product-card__content">
+                <div class="product-card__header">
+                  <p class="section-kicker">${product.primaryTag}</p>
+                  <span class="product-card__index">${String(index + 1).padStart(2, "0")}</span>
+                </div>
+                <h3 class="product-card__title">${product.name}</h3>
+                <p class="product-card__description">${buildEditorialExcerpt(product)}</p>
+                <p class="product-card__meta">${product.secondaryTags.occasion}</p>
+                <div class="product-card__footer">
+                  <span class="product-card__price">${product.priceLabel}</span>
+                  <button class="text-link" type="button" data-preview="${product.id}">View details</button>
+                </div>
+              </div>
+            </article>
+          `;
+        },
+      )
+      .join("");
 
-  revealElements();
+    /* Reset carousel — filter changes always start from card 1 */
+    dom.productsGrid.scrollLeft = 0;
+
+    /* Stagger reveal delays + image fade-in */
+    dom.productsGrid.querySelectorAll(".product-card").forEach((card, i) => {
+      card.style.setProperty("--reveal-delay", `${Math.min(i * 40, 200)}ms`);
+    });
+    dom.productsGrid.querySelectorAll(".product-card__media img").forEach((img) => {
+      const onLoad = () => {
+        img.classList.add("img-loaded");
+        img.closest(".product-card__media")?.classList.add("img-loaded");
+      };
+      if (img.complete && img.naturalWidth > 0) { onLoad(); }
+      else {
+        img.addEventListener("load",  onLoad, { once: true });
+        img.addEventListener("error", onLoad, { once: true });
+      }
+    });
+
+    revealElements();
+  };
+
+  /* ── Filter dissolve: fade-out → swap → fade-in ─────────────────────
+     Only dissolve when cards already exist (not on initial page paint). */
+  if (!dom.productsGrid.children.length) {
+    paintCards();
+  } else {
+    dom.productsGrid.classList.add("is-filtering");
+    setTimeout(() => {
+      paintCards();
+      /* rAF: let browser recalculate layout after innerHTML swap,
+         then remove the class so the CSS transition fires.          */
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => dom.productsGrid.classList.remove("is-filtering"))
+      );
+    }, 145);
+  }
 }
 
 function renderFooterContent() {
@@ -1349,6 +1381,75 @@ function lxPulseCart() {
       dom.cartCount.classList.remove("is-counting");
     }, { once: true });
   });
+}
+
+/* ── Wishlist helpers ────────────────────────────────────────────────────
+   Persist saved product IDs to localStorage. Same-device persistence.     */
+function getWishlist() {
+  try { return new Set(JSON.parse(localStorage.getItem("abdan-wishlist") || "[]")); }
+  catch { return new Set(); }
+}
+
+function saveWishlist(set) {
+  try { localStorage.setItem("abdan-wishlist", JSON.stringify([...set])); }
+  catch { /* quota */ }
+}
+
+function toggleWishlist(productId, btn) {
+  const wl = getWishlist();
+  const saving = !wl.has(productId);
+  if (saving) {
+    wl.add(productId);
+    btn.classList.add("is-saved");
+    btn.setAttribute("aria-label", "Remove from wishlist");
+    /* WAAPI heart bloom — GPU scale spring */
+    const svg = btn.querySelector("svg");
+    if (svg && typeof svg.animate === "function") {
+      svg.animate(
+        [
+          { transform: "scale(1)" },
+          { transform: "scale(1.42)", offset: 0.28 },
+          { transform: "scale(0.84)", offset: 0.56 },
+          { transform: "scale(1.10)", offset: 0.78 },
+          { transform: "scale(1)" },
+        ],
+        { duration: 500, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" }
+      );
+    }
+    showToast("Saved to your wishlist 💛");
+  } else {
+    wl.delete(productId);
+    btn.classList.remove("is-saved");
+    btn.setAttribute("aria-label", "Save to wishlist");
+  }
+  saveWishlist(wl);
+}
+
+/* ── Hero parallax — barely-there editorial depth ───────────────────────
+   Hero image moves up at 4% of scroll speed. Feels like depth, not motion.
+   Skipped entirely for prefers-reduced-motion users.                      */
+function initHeroParallax() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const img  = document.querySelector(".hero-visual .visual-card--image img");
+  const hero = document.querySelector(".hero-section");
+  if (!img || !hero) return;
+
+  let ticking = false;
+  const update = () => {
+    const scrollY    = window.scrollY;
+    const heroBottom = hero.offsetTop + hero.offsetHeight;
+    /* Only apply while hero is in view — stop once scrolled past */
+    if (scrollY <= heroBottom) {
+      img.style.transform = `translateY(-${(scrollY * 0.04).toFixed(2)}px)`;
+    } else if (img.style.transform) {
+      img.style.transform = "";
+    }
+    ticking = false;
+  };
+
+  window.addEventListener("scroll", () => {
+    if (!ticking) { requestAnimationFrame(update); ticking = true; }
+  }, { passive: true });
 }
 
 /* ── Create and persist an order record ──────────────────────────────────
@@ -1879,9 +1980,16 @@ function attachEvents() {
   });
 
   dom.productsGrid.addEventListener("click", (event) => {
+    /* Wishlist save button takes priority — stops card-open from firing */
+    const saveBtn = event.target.closest("[data-wishlist]");
+    if (saveBtn) {
+      event.stopPropagation();
+      toggleWishlist(saveBtn.dataset.wishlist || "", saveBtn);
+      return;
+    }
     const previewButton = event.target.closest("[data-preview]");
-    const card = event.target.closest("[data-product-card]");
-    const productId = previewButton?.dataset.preview || card?.dataset.productCard;
+    const card          = event.target.closest("[data-product-card]");
+    const productId     = previewButton?.dataset.preview || card?.dataset.productCard;
     if (productId) openProduct(productId);
   });
 
@@ -1976,6 +2084,7 @@ function init() {
   revealElements();
   initDockObserver();
   initScrollChrome();
+  initHeroParallax();
   renderAdminRoute();
   initSpaceAuth();
   safeCreateIcons();

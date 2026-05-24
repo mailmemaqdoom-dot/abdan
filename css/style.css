@@ -4123,3 +4123,283 @@ html[data-theme="dark"] .order-state--done .order-state__dot {
   border-color: rgba(197, 161, 59, 0.7);
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   16. PREMIUM MOTION-POLISH LAYER — Mission D
+   Principle: motion felt, not seen. Every curve is --ease-snap or
+   --ease-spring. GPU-only: transform + opacity. No repaints.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Filter grid dissolve ─────────────────────────────────────────
+   Products grid fades out before innerHTML swap; cards stagger in.
+   Total window: 145ms fade-out → instant swap → stagger entrance.    */
+.products-grid {
+  transition: opacity 140ms var(--ease-out);
+}
+.products-grid.is-filtering {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── 2. Your Space view transitions ──────────────────────────────────
+   JS adds .is-entering on reveal. CSS drives the settle animation.   */
+@keyframes lx-space-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.space-view.is-entering {
+  animation: lx-space-enter 360ms var(--ease-snap) forwards;
+}
+
+/* ── 3. Wishlist heart button ─────────────────────────────────────────
+   Floats above the product card at top-right. Glass surface.
+   Position: absolute anchors to .product-card (needs position:relative). */
+.product-card {
+  position: relative; /* anchor for .product-card__save absolute */
+}
+.product-card__save {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: rgba(255, 252, 246, 0.84);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(2, 61, 58, 0.07);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(2, 8, 8, 0.09);
+  z-index: 2;
+  transition:
+    transform    220ms var(--ease-spring),
+    background   180ms var(--ease-out),
+    box-shadow   200ms var(--ease-out);
+}
+.product-card__save:hover {
+  transform: scale(1.13);
+  background: rgba(255, 253, 250, 0.97);
+  box-shadow: 0 4px 14px rgba(2, 8, 8, 0.14);
+}
+.product-card__save:active {
+  transform: scale(0.91);
+  transition-duration: 75ms, 75ms, 75ms;
+}
+.product-card__save svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  stroke: var(--emerald);
+  fill: none;
+  stroke-width: 2;
+  display: block;
+  transition: fill 220ms var(--ease-out), stroke 220ms var(--ease-out);
+  pointer-events: none;
+}
+.product-card__save.is-saved svg {
+  fill: var(--gold);
+  stroke: var(--gold);
+}
+html[data-theme="dark"] .product-card__save {
+  background: rgba(8, 27, 26, 0.84);
+  border-color: rgba(230, 223, 203, 0.1);
+}
+html[data-theme="dark"] .product-card__save:hover {
+  background: rgba(10, 33, 31, 0.97);
+}
+
+/* ── 4. Hero image — parallax containment layer ──────────────────────
+   JS sets translateY(-scrollY * 0.04) via inline style. CSS ensures
+   overflow is clipped so the image edge never shows.                  */
+.hero-visual .visual-card--image {
+  overflow: hidden;
+}
+.hero-visual .visual-card--image img {
+  will-change: transform;
+  backface-visibility: hidden;
+  transform-origin: center top;
+}
+
+/* ── 5. Cart drawer — panel-content entrance stagger ─────────────────
+   When the panel slides in (380ms), inner content stagger enters.
+   animation-fill-mode: both → starts from `from` during delay window. */
+@keyframes lx-drawer-in {
+  from { opacity: 0; transform: translateX(10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.cart-drawer.is-open .drawer-header {
+  animation: lx-drawer-in 260ms var(--ease-snap) 90ms  both;
+}
+.cart-drawer.is-open .drawer-body {
+  animation: lx-drawer-in 300ms var(--ease-snap) 130ms both;
+}
+.cart-drawer.is-open .drawer-footer {
+  animation: lx-drawer-in 260ms var(--ease-snap) 170ms both;
+}
+
+/* ── 6. Product sheet scrim ───────────────────────────────────────────
+   Matches the cart-drawer ::before pattern for visual consistency.    */
+.product-sheet::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 8, 8, 0.28);
+  backdrop-filter: saturate(60%) blur(5px);
+  -webkit-backdrop-filter: saturate(60%) blur(5px);
+  opacity: 0;
+  transition: opacity 300ms var(--ease-out) 40ms;
+  pointer-events: none;
+  z-index: 0;
+}
+.product-sheet.is-open::before {
+  opacity: 1;
+  transition: opacity 360ms var(--ease-out) 0ms;
+}
+html[data-theme="dark"] .product-sheet::before {
+  background: rgba(0, 0, 0, 0.48);
+}
+
+/* ── 7. Teaser modal scrim ────────────────────────────────────────────
+   Same scrim treatment for teaser/info modals.                        */
+.teaser-modal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 8, 8, 0.26);
+  backdrop-filter: saturate(60%) blur(4px);
+  -webkit-backdrop-filter: saturate(60%) blur(4px);
+  opacity: 0;
+  transition: opacity 280ms var(--ease-out) 30ms;
+  pointer-events: none;
+  z-index: 0;
+}
+.teaser-modal.is-open::before {
+  opacity: 1;
+  transition: opacity 340ms var(--ease-out) 0ms;
+}
+html[data-theme="dark"] .teaser-modal::before {
+  background: rgba(0, 0, 0, 0.52);
+}
+
+/* ── 8. Overscroll — no rubber-band break at page edges ──────────────
+   Prevents elastic bounce that undercuts the sense of editorial weight. */
+html {
+  overscroll-behavior-y: none;
+}
+/* Allow scroll chain inside scroll containers */
+.drawer-body,
+.product-sheet__panel {
+  overscroll-behavior: contain;
+}
+
+/* ── 9. Product card — content layer hover lift ──────────────────────
+   Text block moves up 2px on card hover — adds depth without drama.  */
+.product-card__content {
+  transition: transform 300ms var(--ease-out);
+}
+.product-card:hover .product-card__content {
+  transform: translateY(-2px);
+}
+
+/* ── 10. Ghost & secondary button — refined hover lift ───────────────
+   Subtle upward press feel consistent with primary button behaviour.  */
+.ghost-button {
+  transition:
+    background    200ms var(--ease-out),
+    border-color  200ms var(--ease-out),
+    color         180ms var(--ease-out),
+    box-shadow    220ms var(--ease-out),
+    transform     200ms var(--ease-spring);
+}
+.ghost-button:hover  { transform: translateY(-1px); }
+.ghost-button:active { transform: translateY(0) scale(0.97); transition-duration: 70ms; }
+
+.secondary-button {
+  transition:
+    background    200ms var(--ease-out),
+    border-color  200ms var(--ease-out),
+    color         180ms var(--ease-out),
+    box-shadow    240ms var(--ease-out),
+    transform     200ms var(--ease-spring);
+}
+.secondary-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(2, 61, 58, 0.15);
+}
+.secondary-button:active { transform: translateY(0) scale(0.97); transition-duration: 70ms; }
+
+/* ── 11. Text-link — animated underline crawl ────────────────────────
+   Used for "View details" on product cards. Underline grows L→R.     */
+.text-link {
+  position: relative;
+}
+.text-link::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: currentColor;
+  transition: width 260ms var(--ease-snap);
+  pointer-events: none;
+}
+.text-link:hover::after { width: 100%; }
+
+/* ── 12. Skeleton cards — smoother, warmer breathe ───────────────────
+   The existing skel-breathe keyframe stays. Just tune timing.        */
+.product-card__media:not(.img-loaded) {
+  animation-duration: 2.8s;
+  animation-timing-function: ease-in-out;
+}
+
+/* ── 13. Section heading — cinematic kicker reveal ───────────────────
+   .section-kicker elements inside reveal parents slide up ahead of
+   the heading for a two-beat editorial stagger.                       */
+.reveal .section-kicker,
+.reveal .micro-label,
+.reveal .tagline-label {
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity   480ms var(--ease-out)  calc(var(--reveal-delay, 0ms) + 60ms),
+    transform 500ms var(--ease-snap) calc(var(--reveal-delay, 0ms) + 60ms);
+}
+.reveal.is-visible .section-kicker,
+.reveal.is-visible .micro-label,
+.reveal.is-visible .tagline-label {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── 14. Cart items — stagger entrance after drawer opens ────────────
+   Each cart-item settles in sequentially with CSS custom delay.      */
+@keyframes lx-item-settle {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.cart-item {
+  animation: lx-item-settle 280ms var(--ease-snap) both;
+}
+/* Stagger: nth-child delays  (capped at 5 items visible) */
+.cart-item:nth-child(1) { animation-delay: 160ms; }
+.cart-item:nth-child(2) { animation-delay: 200ms; }
+.cart-item:nth-child(3) { animation-delay: 240ms; }
+.cart-item:nth-child(4) { animation-delay: 280ms; }
+.cart-item:nth-child(n+5) { animation-delay: 320ms; }
+
+/* ── 15. Prefers-reduced-motion — comprehensive fallback ─────────────
+   All custom animations are disabled for users who opt out of motion.
+   Transitions collapse to near-instant. GPU compositing is preserved. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration:        0.01ms !important;
+    animation-iteration-count: 1      !important;
+    transition-duration:       0.01ms !important;
+    scroll-behavior:           auto   !important;
+  }
+}
+
