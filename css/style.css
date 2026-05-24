@@ -47,6 +47,9 @@
   --t-fast: 160ms cubic-bezier(0.23, 1, 0.32, 1);      /* micro: color, border changes */
   --t-base: 220ms cubic-bezier(0.23, 1, 0.32, 1);      /* standard UI interactions */
   --t-slow: 380ms cubic-bezier(0.16, 1, 0.3, 1);       /* entrance / exit */
+  --t-micro:     100ms cubic-bezier(0.23, 1, 0.32, 1); /* border flash, badge — instant */
+  --t-cinematic: 580ms cubic-bezier(0.16, 1, 0.3, 1);  /* cart fly, major entrances */
+  --t-dramatic:  820ms cubic-bezier(0.16, 1, 0.3, 1);  /* order confirm, celebrations */
   --bg: linear-gradient(180deg, #f8f5ec 0%, #f5efdf 50%, #f8f5ec 100%);
   --text-main: var(--ink);
   --text-soft: var(--muted);
@@ -1630,7 +1633,7 @@ html[data-theme="dark"] .cart-drawer::before {
   border-radius: var(--radius-2xl) 0 0 var(--radius-2xl); /* luxury left-edge radius on desktop */
   box-shadow: -28px 0 90px rgba(2, 8, 8, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.04);
   transform: translateX(100%);
-  transition: transform 380ms var(--ease-snap);
+  transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform; /* GPU compositing for smooth slide-in */
   z-index: 1; /* above the ::before scrim */
 }
@@ -2039,9 +2042,10 @@ html[data-theme="dark"] .teaser-modal__backdrop {
   overflow: hidden;
   border-radius: var(--radius-xl);
   background: var(--surface-strong);
-  transform: translateY(32px) scale(0.975);
+  transform: translateY(36px) scale(0.972);
   opacity: 0;
-  transition: transform 420ms var(--ease-snap) 60ms, opacity 320ms var(--ease-out) 60ms;
+  transition: transform 460ms cubic-bezier(0.16, 1, 0.3, 1) 45ms,
+              opacity   330ms cubic-bezier(0.23, 1, 0.32, 1) 45ms;
   will-change: transform, opacity; /* GPU compositing for spring entrance */
   box-shadow: var(--shadow-deep), 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
@@ -5043,6 +5047,84 @@ body.is-scrolled .support-pill {
 @media (min-width: 640px) {
   .admin-login {
     gap: 3rem;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   21. MOTION PHYSICS ARCHITECTURE — Mission F
+   Unified physics system: cinematic depth, GPU guards, swipe geometry.
+   Principle: motion felt, not seen. Everything composited. No repaints.
+   All curves reference --ease-snap or --ease-spring. Luxury restraint.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Cart fly orb — GPU compositing guard ────────────────────────────
+   backface-visibility: hidden prevents any compositor flicker or
+   content flash during the 3D transform path of the parabolic arc.   */
+.lx-cart-orb {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* ── Cart drawer: swipe-gesture drag handle ──────────────────────────
+   Thin vertical pill at the left edge of the panel — signals to the
+   user that a rightward swipe gesture is available on mobile.
+   Positioned on the inner left, subtle enough to not distract.        */
+.cart-drawer__panel::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0.55rem;
+  width: 0.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+  background: rgba(2, 61, 58, 0.15);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+html[data-theme="dark"] .cart-drawer__panel::after {
+  background: rgba(197, 161, 59, 0.18);
+}
+
+/* ── Product sheet: drag handle — already present via ::before ───────
+   The drag handle (the grey pill at top of the bottom sheet on mobile)
+   is defined in the responsive block. Add a subtle gold tint in dark.  */
+@media (max-width: 1040px) {
+  html[data-theme="dark"] .product-sheet__panel::before {
+    background: rgba(197, 161, 59, 0.22);
+  }
+}
+
+/* ── Cart count badge — ensure compositor always active ─────────────
+   Guarantees the count pop animation is always GPU-composited,
+   even before JS adds will-change in the WAAPI call.                  */
+.cart-count {
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* ── Product sheet backdrop — cinematic blur depth ───────────────────
+   Richer backdrop on desktop: 26px blur and deeper saturation drain
+   gives the sheet a theatrical "everything else disappears" weight.   */
+@media (min-width: 1041px) {
+  .product-sheet__backdrop {
+    backdrop-filter: saturate(40%) blur(26px);
+    -webkit-backdrop-filter: saturate(40%) blur(26px);
+  }
+}
+
+/* ── Motion hierarchy guard — Section 21 additions ──────────────────
+   The global guard at Section 14 covers all of style.css, but we
+   reinforce the Section 21-specific overrides here for clarity.
+   Cart orb is hidden entirely — fly still fires, orb simply removed.  */
+@media (prefers-reduced-motion: reduce) {
+  .lx-cart-orb {
+    display: none !important;
+  }
+  .cart-drawer__panel,
+  .product-sheet__panel {
+    transition-duration: 1ms !important;
   }
 }
 

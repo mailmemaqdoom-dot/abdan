@@ -13,6 +13,28 @@ const BRAND = {
   razorpayKey: "rzp_live_SkPERat9HcpiCb",
 };
 
+/* ── Luxury Motion Physics — unified timing + easing registry ────────────
+   Single source of truth for all ABDAN motion. Use in every WAAPI call.
+   Tuned for luxury restraint: motion felt, never consciously noticed.
+   All curves GPU-composited: transform + opacity only. No repaints.        */
+const LX_MOTION = {
+  /* Duration tiers (milliseconds) */
+  micro:     100,   /* border flash, badge — appears instant             */
+  fast:      160,   /* opacity in/out, icon swap                         */
+  standard:  220,   /* most UI feedback: press release, hover            */
+  slow:      380,   /* panel reveal, filter dissolve, drawer stagger     */
+  cinematic: 580,   /* cart fly arc, major entrance moments              */
+  dramatic:  820,   /* order confirmation, celebration states            */
+
+  /* Easing curves — WAAPI string form, mirrors CSS custom properties    */
+  easeOut:    "cubic-bezier(0.23, 1, 0.32, 1)",     /* general deceleration          */
+  easeSnap:   "cubic-bezier(0.16, 1, 0.3, 1)",      /* Apple-standard fast settle    */
+  easeSpring: "cubic-bezier(0.34, 1.56, 0.64, 1)",  /* subtle spring overshoot       */
+
+  /* Prefers-reduced-motion guard — check before every WAAPI animation  */
+  reduced: () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+};
+
 /* ── Order lifecycle states (boutique fulfilment stages) ─────────────────
    Used to build the order timeline shown in confirmation + Your Space.    */
 const ORDER_STATES = [
@@ -1371,20 +1393,31 @@ function showOrderSuccess(customerName, order) {
   safeCreateIcons();
 }
 
-/* ── Luxury cart fly: thumbnail glides from product image → cart icon ── */
+/* ── Luxury cart fly: thumbnail glides from product image → cart icon ──
+   Physics: true parabolic arc with 4-keyframe WAAPI path.
+   Orb: 52px — refined and lighter than the original 60px.
+   Arc: minimum 90px lift, scales up with travel distance for long arcs.
+   Opacity: 1 → 0.88 → 0.55 → 0 (gradual fade, not a hard cutoff).       */
 function lxCartFly(srcRect, destRect, imageSrc) {
   if (!imageSrc || typeof Element.prototype.animate !== "function") return;
+  if (LX_MOTION.reduced()) return;
 
-  const size   = 60;
+  const size   = 52;
   const startX = srcRect.left  + srcRect.width  / 2 - size / 2;
   const startY = srcRect.top   + srcRect.height / 2 - size / 2;
   const endX   = destRect.left + destRect.width  / 2 - size / 2;
   const endY   = destRect.top  + destRect.height / 2 - size / 2;
 
-  /* Arc midpoint: lifts toward the top of the viewport for natural arc */
-  const arcLift = Math.abs(endX - startX) * 0.18;
-  const midX    = startX + (endX - startX) * 0.5;
-  const midY    = Math.min(startY, endY) - arcLift;
+  /* Parabolic lift: scales with travel distance, minimum 90px */
+  const travel  = Math.hypot(endX - startX, endY - startY);
+  const arcLift = Math.max(90, travel * 0.22);
+
+  /* Two intermediate control points create a smooth parabola */
+  const mid1X = startX + (endX - startX) * 0.35;
+  const mid1Y = Math.min(startY, endY) - arcLift;       /* apex of the arc  */
+
+  const mid2X = startX + (endX - startX) * 0.68;
+  const mid2Y = mid1Y + (Math.max(startY, endY) - mid1Y) * 0.55; /* descent */
 
   const orb = document.createElement("img");
   orb.src       = imageSrc;
@@ -1395,11 +1428,12 @@ function lxCartFly(srcRect, destRect, imageSrc) {
 
   orb.animate(
     [
-      { transform: `translate(${startX}px,${startY}px) scale(1)`,    opacity: 1                 },
-      { transform: `translate(${midX}px,${midY}px) scale(0.72)`,     opacity: 0.88, offset: 0.44 },
-      { transform: `translate(${endX}px,${endY}px) scale(0.22)`,     opacity: 0                 },
+      { transform: `translate(${startX}px,${startY}px) scale(1)`,    opacity: 1,    offset: 0    },
+      { transform: `translate(${mid1X}px,${mid1Y}px) scale(0.76)`,   opacity: 0.88, offset: 0.36 },
+      { transform: `translate(${mid2X}px,${mid2Y}px) scale(0.44)`,   opacity: 0.55, offset: 0.70 },
+      { transform: `translate(${endX}px,${endY}px) scale(0.16)`,     opacity: 0,    offset: 1    },
     ],
-    { duration: 560, easing: "cubic-bezier(0.4, 0, 0.55, 1)", fill: "forwards" }
+    { duration: LX_MOTION.cinematic, easing: "cubic-bezier(0.4, 0, 0.2, 1)", fill: "forwards" }
   ).onfinish = () => orb.remove();
 }
 
@@ -1490,6 +1524,107 @@ function initHeroParallax() {
   window.addEventListener("scroll", () => {
     if (!ticking) { requestAnimationFrame(update); ticking = true; }
   }, { passive: true });
+}
+
+/* ── Luxury swipe-to-close: cart drawer + product sheet ─────────────────
+   Touch gesture dismiss: swipe right → close cart, swipe down → close sheet
+   (mobile only). Rubber-band resistance makes the pull feel elastic.
+   Spring-back if threshold not met — stays attached to the user's finger.
+   Fully disabled when prefers-reduced-motion is set.                       */
+function initSwipeGestures() {
+  if (LX_MOTION.reduced()) return;
+
+  /* Cart drawer — swipe right to dismiss */
+  const cartPanel = dom.cartDrawer?.querySelector(".cart-drawer__panel");
+  if (dom.cartDrawer && cartPanel) {
+    attachSwipe(dom.cartDrawer, cartPanel, {
+      axis:        "x",
+      closeDir:    1,       /* positive x = rightward */
+      threshold:   88,      /* px distance for confident swipe  */
+      velocityMin: 0.38,    /* px/ms for a quick flick          */
+      onClose:     closeCart,
+    });
+  }
+
+  /* Product sheet — swipe down to dismiss, mobile only (≤ 800px) */
+  const sheetPanel = dom.productSheet?.querySelector(".product-sheet__panel");
+  if (dom.productSheet && sheetPanel) {
+    attachSwipe(dom.productSheet, sheetPanel, {
+      axis:        "y",
+      closeDir:    1,       /* positive y = downward            */
+      threshold:   110,
+      velocityMin: 0.42,
+      onClose:     closeProduct,
+      mobileOnly:  true,
+    });
+  }
+}
+
+/* attachSwipe — shared touch-gesture engine for any panel element ──────
+   Resistance: Math.sqrt(raw) × 5.5 gives decelerating elastic feel.
+   The panel follows the finger but resists being pulled too far.
+   On release: if distance or velocity exceeds threshold → close.
+   Otherwise: clear inline transform → CSS transitions spring it back.     */
+function attachSwipe(container, panel, opts) {
+  const { axis, closeDir, threshold, velocityMin, onClose, mobileOnly } = opts;
+
+  let startPos  = 0;
+  let startTime = 0;
+  let lastDelta = 0;
+  let active    = false;
+
+  function getPos(e) {
+    const p = e.touches?.[0] ?? e;
+    return axis === "x" ? p.clientX : p.clientY;
+  }
+
+  function onStart(e) {
+    if (mobileOnly && window.innerWidth > 800) return;
+
+    /* Don't intercept when content is scrolled — let native scroll run */
+    const scrollEl = panel.querySelector(".drawer-body, .product-sheet__content");
+    if (scrollEl && axis === "y" && scrollEl.scrollTop > 4) return;
+
+    startPos  = getPos(e);
+    startTime = Date.now();
+    lastDelta = 0;
+    active    = true;
+  }
+
+  function onMove(e) {
+    if (!active) return;
+    const raw = (getPos(e) - startPos) * closeDir;
+    if (raw <= 0) { lastDelta = 0; return; }  /* wrong direction — no-op */
+    lastDelta = raw;
+
+    /* Rubber-band: sqrt decay gives elastic resistance that grows heavy */
+    const drag = Math.sqrt(raw) * 5.5;
+    panel.style.transition = "none";
+    panel.style.transform  = axis === "x"
+      ? `translateX(${drag}px)`
+      : `translateY(${drag}px)`;
+  }
+
+  function onEnd() {
+    if (!active) return;
+    active = false;
+
+    const velocity = lastDelta / Math.max(Date.now() - startTime, 1);
+
+    /* Restore CSS transitions before clearing inline style */
+    panel.style.transition = "";
+    panel.style.transform  = "";
+
+    if (lastDelta > threshold || velocity > velocityMin) {
+      onClose();          /* CSS close animation plays naturally */
+    }
+    /* else: CSS springs panel back to its open-state transform */
+  }
+
+  container.addEventListener("touchstart",  onStart, { passive: true });
+  container.addEventListener("touchmove",   onMove,  { passive: true });
+  container.addEventListener("touchend",    onEnd,   { passive: true });
+  container.addEventListener("touchcancel", onEnd,   { passive: true });
 }
 
 /* ── Create and persist an order record ──────────────────────────────────
@@ -2196,6 +2331,7 @@ function init() {
   initDockObserver();
   initScrollChrome();
   initHeroParallax();
+  initSwipeGestures();
   renderAdminRoute();
   initSpaceAuth();
   safeCreateIcons();
