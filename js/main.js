@@ -16,7 +16,7 @@ const BRAND = {
 /* ── Order lifecycle states (boutique fulfilment stages) ─────────────────
    Used to build the order timeline shown in confirmation + Your Space.    */
 const ORDER_STATES = [
-  { key: "confirmed",        label: "Order Confirmed",    note: "We've received your order with gratitude." },
+  { key: "confirmed",        label: "Order Confirmed",    note: "Your order has arrived with gratitude. 💛" },
   { key: "preparing",        label: "Being Prepared",     note: "Your pieces are being carefully packed." },
   { key: "shipped",          label: "Shipped",            note: "On its way — tracking shared via WhatsApp." },
   { key: "out_for_delivery", label: "Out for Delivery",   note: "Your order is almost with you." },
@@ -377,21 +377,21 @@ const PRODUCTS = [
 ].map((product) => ({ ...buildProductNarrative(product), ...product }));
 
 const FAQS = [
-  ["How is each piece selected?", "Every piece is handpicked and verified by our team before we list it for you."],
-  ["Is the pricing transparent?", "Yes. We believe in honesty, confirm costs before payment, and avoid hidden charges."],
-  ["Who creates these pieces?", "We only work with partners who share our values of craftsmanship and integrity."],
-  ["When will my order arrive?", "Usually 5–7 working days, depending on your location in Tamil Nadu or beyond."],
-  ["How do I choose the right size?", "WhatsApp support is always here to guide you with measurements and fabric notes."],
-  ["Is my payment secure?", "ABDAN uses trusted payment options and manually confirms transactions with care."],
+  ["How is each piece selected?", "Every piece is personally handpicked and verified before it is offered to you — no piece appears here by accident."],
+  ["Is the pricing transparent?", "Completely. Every cost is confirmed before payment. No hidden charges, no last-minute surprises. Ever."],
+  ["Who creates these pieces?", "Only partners whose values of craftsmanship and integrity align with ABDAN's are chosen — and they are chosen carefully."],
+  ["When will my order arrive?", "Usually 5–7 working days, depending on your location in Tamil Nadu or beyond. Every order is followed closely."],
+  ["How do I choose the right size?", "WhatsApp support is always available to guide with measurements, fabric notes, and honest advice before the decision."],
+  ["Is my payment secure?", "ABDAN uses trusted payment gateways and confirms every transaction personally. Nothing is left unattended."],
 ];
 
 const TERMS = [
-  ["Orders & Payments", "Orders are confirmed only after payment. We verify availability before accepting any transaction."],
-  ["Pricing", "All prices are inclusive of taxes unless stated otherwise. Shipping is clearly mentioned during checkout."],
-  ["Shipping", "We partner with reliable couriers, though external delays may occasionally occur."],
-  ["Returns", "Returns are accepted for damaged items or wrong dispatches. Please share an unboxing video when possible."],
-  ["Expectations", "Handcrafted items may show slight irregularities — the mark of human hands, not a defect."],
-  ["Our Promise", "ABDAN acts as a careful bridge between you and trusted vendor partners while staying with you until delivery."],
+  ["Orders & Payments", "Orders are confirmed only after payment. Availability is verified personally before any transaction is accepted."],
+  ["Pricing", "All prices are inclusive of taxes unless stated otherwise. Shipping is clearly mentioned during checkout — no surprises."],
+  ["Shipping", "Reliable courier partners are selected carefully. Occasional external delays can occur beyond ABDAN's control, but every order is tracked."],
+  ["Returns", "Returns are accepted for damaged items or wrong dispatches. An unboxing video, where possible, helps the process move smoothly."],
+  ["Expectations", "Handcrafted items may carry slight irregularities — the mark of human hands, not a defect. That is part of their honesty."],
+  ["The ABDAN Promise", "ABDAN acts as a careful bridge between you and trusted artisan partners, staying present through every step until the piece is home with you."],
 ];
 
 const TEASERS = {
@@ -838,7 +838,7 @@ function showSpaceDashboard(profile, isNew = false) {
   showSpaceView("spaceDashboard");
   /* Render order history for this phone number */
   renderSpaceOrders(profile.phone || "");
-  if (isNew) showToast("Your Space is ready 💛");
+  if (isNew) showToast("Your Space is ready. Welcome. 💛");
 }
 
 async function handleSpaceSignin(event) {
@@ -906,7 +906,7 @@ async function handleSpaceCreate(event) {
 function handleSpaceSignout() {
   clearSpaceSession();
   showSpaceView("spaceEntry");
-  showToast("You've left your space. Come back anytime 💛");
+  showToast("Until next time 💛");
 }
 
 function initSpaceAuth() {
@@ -1442,7 +1442,7 @@ function toggleWishlist(productId, btn) {
         { duration: 500, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" }
       );
     }
-    showToast("Saved to your wishlist 💛");
+    showToast("Quietly saved 💛");
   } else {
     wl.delete(productId);
     btn.classList.remove("is-saved");
@@ -1570,7 +1570,7 @@ function addToCart() {
   if (!product) return;
 
   if (!state.selectedSize || !state.selectedColor) {
-    showToast("Please choose a size and colour first. 💛");
+    showToast("Choose a size and colour to continue. 💛");
     return;
   }
 
@@ -1858,9 +1858,9 @@ function handleProductUpi() {
 async function copyUpi() {
   try {
     await navigator.clipboard.writeText(BRAND.upiId);
-    showToast("UPI ID copied. 💛");
+    showToast("UPI ID copied quietly 💛");
   } catch {
-    showToast(`UPI ID: ${BRAND.upiId}`);
+    showToast(`UPI: ${BRAND.upiId}`);
   }
 }
 

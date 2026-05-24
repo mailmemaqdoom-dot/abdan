@@ -1310,11 +1310,30 @@ function capitalise(str) {
   return str ? str[0].toUpperCase() + str.slice(1) : str;
 }
 
+/* Luxury empty states — emotionally warm, never clinical */
+const STUDIO_EMPTY = {
+  "shopping-bag":  "A few pieces may quietly belong here.",
+  "receipt":       "No orders have arrived yet — they will, quietly.",
+  "layers":        "Collections take shape slowly. Begin whenever it feels right.",
+  "search":        "Nothing matched — the right piece may be found with different words.",
+  "inbox":         "Something thoughtful will arrive here in time.",
+  "users":         "Her Circle grows one honest connection at a time.",
+  "bell":          "Notices reach their moment. Nothing here yet.",
+  "send":          "Messages will find their way here soon.",
+  "type":          "Brand voice is shaped gradually. Begin with one word.",
+  "share-2":       "Social sharing will be ready when the story is.",
+  "image":         "The library is waiting for its first piece.",
+  "settings":      "Settings are ready to be shaped to your preferences.",
+  "shield":        "Trust and policy content will appear here.",
+  "layout-dashboard": "The studio begins to breathe as the collection grows.",
+};
+
 function empty(message, icon = "inbox") {
+  const luxuryMessage = STUDIO_EMPTY[icon] || message;
   return `
     <div class="s-empty">
       <i data-lucide="${icon}" class="s-icon s-empty__icon"></i>
-      <p>${message}</p>
+      <p>${luxuryMessage}</p>
     </div>`;
 }
 

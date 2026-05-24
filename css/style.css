@@ -4582,3 +4582,354 @@ html {
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+   19. LUXURY EMOTIONAL REFINEMENT LAYER
+   Sensory calmness · editorial rhythm · premium perception depth
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── 19a. Moving skeleton shimmer ────────────────────────────────────
+   Replaces static breathe pulse with a diagonal light sweep — the way
+   natural light moves across fabric. Cinematic, warm, restrained.    */
+
+@keyframes skel-sweep {
+  0%   { transform: translateX(-120%) skewX(-8deg); }
+  100% { transform: translateX(220%) skewX(-8deg); }
+}
+
+.product-card__media:not(.img-loaded)::before,
+.product-sheet__media:not(.img-loaded)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 25%,
+    rgba(255, 253, 244, 0.38) 50%,
+    transparent 75%
+  );
+  animation: skel-sweep 2.4s ease-in-out infinite;
+  z-index: 1;
+  pointer-events: none;
+}
+
+html[data-theme="dark"] .product-card__media:not(.img-loaded)::before,
+html[data-theme="dark"] .product-sheet__media:not(.img-loaded)::before {
+  background: linear-gradient(
+    105deg,
+    transparent 25%,
+    rgba(197, 161, 59, 0.08) 50%,
+    transparent 75%
+  );
+}
+
+/* ── 19b. Dark mode — cinematic evening ambience ─────────────────────
+   The existing dark palette is good. These additions deepen warmth and
+   reduce any residual harshness on key surfaces.                      */
+
+html[data-theme="dark"] .editorial-panel {
+  background: color-mix(in srgb, var(--card-bg) 90%, rgba(197, 161, 59, 0.04) 10%);
+}
+
+html[data-theme="dark"] .product-card {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--card-bg) 94%, rgba(197, 161, 59, 0.06) 6%) 0%,
+    var(--card-bg) 100%
+  );
+}
+
+html[data-theme="dark"] .story-card,
+html[data-theme="dark"] .testimonial-card,
+html[data-theme="dark"] .teaser-card,
+html[data-theme="dark"] .feature-card {
+  background: color-mix(in srgb, var(--card-bg) 88%, rgba(197, 161, 59, 0.04) 12%);
+  border-color: rgba(197, 161, 59, 0.1);
+}
+
+html[data-theme="dark"] .trust-rail {
+  background: rgba(2, 61, 58, 0.35);
+  border-color: rgba(197, 161, 59, 0.12);
+}
+
+html[data-theme="dark"] .trust-rail__inner span {
+  color: rgba(230, 223, 203, 0.72);
+}
+
+html[data-theme="dark"] .disclaimer-card {
+  background: color-mix(in srgb, var(--emerald) 92%, rgba(197, 161, 59, 0.08) 8%);
+  border-color: rgba(197, 161, 59, 0.14);
+}
+
+html[data-theme="dark"] .space-auth-card {
+  background: color-mix(in srgb, var(--card-bg) 92%, rgba(197, 161, 59, 0.03) 8%);
+}
+
+/* ── 19c. Toast — thinner, more editorial, softer presence ──────────
+   Luxury feedback: less loud. Gold-tinted border adds warmth without
+   the emerald block feeling like a notification badge.               */
+
+.toast {
+  padding: 0.68rem 1.55rem;
+  font-size: 0.83rem;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 8px 28px rgba(2, 61, 58, 0.18),
+    0 2px 8px rgba(2, 61, 58, 0.12);
+}
+
+html[data-theme="dark"] .toast {
+  border-color: rgba(197, 161, 59, 0.22);
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* ── 19d. Typography rhythm ──────────────────────────────────────────
+   Strategic line-height and spacing improvements on the elements that
+   users read most carefully. Luxury type feels unhurried.            */
+
+.hero-body {
+  line-height: var(--leading-loose);
+  letter-spacing: 0.005em;
+}
+
+.promise-band__inner blockquote {
+  font-size: clamp(1.45rem, 3vw, 2.1rem);
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+  font-style: italic;
+}
+
+.promise-band__inner p {
+  margin-top: 1.5rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.section-heading p {
+  line-height: var(--leading-relaxed);
+  max-width: 52ch;
+}
+
+.product-card__title {
+  line-height: var(--leading-snug);
+  letter-spacing: -0.025em;
+}
+
+.testimonial-card p {
+  font-size: 1.0rem;
+  line-height: 1.82;
+  letter-spacing: 0.004em;
+  font-style: italic;
+}
+
+.story-card p,
+.feature-card p {
+  line-height: 1.75;
+}
+
+/* ── 19e. Product card — editorial depth layer ───────────────────────
+   A barely-perceptible warm gradient overlay on hover that deepens the
+   sense of the image being "revealed" rather than simply hovered.    */
+
+.product-card__media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 55%,
+    rgba(12, 23, 22, 0.22) 100%
+  );
+  opacity: 0;
+  transition: opacity 360ms var(--ease-out);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.product-card:hover .product-card__media::after {
+  opacity: 1;
+}
+
+/* ── 19f. Cart empty — warmer visual mood ────────────────────────────
+   The dashed border becomes a barely-there suggestion rather than a
+   visible empty box. The emoji glows softly.                        */
+
+.cart-empty {
+  border-style: solid;
+  border-width: 1px;
+  background: linear-gradient(
+    160deg,
+    rgba(197, 161, 59, 0.04) 0%,
+    var(--surface-soft) 100%
+  );
+}
+
+.cart-empty__icon {
+  font-size: 1.75rem;
+  opacity: 0.8;
+}
+
+/* ── 19g. Section kicker — refined presence ──────────────────────────
+   Slightly warmer letter-spacing and a gold tone on the ✦ marker for
+   cinematic opening of each section.                                 */
+
+.section-kicker {
+  font-size: var(--type-label);
+  letter-spacing: 0.13em;
+  opacity: 0.82;
+}
+
+/* ── 19h. Testimonial card — personal warmth ─────────────────────────
+   The featured card gets a barely-there warm tint in light mode too,
+   giving it depth without the yellow-card feel.                      */
+
+.testimonial-card--featured {
+  background: color-mix(
+    in srgb,
+    var(--card-bg) 88%,
+    rgba(2, 61, 58, 0.06) 12%
+  );
+}
+
+/* ── 19i. Support pill — reduced visual weight ───────────────────────
+   The floating pill recedes slightly on scroll so it doesn't compete
+   with product imagery or editorial content.                         */
+
+.support-pill {
+  transition:
+    opacity 280ms var(--ease-out),
+    transform 280ms var(--ease-out),
+    box-shadow 280ms var(--ease-out);
+}
+
+body.is-scrolled .support-pill {
+  opacity: 0.82;
+}
+
+/* ── 19j. Collection curation text — editorial refinement ───────────
+   The mood line reads with a quieter weight — felt, not noticed.    */
+
+.collection-curation__lead {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--text-main);
+  font-style: italic;
+}
+
+.collection-curation__list {
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  color: var(--text-soft);
+  margin-top: 0.35rem;
+}
+
+/* ── 19k. Hero visual card — refined meta text ───────────────────────
+   The editorial micro-caption beneath the hero image reads with
+   quieter authority — a magazine caption, not a label.              */
+
+.visual-card__meta {
+  padding: 1.1rem 1.3rem 1.3rem;
+}
+
+.visual-card__meta p {
+  font-size: 0.875rem;
+  line-height: 1.65;
+  font-style: italic;
+  color: var(--text-soft);
+}
+
+/* ── 19l. Micro-spacing — breathing room for key surfaces ───────────
+   Small spacing refinements across the site. Luxury feels unhurried.*/
+
+.space-why {
+  padding: 1.25rem 0;
+}
+
+.space-auth-intro {
+  line-height: 1.72;
+  font-style: italic;
+  color: var(--text-soft);
+  font-size: 0.96rem;
+}
+
+.space-trust-block__lead {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  letter-spacing: -0.02em;
+  font-style: italic;
+}
+
+/* Her Circle ── story card rhythm */
+.story-card {
+  padding: 2.25rem 2rem;
+}
+
+.story-emoji {
+  font-size: 1.85rem;
+  line-height: 1;
+  margin-bottom: 1.1rem;
+  display: block;
+}
+
+/* ── 19m. Filter chips — refined active ring ─────────────────────────
+   Active chip gets a warm gold left border instead of a background
+   block — more editorial, less toggle-button feel.                  */
+
+.filter-chip.is-active {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px rgba(197, 161, 59, 0.32), var(--shadow-xs);
+}
+
+/* ── 19n. Product sheet soul quote — cinematic typography ────────────
+   The soul quote is the emotional peak of the product sheet. It
+   deserves more breathing room and quieter italic weight.           */
+
+.product-soul p {
+  font-size: 1.05rem;
+  line-height: 1.82;
+  letter-spacing: 0.01em;
+}
+
+/* ── 19o. Global luxury rhythm check ────────────────────────────────
+   Ensure section headings breathe with a minimum bottom margin.
+   Prevents the compressed-ecommerce feel.                           */
+
+.section-heading {
+  margin-bottom: 2.75rem;
+}
+
+@media (min-width: 768px) {
+  .section-heading {
+    margin-bottom: 3.5rem;
+  }
+
+  .promise-band__inner {
+    padding: 4rem 3.5rem;
+  }
+}
+
+/* ── 19p. Image reveal settle — tuned timing ─────────────────────────
+   Product card images settle more slowly — the way a photograph is
+   developed rather than loaded.                                     */
+
+.product-card__media img {
+  transition:
+    opacity  520ms var(--ease-out),
+    transform 520ms var(--ease-out);
+}
+
+.product-card__media img:not(.img-loaded) {
+  transform: scale(1.012);
+}
+
+.product-card__media img.img-loaded {
+  transform: scale(1);
+}
+
