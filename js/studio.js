@@ -6,15 +6,40 @@
 "use strict";
 
 /* ── Auth gate ─────────────────────────────────────────────── */
+/* Runs synchronously before any Studio code executes.
+   Priority: sessionStorage (fast, same-tab) → localStorage token (cross-tab, 8h).
+   On any valid path: token expiry is refreshed so active sessions never
+   expire mid-use.  On failure: hard redirect to storefront.           */
 (function () {
-  if (sessionStorage.getItem("abdan-admin-auth") === "true") return;
+  const LS_KEY  = "abdan-admin-token";
+  const SS_KEY  = "abdan-admin-auth";
+  const EIGHT_H = 8 * 60 * 60 * 1000;
+
+  function refreshToken() {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify({
+        v: "true", exp: Date.now() + EIGHT_H,
+      }));
+    } catch { /* storage quota — session still valid */ }
+  }
+
+  /* Fast path: sessionStorage already set in this tab */
+  if (sessionStorage.getItem(SS_KEY) === "true") {
+    refreshToken(); /* extend the 8-hour window on every Studio load */
+    return;
+  }
+
+  /* Fallback: validate localStorage token (handles new tabs, refreshes) */
   try {
-    const t = JSON.parse(localStorage.getItem("abdan-admin-token") || "null");
+    const t = JSON.parse(localStorage.getItem(LS_KEY) || "null");
     if (t && t.v === "true" && t.exp > Date.now()) {
-      sessionStorage.setItem("abdan-admin-auth", "true");
+      sessionStorage.setItem(SS_KEY, "true"); /* hydrate fast path */
+      refreshToken();
       return;
     }
-  } catch { /* ignore */ }
+  } catch { /* corrupt token — fall through to redirect */ }
+
+  /* No valid session found — return to storefront */
   window.location.replace("/");
 })();
 
@@ -1369,6 +1394,31 @@ function signout() {
   try { localStorage.removeItem("abdan-admin-token"); } catch { /* ignore */ }
   window.location.replace("/");
 }
+
+/* ── Auth heartbeat ─────────────────────────────────────────────────
+   Runs every 30 minutes while Studio is open.
+   Re-validates the localStorage token and refreshes its expiry so the
+   admin never gets kicked out mid-session.  If the token is gone or
+   expired (e.g. another tab signed out), signout() fires cleanly.   */
+(function startAuthHeartbeat() {
+  const LS_KEY  = "abdan-admin-token";
+  const EIGHT_H = 8 * 60 * 60 * 1000;
+
+  setInterval(() => {
+    try {
+      const t = JSON.parse(localStorage.getItem(LS_KEY) || "null");
+      if (!t || t.v !== "true" || t.exp <= Date.now()) {
+        signout(); /* session expired or removed — leave gracefully */
+        return;
+      }
+      /* Still valid — extend the window so active sessions stay alive */
+      localStorage.setItem(LS_KEY, JSON.stringify({ v: "true", exp: Date.now() + EIGHT_H }));
+      sessionStorage.setItem("abdan-admin-auth", "true");
+    } catch {
+      signout();
+    }
+  }, 30 * 60 * 1000); /* 30 minutes */
+})();
 
 /* ── Tab bar "More" ─────────────────────────────────────────── */
 function openMoreMenu() {

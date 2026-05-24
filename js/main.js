@@ -570,6 +570,14 @@ async function verifyAdminPasscode(email, passcode) {
   return normEmail === fallbackEmail && normPasscode === fallbackPw;
 }
 
+/* ── setAdminSession ──────────────────────────────────────────────────
+   Writes or clears auth tokens only. Does NOT trigger a redirect or
+   re-render — callers own that decision.  This keeps the auth state
+   machine free of side-effects and eliminates the double-redirect race
+   that was caused by renderAdminRoute() also calling location.replace.
+
+   authenticated = true  → write sessionStorage + 8-hour localStorage token
+   authenticated = false → clear both stores, then re-render the login UI  */
 function setAdminSession(authenticated) {
   state.adminAuthenticated = authenticated;
   if (authenticated) {
@@ -579,11 +587,12 @@ function setAdminSession(authenticated) {
         v: "true", exp: Date.now() + 8 * 60 * 60 * 1000,
       }));
     } catch { /* storage quota — sessionStorage still valid */ }
+    /* Callers (handleAdminLogin / handleSpaceSignin) do the redirect */
   } else {
     sessionStorage.removeItem("abdan-admin-auth");
     try { localStorage.removeItem("abdan-admin-token"); } catch { /* ignore */ }
+    renderAdminRoute(); /* re-render login form after signout */
   }
-  renderAdminRoute();
 }
 
 function renderAdminPieces() {
@@ -662,8 +671,10 @@ async function handleAdminLogin(event) {
   }
   if (dom.adminEmail)    dom.adminEmail.value    = "";
   if (dom.adminPasscode) dom.adminPasscode.value = "";
+  /* Write tokens first, THEN navigate once.  setAdminSession no longer
+     calls renderAdminRoute on login, so there is exactly one redirect. */
   setAdminSession(true);
-  window.location.href = "/studio.html";
+  window.location.replace("/studio.html");
 }
 
 function handleAdminSignout() {
@@ -857,6 +868,9 @@ async function handleSpaceSignin(event) {
       return;
     }
     if (result.type === "admin") {
+      /* ── BUG FIX: must write auth tokens BEFORE navigating.
+         Without this, studio.js gate finds no session → redirect loop. */
+      setAdminSession(true);
       resetButtonLoading(submitBtn);
       window.location.href = "/studio.html";
       return;
@@ -2118,6 +2132,50 @@ function attachEvents() {
   });
   document.getElementById("spaceSigninForm")?.addEventListener("submit", (e) => void handleSpaceSignin(e));
   document.getElementById("spaceCreateForm")?.addEventListener("submit", (e) => void handleSpaceCreate(e));
+
+  /* ── Support pill — intelligent form awareness ───────────────────────
+     Hides the floating pill whenever any input/textarea receives focus
+     so it never obscures form fields, CTAs, or the virtual keyboard.
+     Restores after a 150ms debounce to avoid flicker between fields.  */
+  const supportPill = document.getElementById("supportPill");
+  let _pillRestoreTimer = null;
+
+  document.addEventListener("focusin", (e) => {
+    if (!e.target.matches("input, textarea, select")) return;
+    clearTimeout(_pillRestoreTimer);
+    supportPill?.classList.add("is-form-focused");
+  });
+
+  document.addEventListener("focusout", (e) => {
+    if (!e.target.matches("input, textarea, select")) return;
+    _pillRestoreTimer = setTimeout(() => {
+      if (!document.activeElement?.matches("input, textarea, select")) {
+        supportPill?.classList.remove("is-form-focused");
+      }
+    }, 150);
+  });
+
+  /* ── Cross-tab admin auth sync ───────────────────────────────────────
+     If the admin token is cleared in another tab (signout), update the
+     local state immediately so this tab doesn't stay in a stale
+     authenticated state.                                               */
+  window.addEventListener("storage", (e) => {
+    if (e.key !== "abdan-admin-token") return;
+    if (!e.newValue) {
+      /* Token was removed in another tab — mirror the signout */
+      state.adminAuthenticated = false;
+      sessionStorage.removeItem("abdan-admin-auth");
+    } else {
+      /* Token was written in another tab — mirror the login */
+      try {
+        const t = JSON.parse(e.newValue);
+        if (t && t.v === "true" && t.exp > Date.now()) {
+          state.adminAuthenticated = true;
+          sessionStorage.setItem("abdan-admin-auth", "true");
+        }
+      } catch { /* ignore */ }
+    }
+  });
 }
 
 function init() {

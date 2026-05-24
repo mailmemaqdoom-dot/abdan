@@ -4933,3 +4933,116 @@ body.is-scrolled .support-pill {
   transform: scale(1);
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+   20. AUTH STABILITY & FORM UX REFINEMENTS
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── 20a. Support pill — intelligent form awareness ─────────────────
+   When any input, textarea, or select receives focus the pill slides
+   off-screen so it never obscures fields, CTAs, or the soft keyboard.
+   A 150ms debounce (handled in JS) prevents flicker between fields.   */
+
+.support-pill.is-form-focused {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(0.75rem) scale(0.94);
+}
+
+/* ── 20b. Space form — tighter vertical rhythm ───────────────────────
+   The current form gap of 1.25rem and field min-height of 3.2rem can
+   feel tall on smaller screens and when the keyboard is visible.
+   Tightened to 1rem gap + 2.9rem min-height for calmer density.      */
+
+.space-form {
+  gap: 1rem;
+}
+
+.space-field {
+  gap: 0.22rem;
+}
+
+.space-field input {
+  min-height: 2.9rem;
+  padding: 0.76rem 1.1rem;
+  font-size: 0.94rem;
+}
+
+.space-field__input-wrap input {
+  padding-right: 2.75rem; /* keep room for eye button — no override needed */
+}
+
+.space-form__submit {
+  min-height: 3.1rem;
+  margin-top: 0.25rem;
+}
+
+/* ── 20c. Admin login form — refined density ─────────────────────────
+   Admin form mirror-matches the space form rhythm for consistency.    */
+
+.admin-login__form {
+  gap: 0.875rem;
+}
+
+.admin-field {
+  gap: 0.22rem;
+}
+
+.admin-field input {
+  min-height: 2.9rem;
+  padding: 0.76rem 1.1rem;
+  font-size: 0.94rem;
+}
+
+.admin-field__input-wrap input {
+  padding-right: 2.75rem;
+}
+
+/* ── 20d. Auth flicker prevention ────────────────────────────────────
+   Before JS runs (or during the brief token-validation window on
+   first load), the admin shell defaults to hidden so there is no
+   visible flash of the login form for authenticated admins.           */
+
+#adminLoginPanel,
+#adminPanel,
+#adminSignout {
+  transition: opacity 200ms var(--ease-out);
+}
+
+/* ── 20e. Space auth card — better mobile vertical rhythm ────────────
+   On small viewports the auth card can feel cramped when the keyboard
+   is visible. Reduce internal padding and heading gap.               */
+
+@media (max-width: 480px) {
+  .space-auth-card {
+    padding: 1.75rem 1.35rem;
+  }
+
+  .space-heading {
+    margin-bottom: 0.35rem;
+  }
+
+  .space-auth-intro {
+    margin-top: 0.35rem;
+    margin-bottom: 0;
+  }
+
+  .space-form {
+    gap: 0.875rem;
+    margin-top: 1rem;
+  }
+}
+
+/* ── 20f. Admin login panel — calm editorial layout ─────────────────
+   Gentle top/bottom padding and tighter grid gap so the form doesn't
+   feel overstretched on tablets or landscape phones.                  */
+
+.admin-login {
+  gap: 2rem;
+}
+
+@media (min-width: 640px) {
+  .admin-login {
+    gap: 3rem;
+  }
+}
+
