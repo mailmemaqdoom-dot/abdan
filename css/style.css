@@ -4811,8 +4811,10 @@ html[data-theme="dark"] .toast {
     box-shadow 280ms var(--ease-out);
 }
 
+/* Support pill dims gently once the user has scrolled past the hero —
+   body.is-scrolled is set by initScrollChrome() in main.js             */
 body.is-scrolled .support-pill {
-  opacity: 0.82;
+  opacity: 0.78;
 }
 
 /* ── 19j. Collection curation text — editorial refinement ───────────

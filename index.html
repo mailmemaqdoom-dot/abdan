@@ -157,7 +157,7 @@
         <button class="orb-button" id="themeToggle" type="button" aria-label="Toggle dark mode">
           <i data-lucide="moon"></i>
         </button>
-        <button class="orb-button cart-button" id="cartToggle" type="button" aria-label="Open bag">
+        <button class="orb-button cart-button" id="cartToggle" type="button" aria-label="Open bag" aria-expanded="false" aria-controls="cartDrawer">
           <i data-lucide="shopping-bag"></i>
           <span class="cart-count" id="cartCount">0</span>
         </button>
@@ -794,12 +794,12 @@
       </div>
     </section>
 
-    <aside class="cart-drawer" id="cartDrawer" aria-hidden="true">
+    <aside class="cart-drawer" id="cartDrawer" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="cartDrawerTitle">
       <div class="cart-drawer__panel">
         <header class="drawer-header">
           <div>
             <p class="micro-label">Your bag</p>
-            <h2>Held with care</h2>
+            <h2 id="cartDrawerTitle">Held with care</h2>
           </div>
           <button class="ghost-button" id="cartClose" type="button" aria-label="Close bag">
             <i data-lucide="x"></i>
@@ -856,7 +856,7 @@
             </div>
 
             <div class="payment-note">
-              <p><strong>No hidden charges.</strong> Every order is confirmed personally by ABDAN before it leaves our hands.</p>
+              <p><strong>No hidden charges.</strong> Every order is confirmed personally by ABDAN before anything is prepared for your door.</p>
               <button type="button" class="inline-copy" id="copyUpiButton">Copy UPI ID</button>
             </div>
           </div>
@@ -873,7 +873,7 @@
       </div>
     </aside>
 
-    <div class="product-sheet" id="productSheet" aria-hidden="true">
+    <div class="product-sheet" id="productSheet" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="productName">
       <div class="product-sheet__backdrop" data-close-product></div>
       <div class="product-sheet__panel">
         <button class="ghost-button product-sheet__close" type="button" data-close-product aria-label="Close preview">
@@ -1013,7 +1013,7 @@
       </div>
     </div>
 
-    <div class="teaser-modal" id="teaserModal" aria-hidden="true">
+    <div class="teaser-modal" id="teaserModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="teaserTitle">
       <div class="teaser-modal__backdrop" data-close-teaser></div>
       <div class="teaser-modal__panel">
         <button class="ghost-button teaser-modal__close" type="button" data-close-teaser aria-label="Close teaser">
@@ -1058,7 +1058,7 @@
         </details>
 
         <details class="footer-column footer-disclosure">
-          <summary>Our Promises (T&amp;C)</summary>
+          <summary>Promises &amp; Care (T&amp;C)</summary>
           <div class="footer-stack" id="termsList"></div>
         </details>
       </div>
@@ -1066,8 +1066,8 @@
       <div class="container footer-bottom">
         <p>
           <strong>Aggregator Disclaimer:</strong> ABDAN curates and connects you with trusted artisan and
-          vendor partners. We verify pieces before purchase, confirm availability before payment, and
-          stay with you until delivery.
+          vendor partners. Each piece is verified before purchase, availability is confirmed before
+          payment, and the journey is followed all the way to your door.
         </p>
         <p>© 2026 ABDAN. Your Devotion Meets Style.</p>
       </div>

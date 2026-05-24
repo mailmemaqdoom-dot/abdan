@@ -1696,22 +1696,31 @@ function lxShowCheckoutPanel(panel) {
   panel.removeAttribute("hidden");
   panel.classList.remove("is-hiding");
   panel.classList.add("is-revealing");
-  const onDone = () => {
+  let done = false;
+  const cleanup = () => {
+    if (done) return;
+    done = true;
     panel.classList.remove("is-revealing");
-    panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
   };
-  panel.addEventListener("animationend", onDone, { once: true });
+  panel.addEventListener("animationend", cleanup, { once: true });
+  setTimeout(cleanup, 400); /* fallback — animationend not guaranteed */
+  /* Scroll into view after the panel has had a frame to paint */
+  requestAnimationFrame(() => panel.scrollIntoView({ behavior: "smooth", block: "nearest" }));
 }
 
 function lxHideCheckoutPanel(panel) {
   if (!panel || panel.hidden) return;
   panel.classList.remove("is-revealing");
   panel.classList.add("is-hiding");
+  let done = false;
   const onDone = () => {
+    if (done) return;
+    done = true;
     panel.classList.remove("is-hiding");
     panel.hidden = true;
   };
   panel.addEventListener("animationend", onDone, { once: true });
+  setTimeout(onDone, 280); /* fallback — prevents panel from staying visible if animationend misses */
 }
 
 function addToCart() {
@@ -1804,6 +1813,7 @@ function openCart() {
   renderCart();
   dom.cartDrawer.classList.add("is-open");
   dom.cartDrawer.setAttribute("aria-hidden", "false");
+  dom.cartToggle.setAttribute("aria-expanded", "true");
   dom.body.classList.add("is-locked");
   updateOverlayState();
 }
@@ -1811,6 +1821,7 @@ function openCart() {
 function closeCart() {
   dom.cartDrawer.classList.remove("is-open");
   dom.cartDrawer.setAttribute("aria-hidden", "true");
+  dom.cartToggle.setAttribute("aria-expanded", "false");
   if (!dom.productSheet.classList.contains("is-open") && !dom.teaserModal.classList.contains("is-open")) {
     dom.body.classList.remove("is-locked");
   }
@@ -2118,6 +2129,8 @@ function initScrollChrome() {
     const isScrolled = window.scrollY > 18;
     dom.siteHeader.classList.toggle("is-scrolled", isScrolled);
     dom.bottomDock.classList.toggle("is-scrolled", isScrolled);
+    /* body.is-scrolled: dims support pill at 0.78 opacity via CSS */
+    dom.body.classList.toggle("is-scrolled", isScrolled);
   };
 
   updateChrome();
