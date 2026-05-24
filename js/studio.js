@@ -1388,11 +1388,20 @@ function updateThemeBtn(theme) {
   initLucide();
 }
 
-/* ── Sign out ───────────────────────────────────────────────── */
+/* ── Sign out ─────────────────────────────────────────────────────────
+   Clears session tokens immediately (so heartbeat can't refresh them),
+   then fades the Studio out cinematically before navigating away.
+   The 380ms opacity fade matches the --ivory background so the user
+   returns to the storefront entry in a calm, unabrupt way.            */
 function signout() {
+  /* Clear tokens first — heartbeat interval can no longer validate */
   sessionStorage.removeItem("abdan-admin-auth");
-  try { localStorage.removeItem("abdan-admin-token"); } catch { /* ignore */ }
-  window.location.replace("/");
+  try { localStorage.removeItem("abdan-admin-token"); } catch { /* quota */ }
+
+  /* Cinematic exit: fade Studio → navigate */
+  document.body.style.cssText +=
+    ";transition:opacity 380ms cubic-bezier(0.23,1,0.32,1);opacity:0;pointer-events:none";
+  setTimeout(() => window.location.replace("/"), 420);
 }
 
 /* ── Auth heartbeat ─────────────────────────────────────────────────

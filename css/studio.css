@@ -245,7 +245,9 @@ textarea, input, select {
   transition: background var(--s-t), color var(--s-t);
 }
 .s-aside-link:hover { background: var(--s-surface); color: var(--s-text); }
-.s-aside-link--out:hover { color: var(--s-error); }
+/* Sign-out: gold tint on hover — signals action without red aggression */
+.s-aside-link--out { transition: background var(--s-t), color var(--s-t), opacity var(--s-t); }
+.s-aside-link--out:hover { background: var(--s-gold-muted); color: var(--s-gold); }
 
 /* ── Shell / content area ───────────────────────────────────────── */
 .s-shell {

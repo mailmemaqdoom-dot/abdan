@@ -2316,56 +2316,88 @@ function attachEvents() {
 /* ── Luxury Entry Experience ─────────────────────────────────────────────
    Cinematic branded opening — shown once per browser session.
    Session guard: inline script in <head> sets [data-entry-skip="1"] on
-   <html> before first paint, so CSS hides the overlay if already seen.
-   Sequence: wordmark (150ms) → tagline (620ms) → breathe (980ms) →
-             overlay fades out (1050ms, 540ms transition → done ~1590ms).
-   Respects prefers-reduced-motion: all durations collapse to 1ms.        */
+   <html> before first paint, so CSS hides overlay on returning visits.
+
+   Timing (total ~2200ms — within the 1400–2200ms luxury ceiling):
+     180ms  → logo image surfaces (500ms transition)
+     560ms  → wordmark drifts in  (640ms transition)
+     920ms  → tagline fades in    (560ms transition)
+     1000ms → progress foot appears + bar advances (560ms transition)
+     1550ms → overlay begins 650ms dissolve
+     2200ms → overlay fully gone, hero children mid-reveal underneath
+
+   As the overlay dissolves the progressive hero reveal is in flight —
+   users feel the interface opening, not cutting.                          */
 function initEntryExperience() {
   const el = document.getElementById("lxEntry");
   if (!el) return;
 
-  /* Session guard already handled by CSS (data-entry-skip hides overlay).
-     If it's hidden we just clean it up from the DOM silently.             */
+  /* Session already seen — CSS hides overlay, JS removes the node */
   if (document.documentElement.dataset.entrySkip === "1") {
     el.remove();
     return;
   }
 
-  /* Mark session so next load skips the entry */
+  /* Mark session so the next load skips entry entirely */
   try { sessionStorage.setItem("abdan-entry-seen", "1"); } catch { /* quota */ }
 
+  const logo     = el.querySelector(".lx-entry__logo");
   const wordmark = el.querySelector(".lx-entry__wordmark");
   const tagline  = el.querySelector(".lx-entry__tagline");
-  const breathe  = el.querySelector(".lx-entry__breathe");
+  const foot     = el.querySelector(".lx-entry__foot");
+  const bar      = el.querySelector(".lx-entry__progress-bar");
+  const pct      = el.querySelector(".lx-entry__progress-pct");
 
-  /* Reduced motion: skip animation, dissolve quickly */
+  /* ── Reduced motion: instant content, quick dissolve ─────────────── */
   if (LX_MOTION.reduced()) {
-    if (wordmark) wordmark.classList.add("is-visible");
-    if (tagline)  tagline.classList.add("is-visible");
-    setTimeout(() => {
-      el.classList.add("is-done");
-      el.addEventListener("transitionend", () => el.remove(), { once: true });
-    }, 280);
+    [logo, wordmark, tagline].forEach((n) => n?.classList.add("is-visible"));
+    if (bar) bar.classList.add("is-running");
+    setTimeout(() => lxEntryDissolve(el), 300);
     return;
   }
 
-  /* Step 1 — wordmark drifts in */
-  setTimeout(() => wordmark?.classList.add("is-visible"), 150);
+  /* ── Step 1: logo symbol surfaces (180ms) ───────────────────────── */
+  setTimeout(() => logo?.classList.add("is-visible"), 180);
 
-  /* Step 2 — tagline softly follows */
-  setTimeout(() => tagline?.classList.add("is-visible"), 620);
+  /* ── Step 2: brand wordmark drifts in (560ms) ───────────────────── */
+  setTimeout(() => wordmark?.classList.add("is-visible"), 560);
 
-  /* Step 3 — breathing line appears */
-  setTimeout(() => breathe?.classList.add("is-visible"), 980);
+  /* ── Step 3: tagline fades in softly (920ms) ────────────────────── */
+  setTimeout(() => tagline?.classList.add("is-visible"), 920);
 
-  /* Step 4 — overlay dissolves, homepage revealed underneath */
+  /* ── Step 4: progress system appears and advances (1000ms) ──────── */
   setTimeout(() => {
-    el.classList.add("is-done");
-    /* Remove from DOM after transition so it never blocks interaction */
-    el.addEventListener("transitionend", () => el.remove(), { once: true });
-    /* Fallback: force-remove if transitionend never fires */
-    setTimeout(() => el.remove(), 700);
-  }, 1050);
+    foot?.classList.add("is-visible");
+    bar?.classList.add("is-running");         /* CSS scaleX(0→1) triggers */
+    if (pct) lxEntryProgress(pct, 560);       /* rAF counter 0→100 */
+  }, 1000);
+
+  /* ── Step 5: overlay dissolves, homepage revealed underneath ──────── */
+  setTimeout(() => lxEntryDissolve(el), 1550);
+}
+
+/* lxEntryProgress — animates the editorial percentage counter 0→100
+   using requestAnimationFrame over the given duration (ms).
+   Ease-out cubic: fast start, gentle deceleration — reads as natural. */
+function lxEntryProgress(pctEl, duration) {
+  const start = performance.now();
+  function tick(now) {
+    const p = Math.min((now - start) / duration, 1);
+    /* ease-out cubic: 1 - (1-p)^3 */
+    const eased = 1 - Math.pow(1 - p, 3);
+    pctEl.textContent = Math.round(eased * 100).toString();
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+/* lxEntryDissolve — fades the overlay out, removes it from DOM.
+   Guaranteed to remove within 800ms even if transitionend never fires. */
+function lxEntryDissolve(el) {
+  el.classList.add("is-done");
+  const cleanup = () => { if (el.parentNode) el.remove(); };
+  el.addEventListener("transitionend", cleanup, { once: true });
+  setTimeout(cleanup, 800); /* fallback */
 }
 
 /* ── Time-of-day atmospheric warmth ──────────────────────────────────────
