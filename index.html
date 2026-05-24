@@ -477,18 +477,32 @@
 
                 <form class="space-form" id="spaceSigninForm" novalidate>
                   <label class="space-field">
-                    <span class="space-field__label">Where shall we find you?</span>
+                    <span class="space-field__label">Your email address</span>
                     <small class="space-field__hint">Email address</small>
                     <input type="email" name="email" placeholder="your@email.com" required autocomplete="email" />
                   </label>
                   <label class="space-field">
                     <span class="space-field__label">Your private space</span>
                     <small class="space-field__hint">Password</small>
-                    <input type="password" name="password" placeholder="••••••••" required autocomplete="current-password" />
+                    <div class="space-field__input-wrap">
+                      <input type="password" name="password" placeholder="••••••••" required autocomplete="current-password" />
+                      <button type="button" class="space-field__eye" data-eye aria-label="Show password">
+                        <i data-lucide="eye"></i>
+                      </button>
+                    </div>
                   </label>
                   <p class="space-form__error" id="spaceSigninError" role="alert" hidden></p>
                   <button type="submit" class="primary-button space-form__submit">Continue Your Space</button>
                 </form>
+
+                <button type="button" class="space-forgot-link" id="spaceForgotBtn">Need help entering your space?</button>
+                <div class="space-recovery" id="spaceRecovery" aria-live="polite">
+                  <p class="space-recovery__message">Send a message and the space will be restored for you quietly and privately.</p>
+                  <a href="https://wa.me/917796993694?text=I%20need%20help%20accessing%20my%20ABDAN%20space" target="_blank" rel="noopener noreferrer" class="space-recovery__link">
+                    <i data-lucide="message-circle"></i>
+                    <span>Reach out on WhatsApp</span>
+                  </a>
+                </div>
 
                 <p class="space-auth-switch">
                   New to ABDAN? <button type="button" class="text-link" id="spaceToCreate">Create Your Space →</button>
@@ -524,7 +538,7 @@
 
                 <form class="space-form" id="spaceCreateForm" novalidate>
                   <label class="space-field">
-                    <span class="space-field__label">What should we call you?</span>
+                    <span class="space-field__label">Your full name</span>
                     <small class="space-field__hint">Full Name</small>
                     <input type="text" name="fullName" placeholder="Your full name" required autocomplete="name" />
                   </label>
@@ -534,24 +548,34 @@
                     <input type="text" name="displayName" placeholder="Your chosen name" required autocomplete="nickname" />
                   </label>
                   <label class="space-field">
-                    <span class="space-field__label">Where shall we stay connected?</span>
+                    <span class="space-field__label">Your email address</span>
                     <small class="space-field__hint">Email Address</small>
                     <input type="email" name="email" placeholder="your@email.com" required autocomplete="email" />
                   </label>
                   <label class="space-field">
-                    <span class="space-field__label">Where may we reach you when needed?</span>
+                    <span class="space-field__label">Your phone number</span>
                     <small class="space-field__hint">Mobile Number (optional)</small>
                     <input type="tel" name="phone" placeholder="+91 00000 00000" autocomplete="tel" />
                   </label>
                   <label class="space-field">
                     <span class="space-field__label">Create your private space</span>
                     <small class="space-field__hint">Password — minimum 6 characters</small>
-                    <input type="password" name="password" placeholder="••••••••" required autocomplete="new-password" minlength="6" />
+                    <div class="space-field__input-wrap">
+                      <input type="password" name="password" placeholder="••••••••" required autocomplete="new-password" minlength="6" />
+                      <button type="button" class="space-field__eye" data-eye aria-label="Show password">
+                        <i data-lucide="eye"></i>
+                      </button>
+                    </div>
                   </label>
                   <label class="space-field">
                     <span class="space-field__label">Confirm your space</span>
                     <small class="space-field__hint">Confirm Password</small>
-                    <input type="password" name="confirmPassword" placeholder="••••••••" required autocomplete="new-password" />
+                    <div class="space-field__input-wrap">
+                      <input type="password" name="confirmPassword" placeholder="••••••••" required autocomplete="new-password" />
+                      <button type="button" class="space-field__eye" data-eye aria-label="Show password">
+                        <i data-lucide="eye"></i>
+                      </button>
+                    </div>
                   </label>
                   <p class="space-form__error" id="spaceCreateError" role="alert" hidden></p>
                   <button type="submit" class="primary-button space-form__submit">Create Your Space</button>
@@ -656,7 +680,12 @@
             </label>
             <label class="admin-field">
               <span>Access code</span>
-              <input id="adminPasscode" name="passcode" type="password" autocomplete="current-password" placeholder="Enter access code" required />
+              <div class="admin-field__input-wrap">
+                <input id="adminPasscode" name="passcode" type="password" autocomplete="current-password" placeholder="Enter access code" required />
+                <button type="button" class="admin-field__eye" data-eye aria-label="Show access code">
+                  <i data-lucide="eye"></i>
+                </button>
+              </div>
             </label>
             <p class="admin-form__hint">This is a lightweight static access flow designed to remain Cloudflare-compatible.</p>
             <p class="admin-form__error" id="adminError" role="alert" hidden></p>

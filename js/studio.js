@@ -7,9 +7,15 @@
 
 /* ── Auth gate ─────────────────────────────────────────────── */
 (function () {
-  if (sessionStorage.getItem("abdan-admin-auth") !== "true") {
-    window.location.replace("/");
-  }
+  if (sessionStorage.getItem("abdan-admin-auth") === "true") return;
+  try {
+    const t = JSON.parse(localStorage.getItem("abdan-admin-token") || "null");
+    if (t && t.v === "true" && t.exp > Date.now()) {
+      sessionStorage.setItem("abdan-admin-auth", "true");
+      return;
+    }
+  } catch { /* ignore */ }
+  window.location.replace("/");
 })();
 
 /* ── Constants ─────────────────────────────────────────────── */
@@ -1341,6 +1347,7 @@ function updateThemeBtn(theme) {
 /* ── Sign out ───────────────────────────────────────────────── */
 function signout() {
   sessionStorage.removeItem("abdan-admin-auth");
+  try { localStorage.removeItem("abdan-admin-token"); } catch { /* ignore */ }
   window.location.replace("/");
 }
 

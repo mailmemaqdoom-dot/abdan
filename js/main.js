@@ -405,7 +405,7 @@ const TEASERS = {
     icon: "🌸",
     title: "Coming Soon — ABDAN Community",
     message:
-      "Imagine a warm and private space where women share fashion stories, ask for opinions, celebrate style, and feel joyfully seen. That is the community we are building.",
+      "Imagine a warm and private space where women share fashion stories, ask for opinions, celebrate style, and feel joyfully seen. That is the community taking shape, one voice at a time.",
   },
 };
 
@@ -419,7 +419,17 @@ const state = {
   activeProductId: null,
   selectedSize: null,
   selectedColor: null,
-  adminAuthenticated: sessionStorage.getItem("abdan-admin-auth") === "true",
+  adminAuthenticated: (function () {
+    if (sessionStorage.getItem("abdan-admin-auth") === "true") return true;
+    try {
+      const t = JSON.parse(localStorage.getItem("abdan-admin-token") || "null");
+      if (t && t.v === "true" && t.exp > Date.now()) {
+        sessionStorage.setItem("abdan-admin-auth", "true");
+        return true;
+      }
+    } catch { /* ignore */ }
+    return false;
+  })(),
 };
 
 const dom = {
@@ -562,7 +572,17 @@ async function verifyAdminPasscode(email, passcode) {
 
 function setAdminSession(authenticated) {
   state.adminAuthenticated = authenticated;
-  sessionStorage.setItem("abdan-admin-auth", authenticated ? "true" : "false");
+  if (authenticated) {
+    sessionStorage.setItem("abdan-admin-auth", "true");
+    try {
+      localStorage.setItem("abdan-admin-token", JSON.stringify({
+        v: "true", exp: Date.now() + 8 * 60 * 60 * 1000,
+      }));
+    } catch { /* storage quota — sessionStorage still valid */ }
+  } else {
+    sessionStorage.removeItem("abdan-admin-auth");
+    try { localStorage.removeItem("abdan-admin-token"); } catch { /* ignore */ }
+  }
   renderAdminRoute();
 }
 
@@ -593,6 +613,12 @@ function renderAdminRoute() {
     dom.adminEntry.classList.toggle("is-active", adminRoute);
   }
   if (!adminRoute) return;
+
+  /* ── Auto-redirect authenticated admins straight to Studio ─────── */
+  if (state.adminAuthenticated) {
+    window.location.replace("/studio.html");
+    return;
+  }
 
   window.scrollTo({ top: 0 });
   dom.body.classList.remove("is-locked", "has-overlay");
@@ -2056,6 +2082,23 @@ function attachEvents() {
   });
 
   /* ── Your Space view navigation ──────────────────────────────────── */
+  /* ── Password eye toggles ─────────────────────────────────────────── */
+  document.addEventListener("click", (event) => {
+    const eyeBtn = event.target.closest("[data-eye]");
+    if (!eyeBtn) return;
+    const wrap  = eyeBtn.closest(".space-field__input-wrap, .admin-field__input-wrap");
+    const input = wrap?.querySelector("input[type=password], input[type=text]");
+    if (!input) return;
+    const showing = input.type === "text";
+    input.type    = showing ? "password" : "text";
+    eyeBtn.setAttribute("aria-label", showing ? "Show password" : "Hide password");
+    const icon    = eyeBtn.querySelector("[data-lucide]");
+    if (icon) {
+      icon.setAttribute("data-lucide", showing ? "eye" : "eye-off");
+      safeCreateIcons();
+    }
+  });
+
   document.getElementById("spaceSigninBtn")?.addEventListener("click", () => showSpaceView("spaceSignin"));
   document.getElementById("spaceCreateBtn")?.addEventListener("click", () => showSpaceView("spaceCreate"));
   document.getElementById("spaceSigninBack")?.addEventListener("click", () => showSpaceView("spaceEntry"));
@@ -2063,6 +2106,16 @@ function attachEvents() {
   document.getElementById("spaceToCreate")?.addEventListener("click", () => showSpaceView("spaceCreate"));
   document.getElementById("spaceToSignin")?.addEventListener("click", () => showSpaceView("spaceSignin"));
   document.getElementById("spaceSignoutBtn")?.addEventListener("click", handleSpaceSignout);
+
+  /* ── Forgot password reveal ─────────────────────────────────────── */
+  document.getElementById("spaceForgotBtn")?.addEventListener("click", () => {
+    const panel = document.getElementById("spaceRecovery");
+    if (!panel) return;
+    const isOpen = panel.classList.toggle("is-open");
+    const btn    = document.getElementById("spaceForgotBtn");
+    if (btn) btn.textContent = isOpen ? "Never mind" : "Need help entering your space?";
+    safeCreateIcons();
+  });
   document.getElementById("spaceSigninForm")?.addEventListener("submit", (e) => void handleSpaceSignin(e));
   document.getElementById("spaceCreateForm")?.addEventListener("submit", (e) => void handleSpaceCreate(e));
 }
