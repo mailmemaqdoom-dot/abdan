@@ -68,39 +68,70 @@
   --z-drawer: 80;
   --z-modal: 90;
   --z-toast: 110;
-  /* ── Type scale tokens (consistent heading hierarchy site-wide) ──
-     Use these tokens instead of hardcoded sizes on all heading elements.
-     Cormorant Garamond reads well at larger sizes — scale is generous.    */
-  --type-display:    clamp(3.2rem, 7vw, 5.4rem);    /* h1 hero */
-  --type-heading-xl: clamp(2.4rem, 5.5vw, 4rem);    /* h2 section */
-  --type-heading-lg: clamp(1.85rem, 3.5vw, 2.75rem);/* h2 smaller / admin h1 */
-  --type-heading-md: 1.72rem;                        /* h3 cards, sheet, checkout */
-  --type-heading-sm: 1.35rem;                        /* sub-headings, card index */
-  --type-body-lg:    1.02rem;                        /* hero body, section body */
-  --type-body:       0.96rem;                        /* standard copy */
-  --type-body-sm:    0.88rem;                        /* secondary copy */
-  --type-label:      0.72rem;                        /* labels, meta, chips */
-  --type-micro:      0.67rem;                        /* editorial labels (✦ markers) */
-  /* ── Line height tokens ── */
-  --leading-tight:   1.15;   /* display headings */
-  --leading-snug:    1.5;    /* card titles */
-  --leading-normal:  1.78;   /* standard paragraphs */
-  --leading-relaxed: 1.9;    /* editorial copy, descriptions */
-  --leading-loose:   2.1;    /* poetry-style, emotional body text */
+  /* ── Type scale — aligned to ABDAN brand specification ─────────────
+     Libre Baskerville has a larger x-height and heavier stroke than
+     Cormorant Garamond — same px value reads visually larger.
+     Scale is calibrated to the brand spec ranges:
+       Hero (Baskerville):  desktop 48–72px / mobile 30–42px
+       Sections:            desktop 28–40px / mobile 22–30px
+       Sub-headings/cards:  desktop 18–22px / mobile 16–18px
+       Body:                desktop 15–17px / mobile 14–16px
+       Labels/UI:           13–15px                                    */
+  --type-display:    clamp(1.875rem, 5.5vw, 4.5rem);  /* h1 hero: 30–72px  */
+  --type-heading-xl: clamp(1.375rem, 3.5vw, 2.5rem);  /* h2 section: 22–40px */
+  --type-heading-lg: clamp(1.25rem, 2.5vw, 1.875rem); /* h2 smaller: 20–30px */
+  --type-heading-md: 1.125rem;                         /* h3/product: 18px   */
+  --type-heading-sm: 1.0625rem;                        /* sub-heads: 17px    */
+  --type-body-lg:    1.0625rem;                        /* hero body: 17px    */
+  --type-body:       0.9375rem;                        /* standard: 15px     */
+  --type-body-sm:    0.875rem;                         /* secondary: 14px    */
+  --type-label:      0.8125rem;                        /* labels/UI: 13px    */
+  --type-micro:      0.6875rem;                        /* micro/markers: 11px */
+  /* ── Line height tokens — brand spec calibrated ─────────────────── */
+  --leading-tight:   1.1;    /* hero Baskerville (spec: 1.05–1.15) */
+  --leading-snug:    1.35;   /* product card titles (spec: 1.3–1.4) */
+  --leading-normal:  1.7;    /* body copy (spec: 1.6–1.8) */
+  --leading-relaxed: 1.75;   /* editorial/descriptions */
+  --leading-loose:   1.95;   /* emotional / tagline copy */
   /* ── Loading system tokens ── */
   --skel-base: rgba(197, 161, 59, 0.07);   /* gold-tinted faint warm */
   --skel-sheen: rgba(255, 253, 248, 0.52); /* light sweep on buttons */
-  /* ── Brand typography system ──────────────────────────────────────
-     --font-display   : Cormorant Garamond — structural headings (closest web
-                        approximation to Abdan Calligraph / luxury calligraphic)
-     --font-editorial : Libre Baskerville — brand-spec tagline font; used italic
-                        for all emotionally charged copy: taglines, soul quotes,
-                        product intros, brand identity moments
-     --font-body      : Open Sans — brand-specified body font; warm humanist
-                        sans vs. the geometric Inter it replaces               */
-  --font-display:  "Cormorant Garamond", Georgia, serif;
-  --font-editorial: "Libre Baskerville", "Baskerville", Georgia, serif;
-  --font-body:      "Open Sans", "Inter", sans-serif;
+  /* ── Brand Typography System — aligned to ABDAN brand DNA ───────────
+     --font-calligraphy : Abdan Calligraph (primary brand font) — logo,
+                          identity mark, loading wordmark, and select
+                          signature editorial moments ONLY. Never for
+                          product titles, navigation, UI, or body copy.
+                          Fallback: Cormorant Garamond (closest web approx.).
+     --font-display     : Libre Baskerville (brand editorial font) — hero
+                          headlines, section titles, campaign narratives,
+                          promise band, editorial storytelling moments.
+                          Weight 400 only (Baskerville has no true 500–600).
+     --font-editorial   : Libre Baskerville italic — soul quotes, curation
+                          lines, brand taglines, emotional editorial copy.
+                          (Same family as --font-display; italic variant.)
+     --font-body        : Open Sans — all operational UI: navigation,
+                          product descriptions, buttons, forms, checkout,
+                          account, admin, metadata, labels.                 */
+  --font-calligraphy: "Abdan Calligraph", "Cormorant Garamond", Georgia, serif;
+  --font-display:     "Libre Baskerville", "Baskerville", Georgia, serif;
+  --font-editorial:   "Libre Baskerville", "Baskerville", Georgia, serif;
+  --font-body:        "Open Sans", system-ui, sans-serif;
+  --font-ui:          "Open Sans", system-ui, sans-serif;
+}
+
+/* ── Abdan Calligraph — self-hosted brand font ──────────────────────────
+   When AbdanCalligraph.woff2 is placed in ./assets/fonts/, it activates
+   automatically across all logo/identity elements.
+   font-display: optional → browser uses fallback immediately on first load
+   without invisible text or layout shift — zero performance regression.    */
+@font-face {
+  font-family: "Abdan Calligraph";
+  src:
+    url("../assets/fonts/AbdanCalligraph.woff2") format("woff2"),
+    url("../assets/fonts/AbdanCalligraph.woff")  format("woff");
+  font-weight: normal;
+  font-style:  normal;
+  font-display: optional;
 }
 
 html[data-theme="dark"] {
@@ -313,14 +344,14 @@ html[data-theme="dark"] .brand-pill {
 }
 
 /* ── Footer text mark ─────────────────────────────────────── */
-/* Playfair Display retained here intentionally: the footer mark is a
-   decorative lettermark ("A" in a circle), not a typographic heading.
-   All structural display usage has been migrated to Cormorant Garamond. */
+/* Identity lettermark "A" — uses calligraphy font as a signature moment.
+   Falls back to Cormorant Garamond (closest approximation available).    */
 .footer-mark {
   background: var(--emerald);
   color: var(--ivory);
-  font-family: "Playfair Display", serif;
+  font-family: var(--font-calligraphy);
   font-size: 1.2rem;
+  font-weight: 400;
   letter-spacing: 0.02em;
 }
 
@@ -763,9 +794,9 @@ html[data-theme="dark"] .dock-link.is-active:hover {
 .account-copy h2,
 .promise-band__inner blockquote,
 .footer-disclosure summary {
-  font-family: "Cormorant Garamond", serif;
-  font-weight: 500;
-  letter-spacing: -0.03em;
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.02em;
 }
 
 .hero-copy h1 {
@@ -1046,8 +1077,8 @@ html[data-theme="dark"] .trust-rail__inner span {
 .admin-kpi strong,
 .admin-route-label {
   margin: 0;
-  font-family: "Cormorant Garamond", serif;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--text-main);
 }
@@ -5792,14 +5823,16 @@ html[data-theme="dark"] .lx-entry {
   transform: translateY(0);
 }
 
-/* ── Wordmark: ABDAN — wide tracking, editorial weight ───────────────
-   600 weight Cormorant Garamond with 0.28em spacing. Appears after
-   the logo settles, drifts upward 10px to settle at baseline.        */
+/* ── Wordmark: ABDAN — calligraphy identity mark ─────────────────────
+   Abdan Calligraph (brand primary font) — logo/identity moment only.
+   Fallback: Cormorant Garamond (closest approximation without font file).
+   Size: brand spec logo — desktop 42–52px, mobile 32–40px.
+   Letter-spacing: tightened for Baskerville fallback (was 0.28em CG).   */
 .lx-entry__wordmark {
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(2.4rem, 8vw, 4.8rem);
-  font-weight: 600;
-  letter-spacing: 0.28em;
+  font-family: var(--font-calligraphy);
+  font-size: clamp(2rem, 6vw, 3.25rem);
+  font-weight: 400;
+  letter-spacing: 0.22em;
   color: var(--emerald);
   opacity: 0;
   transform: translateY(10px);
@@ -6588,4 +6621,151 @@ html[data-theme="dark"] .promise-band__inner::before {
 /* ── 26k. Reduced motion guard for Section 26 ────────────────────────
    The only new animated element in Section 26 is none — all rules
    here are structural. No additional guard needed beyond Section 25l. */
+
+/* ════════════════════════════════════════════════════════════════════
+   27. BRAND TYPOGRAPHY IMPLEMENTATION — Mission M
+   Targeted overrides that cannot be resolved by token cascade alone.
+   Every rule here aligns a specific element with the ABDAN brand
+   typography DNA:
+     · Abdan Calligraph  — identity mark only (wordmark, footer mark)
+     · Libre Baskerville — editorial: hero, campaign, section headings,
+                           promise band, story cards, testimonials
+     · Open Sans         — operational UI: product titles, navigation,
+                           buttons, forms, checkout, account, metadata
+   Baskerville note: only 400 (regular) and 700 (bold) are true font
+   weights. Any weight 500–600 will render as 700. All editorial
+   elements use weight 400 exclusively.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── 27a. Hero h1 — Baskerville tracking at display scale ────────────
+   Tokens set by root/group rule: Libre Baskerville, weight 400,
+   --type-display (30–72px), --leading-tight (1.1). Confirmed correct.
+   Letter-spacing refined: Baskerville's wider letterforms benefit from
+   -0.03em at display scale — slightly tighter than the group -0.02em. */
+
+.hero-copy h1 {
+  letter-spacing: -0.03em;
+}
+
+/* ── 27b. Section headings — Baskerville line-height ─────────────────
+   Baskerville's larger x-height and descenders need explicit leading
+   at section-heading scale. 1.2 gives editorial openness without
+   looking airy. The group rule (line 784) correctly sets weight 400.  */
+
+.section-heading h2 {
+  line-height: 1.2;
+}
+
+/* ── 27c. Editorial campaign headline — Baskerville weight fix ────────
+   Libre Baskerville has only weight 400 (regular) and 700 (bold).
+   The existing font-weight: 600 renders as 700 — heavier than the
+   brand's editorial restraint requires. Weight 400 at 2.1–3.8rem
+   Baskerville is commanding without heaviness. Line-height 1.15
+   tightens the display heading: cinematic, not airy.               */
+
+.editorial-campaign__headline {
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+/* ── 27d. Editorial campaign body — scale for luxury reading ──────────
+   Current 0.92–1.04rem (14–17px) is functional but not editorial-grade.
+   Brand specification: 17–22px italic Baskerville with relaxed leading.
+   clamp(1.0625rem, 2.2vw, 1.375rem) = 17px mobile → 22px at 1000px+. */
+
+.editorial-campaign__body {
+  font-size: clamp(1.0625rem, 2.2vw, 1.375rem);
+  line-height: var(--leading-relaxed);
+}
+
+/* ── 27e. Product card titles — Open Sans (operational identity) ──────
+   Product names label, identify, and guide — they are operational UI,
+   not editorial. Open Sans weight 500 is precise, readable, on-brand.
+   Negative letter-spacing removed: Open Sans tracks neutrally. The
+   product card index (numeral) retains Baskerville as a quiet accent. */
+
+.product-card__title {
+  font-family: var(--font-body);
+  font-weight: 500;
+  letter-spacing: -0.005em;
+}
+
+/* ── 27f. Promise band blockquote — Baskerville leading calibration ───
+   Section 25a set line-height: 1.28 for cinematic rhythm.
+   Libre Baskerville's heavier stroke benefits from 1.32 — one step
+   more breath between lines, still tight enough for display impact.   */
+
+.promise-band__inner blockquote {
+  line-height: 1.32;
+}
+
+/* ── 27g. Checkout panel heading — Baskerville weight fix ─────────────
+   Section 25h set font-weight: 600 on .checkout-panel h3.
+   600 renders as 700 in Baskerville — bold, not refined. The heading
+   carries clarity at 1.25rem Baskerville regular (weight 400).
+   The checkout context deserves calm authority, not typographic force. */
+
+.checkout-panel h3 {
+  font-weight: 400;
+}
+
+/* ── 27h. Softly Returning card names — Open Sans ────────────────────
+   sr-card names are product identifiers: operational UI, not editorial.
+   Overrides --font-display (Baskerville) → --font-body (Open Sans).
+   Weight 600 retained at this small contextual size for legibility.
+   Letter-spacing reset to 0: Open Sans tracks cleanly without offset. */
+
+.sr-card__name {
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+/* ── 27i. Navigation dock labels — brand specification sizing ─────────
+   Brand spec: navigation labels at 13px, Open Sans, weight 500.
+   Current: 0.63rem (10px) weight 700 — below spec, overly heavy.
+   0.8125rem = 13px. Weight 500 (medium) reads with refinement.
+   Letter-spacing 0.05em: subtle tracking lifts readability at 13px.  */
+
+.dock-link span {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+/* ── 27j. Buttons — Open Sans, weight 500 ────────────────────────────
+   Buttons inherit Open Sans via `font: inherit` on the body reset.
+   Explicit font-family here ensures cascade resilience. Weight 500
+   (Medium) is the brand spec for button labels — confident, not heavy.
+   Current weight 600 is slightly more force than luxury restraint
+   requires at button scale.                                            */
+
+.primary-button,
+.secondary-button {
+  font-family: var(--font-ui);
+  font-weight: 500;
+}
+
+/* ── 27k. Product description — Open Sans anchored ───────────────────
+   Already inherits Open Sans from body. Explicit declaration here
+   provides cascade resilience and documents the brand intent clearly:
+   product descriptions are operational UI text, not editorial prose.  */
+
+.product-description {
+  font-family: var(--font-body);
+}
+
+/* ── 27l. Checkout form inputs — Open Sans confirmed ─────────────────
+   Inputs receive `font: inherit` from the reset, pulling Open Sans
+   from body. Explicit here for resilience and brand documentation.    */
+
+.checkout-form input,
+.checkout-form textarea,
+.checkout-form label {
+  font-family: var(--font-ui);
+}
+
+/* ── 27m. Reduced motion guard for Section 27 ────────────────────────
+   All Section 27 rules are structural (font-family, size, weight).
+   No animations introduced — no additional guard needed. */
 
