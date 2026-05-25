@@ -343,21 +343,27 @@ html[data-theme="dark"] .brand-pill {
   border-radius: 0;
 }
 
-/* ── Footer text mark ─────────────────────────────────────── */
-/* Identity lettermark "A" — uses calligraphy font as a signature moment.
-   Falls back to Cormorant Garamond (closest approximation available).    */
+/* ── Footer seal mark — real brand image ──────────────────── */
+/* Replaced CSS "A" lettermark with the actual ABDAN ornate seal.
+   The seal (gold calligraphic mark on emerald) is the authentic
+   brand identity — no font approximation needed.               */
 .footer-mark {
-  background: var(--emerald);
-  color: var(--ivory);
-  font-family: var(--font-calligraphy);
-  font-size: 1.2rem;
-  font-weight: 400;
-  letter-spacing: 0.02em;
+  overflow: hidden;
+  background: var(--emerald); /* fallback colour while image loads */
+}
+
+.footer-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  transform: scale(1.04); /* fills circle edge-to-edge */
+  border-radius: 0;
 }
 
 html[data-theme="dark"] .footer-mark {
-  background: var(--gold);
-  color: var(--emerald);
+  box-shadow: 0 0 0 2px var(--gold);
 }
 
 .brand-pill strong,
@@ -365,11 +371,21 @@ html[data-theme="dark"] .footer-mark {
   display: block;
 }
 
-.brand-pill strong {
-  font-size: 0.77rem;
-  font-weight: 700;
-  letter-spacing: 0.24em;
+/* ── Brand pill name — calligraphic style ────────────────────
+   Uses Abdan Calligraph (activates when font file is placed at
+   assets/fonts/AbdanCalligraph.woff2). Falls back to Cormorant
+   Garamond — closest calligraphic serif available via Google.
+   Emerald green matches the actual logo wordmark colour.       */
+.brand-pill__name {
+  font-family: var(--font-calligraphy);
+  font-size: 0.92rem;
+  font-weight: 400;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
+  color: var(--emerald);
+}
+
+html[data-theme="dark"] .brand-pill__name {
   color: var(--gold);
 }
 
@@ -2704,8 +2720,8 @@ html[data-theme="dark"] .testimonial-card--featured {
     font-size: 1.05rem;
   }
 
-  .brand-pill strong {
-    font-size: 0.69rem;
+  .brand-pill__name {
+    font-size: 0.8rem;
     letter-spacing: 0.18em;
   }
 
@@ -5823,17 +5839,20 @@ html[data-theme="dark"] .lx-entry {
   transform: translateY(0);
 }
 
-/* ── Wordmark: ABDAN — calligraphy identity mark ─────────────────────
-   Abdan Calligraph (brand primary font) — logo/identity moment only.
-   Fallback: Cormorant Garamond (closest approximation without font file).
-   Size: brand spec logo — desktop 42–52px, mobile 32–40px.
-   Letter-spacing: tightened for Baskerville fallback (was 0.28em CG).   */
+/* ── Logo mark — hidden in light mode (wordmark image covers both) ────
+   In light mode the real wordmark JPEG contains the icon mark already.
+   The icon circle is kept in DOM so JS animation still fires cleanly.  */
+.lx-entry__logo {
+  display: none; /* hidden: wordmark image covers the full brand mark   */
+}
+
+html[data-theme="dark"] .lx-entry__logo {
+  display: block; /* restored in dark mode: separate icon + text layout */
+}
+
+/* ── Wordmark container — animation wrapper (JS adds .is-visible) ─────
+   The container animates; its children toggle by theme.               */
 .lx-entry__wordmark {
-  font-family: var(--font-calligraphy);
-  font-size: clamp(2rem, 6vw, 3.25rem);
-  font-weight: 400;
-  letter-spacing: 0.22em;
-  color: var(--emerald);
   opacity: 0;
   transform: translateY(10px);
   transition:
@@ -5844,13 +5863,44 @@ html[data-theme="dark"] .lx-entry {
   margin-bottom: 1.15rem;
 }
 
-html[data-theme="dark"] .lx-entry__wordmark {
-  color: var(--cream);
-}
-
 .lx-entry__wordmark.is-visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* ── Wordmark image — real logo JPEG (light mode only) ───────────────
+   mix-blend-mode: multiply on ivory background: the white areas of the
+   JPEG become transparent (white × ivory ≈ ivory), leaving only the
+   dark emerald letterforms and gold icon mark perfectly visible.
+   No font approximation — this IS the actual Abdan Calligraph style.  */
+.lx-entry__wordmark-img {
+  display: block;
+  width: clamp(200px, 55vw, 280px);
+  height: auto;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+/* ── Wordmark CSS text — dark mode fallback only ─────────────────────
+   mix-blend-mode: multiply is invisible on dark backgrounds, so dark
+   mode falls back to CSS text using Abdan Calligraph / Cormorant CG.
+   Light mode: hidden — the image is the correct representation.       */
+.lx-entry__wordmark-text {
+  display: none; /* hidden in light mode — image takes over             */
+}
+
+html[data-theme="dark"] .lx-entry__wordmark-img {
+  display: none; /* hidden in dark mode — mix-blend-mode fails on dark  */
+}
+
+html[data-theme="dark"] .lx-entry__wordmark-text {
+  display: block;
+  font-family: var(--font-calligraphy);
+  font-size: clamp(2rem, 6vw, 3.25rem);
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--cream);
 }
 
 /* ── Tagline: emotionally warm, intimate scale ───────────────────── */

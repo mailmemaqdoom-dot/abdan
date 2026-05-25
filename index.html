@@ -55,13 +55,24 @@
     <div id="lxEntry" class="lx-entry" aria-hidden="true" role="presentation">
       <div class="lx-entry__inner">
 
-        <!-- Step 1 — Logo mark: the brand symbol surfaces first -->
+        <!-- Step 1 — Logo mark: brand seal (dark mode) / hidden in light mode -->
         <div class="lx-entry__logo" aria-hidden="true">
           <img src="./assets/abdan-icon.jpg" alt="" width="58" height="58" />
         </div>
 
-        <!-- Step 2 — Brand wordmark -->
-        <div class="lx-entry__wordmark" aria-label="ABDAN">ABDAN</div>
+        <!-- Step 2 — Brand wordmark
+             Light mode: real logo image (mix-blend-mode: multiply drops white bg)
+             Dark mode:  CSS calligraphic text fallback                           -->
+        <div class="lx-entry__wordmark" aria-label="ABDAN">
+          <img
+            class="lx-entry__wordmark-img"
+            src="./assets/logo/abdan-wordmark-full.jpeg"
+            alt="ABDAN"
+            width="260"
+            draggable="false"
+          />
+          <span class="lx-entry__wordmark-text" aria-hidden="true">ABDAN</span>
+        </div>
 
         <!-- Step 3 — Emotional tagline -->
         <p class="lx-entry__tagline">
@@ -153,7 +164,7 @@
           <img src="./assets/abdan-icon.jpg" alt="" width="45" height="45" fetchpriority="high" />
         </span>
         <span>
-          <strong>ABDAN</strong>
+          <strong class="brand-pill__name">ABDAN</strong>
           <small>Your Devotion Meets Style</small>
         </span>
       </a>
@@ -1107,7 +1118,9 @@
     <footer class="site-footer">
       <div class="container footer-grid">
         <section class="footer-column footer-brand">
-          <div class="footer-mark" aria-hidden="true">A</div>
+          <div class="footer-mark" aria-hidden="true">
+            <img src="./assets/logo/abdan-seal-dark.jpeg" alt="" width="45" height="45" />
+          </div>
           <p class="footer-tagline">Your Devotion Meets Style</p>
           <p>
             Curated for women whose grace is often seen by everyone else first. ABDAN turns that care
