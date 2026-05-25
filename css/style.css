@@ -2692,8 +2692,7 @@ html[data-theme="dark"] .testimonial-card--featured {
   }
 
   .teaser-grid,
-  .account-features,
-  .trust-rail__inner {
+  .account-features {
     grid-template-columns: 1fr 1fr;
   }
 
@@ -5094,15 +5093,15 @@ html {
   border: none;
   background: transparent;
   cursor: pointer;
-  color: var(--text-muted, #888);
+  color: var(--muted);
   border-radius: 50%;
   transition: color 180ms var(--ease-out), background 180ms var(--ease-out);
 }
 
 .space-field__eye:hover,
 .admin-field__eye:hover {
-  color: var(--text-primary, #1a1a1a);
-  background: var(--surface-raised, rgba(0,0,0,0.05));
+  color: var(--text-main);
+  background: var(--surface-soft);
 }
 
 .space-field__eye svg,
@@ -5125,7 +5124,7 @@ html {
   border: none;
   background: transparent;
   font-size: 0.8125rem;
-  color: var(--text-muted, #888);
+  color: var(--muted);
   cursor: pointer;
   text-align: left;
   letter-spacing: 0.01em;
@@ -5133,7 +5132,7 @@ html {
 }
 
 .space-forgot-link:hover {
-  color: var(--brand-gold, #c9a96e);
+  color: var(--gold);
 }
 
 .space-recovery {
@@ -5155,7 +5154,7 @@ html {
 
 .space-recovery__message {
   font-size: 0.8125rem;
-  color: var(--text-muted, #888);
+  color: var(--muted);
   line-height: 1.55;
   margin: 0 0 0.625rem;
 }
@@ -5166,7 +5165,7 @@ html {
   gap: 0.5rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--emerald, #2d9b6f);
+  color: var(--emerald);
   text-decoration: none;
   letter-spacing: 0.01em;
   transition: opacity 180ms var(--ease-out), gap 180ms var(--ease-out);
@@ -5892,10 +5891,6 @@ html[data-theme="dark"] .lx-entry__logo {
   transform: translateY(0);
 }
 
-/* ── Wordmark image — SVG wordmark (light mode) ──────────────────────
-   The SVG has a transparent background and fill="#023d3a" (emerald).
-   Renders crisply on the ivory entry overlay at any pixel density.
-   No mix-blend-mode needed — transparency is intrinsic to SVG.        */
 /* ── Wordmark image — full logo JPEG (light mode only) ───────────────
    abdan-wordmark-full.jpeg IS the official Abdan Calligraph style —
    the actual name board letterforms, not a font approximation.
@@ -6278,10 +6273,10 @@ html[data-theme="dark"] .page-vignette {
    Perceived as spatial breathing rather than borders.                  */
 
 .collection-section::before,
-.promise-section::before,
+.promise-band::before,
 .story-section::before,
-.testimonials-section::before,
-.what-you-love::before {
+.circle-section::before,
+.teaser-section::before {
   content: "";
   display: block;
   width: 4rem;
@@ -6846,4 +6841,171 @@ html[data-theme="dark"] .promise-band__inner::before {
 /* ── 27m. Reduced motion guard for Section 27 ────────────────────────
    All Section 27 rules are structural (font-family, size, weight).
    No animations introduced — no additional guard needed. */
+
+/* ════════════════════════════════════════════════════════════════════
+   28. LUXURY CONSISTENCY AUDIT — Mission N
+   Obsessive refinement pass. No features added. Only inconsistencies
+   resolved, visibility bugs fixed, and emotional pacing refined.
+   Philosophy: luxury improves through subtraction and precision.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── 28a. Promise band — brand attribution visibility ────────────────
+   CRITICAL: .abdan-calligraph sets color: #0C3B2E (dark forest green)
+   on light surfaces. The promise band background is var(--emerald) =
+   #023d3a — also a very dark green. Dark text on dark green = invisible.
+   Override to warm ivory so "— ABDAN" reads clearly on the emerald band.
+   Dark mode: promise band is slightly lighter (gold-tinted emerald via
+   color-mix) — ivory still reads perfectly on that surface.             */
+.promise-band__inner .abdan-calligraph {
+  color: rgba(248, 245, 236, 0.88);
+}
+
+/* ── 28b. Section separators — guard for ::before positioning ────────
+   Section 25e's hairline separators are now using the correct class
+   names (fixed in 25e). The ::before pseudoelement needs position:
+   relative on the section containers for `top: 0` to work correctly.
+   All .section-frame sections already have padding-top applied.       */
+.promise-band,
+.story-section,
+.circle-section,
+.teaser-section {
+  position: relative; /* ensures ::before separator is in document flow */
+}
+
+/* ── 28c. Mobile dock label — Section 27i guard ──────────────────────
+   Section 27i raised dock-link span to 13px (0.8125rem) globally.
+   On mobile (≤720px), the label collapse system needs the original
+   0.62rem to fit inside the compressed inactive pill.
+   Re-apply within the 720px breakpoint to maintain pill geometry.    */
+@media (max-width: 720px) {
+  .dock-link span {
+    font-size: 0.62rem;
+  }
+}
+
+/* ── 28d. Dark mode eye-button icon tint ─────────────────────────────
+   In dark mode, var(--muted) (#5d6964) is a warm grey that reads
+   correctly on light backgrounds but is too dark on dark card surfaces.
+   Override to a slightly lighter text-dim tone for dark mode forms.   */
+html[data-theme="dark"] .space-field__eye,
+html[data-theme="dark"] .admin-field__eye {
+  color: var(--text-dim);
+}
+
+html[data-theme="dark"] .space-field__eye:hover,
+html[data-theme="dark"] .admin-field__eye:hover {
+  color: var(--text-soft);
+  background: var(--surface-soft);
+}
+
+/* ── 28e. Dark mode forgot-password link ────────────────────────────
+   var(--muted) in dark mode is still legible but slightly warm-cold.
+   var(--text-dim) reads more naturally as a subdued link on dark bg.  */
+html[data-theme="dark"] .space-forgot-link {
+  color: var(--text-dim);
+}
+
+/* ── 28f. Section kicker — line height guard ─────────────────────────
+   display: inline-flex on .section-kicker (the base rule) can cause
+   multi-word kickers to orphan their last word on narrow containers.
+   Adding line-height ensures tight packing without orphaned text.     */
+.section-kicker {
+  line-height: 1.5;
+}
+
+/* ── 28g. Product card footer hairline — softer in dark mode ─────────
+   The `color-mix(in srgb, var(--line) 84%, transparent)` border-top
+   on .product-card__footer uses --line which is cream-tinted in dark
+   mode. The mix creates sufficient contrast in light; in dark mode
+   it can feel heavy. Add a direct dark-mode softening.               */
+html[data-theme="dark"] .product-card__footer {
+  border-top-color: rgba(230, 223, 203, 0.08);
+}
+
+/* ── 28h. Trust rail dark mode text — warmer tone ───────────────────
+   rgba(230,223,203, 0.52) is correct for trust rail on dark bg.
+   The pipe divider at rgba(197,161,59, 0.32) is slightly too dim
+   compared to the already-subtle text. Lift a touch for consistency.  */
+html[data-theme="dark"] .trust-rail__inner span + span::before {
+  color: rgba(197, 161, 59, 0.38);
+}
+
+/* ── 28i. Testimonial featured card — dark mode contrast ─────────────
+   The featured card on dark mode gets color-mix(emerald 82%, black 18%).
+   Ivory text on that deep surface has sufficient contrast.
+   The .testimonial-card--featured footer span (initial avatar circle)
+   uses background: var(--gold) / color: var(--emerald) — correct.    */
+
+/* ── 28j. Recovery link dark mode ────────────────────────────────────
+   var(--emerald) is dark green — invisible on a dark card surface.
+   In dark mode, recovery links should use the gold accent.            */
+html[data-theme="dark"] .space-recovery__link {
+  color: var(--gold);
+}
+
+/* ── 28k. Page vignette — reduced on mobile ──────────────────────────
+   The elliptical vignette at rgba(2,8,8, 0.11) adds cinematic depth.
+   On small mobile screens, it can add unwanted darkness at corners.
+   Reduce opacity slightly on narrow viewports.                        */
+@media (max-width: 480px) {
+  .page-vignette {
+    opacity: 0.65;
+  }
+}
+
+/* ── 28l. Section heading reveal — will-change cleanup ──────────────
+   Section 25d added will-change: opacity, transform to section heading.
+   This is correct for GPU compositing but should be released after
+   the transition completes. Post-visible state removes will-change.   */
+.section-heading.reveal.is-visible {
+  will-change: auto;
+}
+
+/* ── 28m. Cart count border — ivory token ───────────────────────────
+   The cart-count uses `border: 2px solid var(--ivory)` in light mode.
+   This already uses the token correctly. Confirm dark mode override
+   uses a dark surface value consistent with the card-bg token.        */
+html[data-theme="dark"] .cart-count {
+  border-color: var(--card-bg);
+}
+
+/* ── 28n. Bottom dock — reduced motion refinement ───────────────────
+   The dock-link max-width collapse animation (label slide on mobile)
+   should collapse to instant for prefers-reduced-motion users.        */
+@media (prefers-reduced-motion: reduce) {
+  .dock-link span {
+    transition-duration: 0.01ms !important;
+  }
+  .dock-link {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── 28o. Ghost button — font alignment ──────────────────────────────
+   Ghost buttons inherit Open Sans via body. Explicit declaration
+   anchors the font choice and weight to brand spec.                   */
+.ghost-button {
+  font-family: var(--font-ui);
+  font-weight: 500;
+}
+
+/* ── 28p. Support pill text — Open Sans anchored ─────────────────────
+   The pill label inherits Open Sans from body. Explicit font-weight
+   gives it the restrained presence consistent with the brand system.  */
+.support-pill span:first-child {
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+/* ── 28q. Editorial campaign chips — text-transform guard ────────────
+   Campaign chips are rendered by JS. Ensure they inherit Open Sans
+   and don't pick up any Baskerville from parent editorial containers.  */
+.editorial-campaign__chips .filter-chip {
+  font-family: var(--font-ui);
+}
+
+/* ── 28r. Reduced motion — Section 28 guard ──────────────────────────
+   All Section 28 rules are structural. No new animations introduced.
+   The dock-link and section-heading reduced-motion rules above cover
+   all motion-adjacent changes in this section.                         */
 
