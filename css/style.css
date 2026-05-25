@@ -3384,6 +3384,303 @@ html[data-theme="dark"] .mood-editorial__headline {
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   SECTION 24 — Emotional Intelligence Layer
+   Softly Returning · Emotional Recommendations · Space Mood Profile
+   Philosophy: invisible personalization. Felt, not announced.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* 24a. Softly Returning section ─────────────────────────────────────────── */
+.softly-returning__header {
+  margin-bottom: 2rem;
+}
+
+.softly-returning__header .section-kicker {
+  color: var(--gold);
+  letter-spacing: 0.18em;
+}
+
+.softly-returning__headline {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3.5vw, 2.4rem);
+  font-weight: 600;
+  color: var(--emerald);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin: 0.4rem 0 0;
+}
+
+html[data-theme="dark"] .softly-returning__headline {
+  color: var(--cream);
+}
+
+/* 24b. Softly Returning grid — horizontal scroll on mobile ──────────────── */
+.softly-returning__grid {
+  display: flex;
+  gap: 1.1rem;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  padding-bottom: 0.5rem;
+  -webkit-mask-image: linear-gradient(to right, black 0%, black 82%, transparent 100%);
+  mask-image: linear-gradient(to right, black 0%, black 82%, transparent 100%);
+}
+
+.softly-returning__grid::-webkit-scrollbar { display: none; }
+
+/* 24c. SR card — compact portrait card ─────────────────────────────────── */
+.sr-card {
+  flex: 0 0 clamp(9rem, 36vw, 13rem);
+  scroll-snap-align: start;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  cursor: pointer;
+  transition: transform var(--t-base) var(--ease-snap),
+              box-shadow var(--t-base) var(--ease-snap);
+  outline: none;
+}
+
+.sr-card:hover,
+.sr-card:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lift);
+}
+
+.sr-card:focus-visible {
+  outline: 2px solid var(--emerald);
+  outline-offset: 2px;
+}
+
+.sr-card__media {
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--cream) 85%, var(--gold) 15%);
+}
+
+html[data-theme="dark"] .sr-card__media {
+  background: color-mix(in srgb, var(--emerald-deep) 88%, var(--gold) 12%);
+}
+
+.sr-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 520ms var(--ease-out);
+}
+
+.sr-card__media img.img-loaded { opacity: 1; }
+
+.sr-card__info {
+  padding: 0.75rem 0.85rem 0.9rem;
+}
+
+.sr-card__tag {
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 0.28rem;
+}
+
+.sr-card__name {
+  font-family: var(--font-display);
+  font-size: clamp(0.82rem, 2vw, 0.95rem);
+  font-weight: 600;
+  color: var(--emerald);
+  line-height: 1.25;
+  margin: 0;
+}
+
+html[data-theme="dark"] .sr-card__name { color: var(--cream); }
+
+/* 24d. Emotional Recommendations — inside product sheet ─────────────────── */
+.emotional-recs {
+  margin: 1.5rem 0 0;
+  padding: 1.25rem 1.35rem;
+  border-radius: var(--radius-lg);
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  position: relative;
+  overflow: hidden;
+}
+
+.emotional-recs::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 1.35rem; right: 1.35rem;
+  height: 1px;
+  background: linear-gradient(90deg, var(--gold) 0%, rgba(197,161,59,0.15) 60%, transparent 100%);
+}
+
+html[data-theme="dark"] .emotional-recs {
+  background: rgba(230, 223, 203, 0.04);
+  border-color: rgba(230, 223, 203, 0.09);
+}
+
+.emotional-recs__label {
+  font-family: var(--font-body);
+  font-size: var(--type-label);
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 0.85rem;
+}
+
+.emotional-recs__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+/* 24e. ER chip — emotionally adjacent product button ────────────────────── */
+.er-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-md);
+  background: transparent;
+  border: 1px solid var(--line);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--t-base), border-color var(--t-base),
+              transform 160ms var(--ease-snap);
+}
+
+.er-chip:hover {
+  background: var(--paper-strong);
+  border-color: var(--line-strong);
+  transform: translateX(3px);
+}
+
+html[data-theme="dark"] .er-chip:hover {
+  background: rgba(230, 223, 203, 0.07);
+}
+
+.er-chip__name {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--emerald);
+  line-height: 1.2;
+}
+
+html[data-theme="dark"] .er-chip__name { color: var(--cream); }
+
+.er-chip__sub {
+  font-family: var(--font-editorial);
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--text-soft);
+  line-height: 1.35;
+}
+
+/* 24f. Space Mood Profile strip ─────────────────────────────────────────── */
+.space-mood-profile {
+  margin: 1.5rem 0;
+  padding: 1.2rem 1.5rem;
+  border-radius: var(--radius-lg);
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  position: relative;
+  overflow: hidden;
+}
+
+.space-mood-profile::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 1.5rem; right: 1.5rem;
+  height: 1.5px;
+  background: linear-gradient(90deg, var(--gold) 0%, rgba(197,161,59,0.12) 55%, transparent 100%);
+  border-radius: 999px;
+}
+
+html[data-theme="dark"] .space-mood-profile {
+  background: rgba(230, 223, 203, 0.04);
+  border-color: rgba(230, 223, 203, 0.09);
+}
+
+.space-mood-profile__inner {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.2rem;
+}
+
+.space-mood-profile__kicker {
+  font-family: var(--font-body);
+  font-size: var(--type-label);
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold);
+  width: 100%;
+  margin-bottom: 0.25rem;
+}
+
+.space-mood-profile__value {
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 3vw, 1.65rem);
+  font-weight: 600;
+  color: var(--emerald);
+  line-height: 1.2;
+  margin: 0;
+}
+
+html[data-theme="dark"] .space-mood-profile__value { color: var(--cream); }
+
+.space-mood-profile__cta {
+  font-size: 0.82rem;
+  opacity: 0.75;
+  transition: opacity var(--t-fast);
+}
+
+.space-mood-profile__cta:hover { opacity: 1; }
+
+/* 24g. Desktop refinements ──────────────────────────────────────────────── */
+@media (min-width: 900px) {
+  .softly-returning__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+    overflow-x: unset;
+    scroll-snap-type: unset;
+    -webkit-mask-image: none;
+    mask-image: none;
+    padding-bottom: 0;
+  }
+
+  .sr-card {
+    flex: unset;
+  }
+
+  .emotional-recs__list {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .er-chip {
+    flex: 1 1 calc(50% - 0.28rem);
+  }
+}
+
+/* 24h. Reduced motion ───────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .sr-card,
+  .er-chip,
+  .sr-card__media img {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
 /* ─── MICRO INTERACTIONS ──────────────────────────────────────────────────── */
 
 @keyframes cartPop {

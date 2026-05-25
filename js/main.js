@@ -37,12 +37,15 @@ const LX_MOTION = {
 
 /* ── Order lifecycle states (boutique fulfilment stages) ─────────────────
    Used to build the order timeline shown in confirmation + Your Space.    */
+/* ── Order lifecycle — luxury journey storytelling ───────────────────────
+   Every state is written as an emotional moment, not a logistics update.
+   Language: restrained, warm, believable. Never forced or overwrought.     */
 const ORDER_STATES = [
-  { key: "confirmed",        label: "Order Confirmed",    note: "Your order has arrived with gratitude. 💛" },
-  { key: "preparing",        label: "Being Prepared",     note: "Your pieces are being carefully packed." },
-  { key: "shipped",          label: "Shipped",            note: "On its way — tracking shared via WhatsApp." },
-  { key: "out_for_delivery", label: "Out for Delivery",   note: "Your order is almost with you." },
-  { key: "delivered",        label: "Delivered",          note: "Enjoy your new pieces. 💛" },
+  { key: "confirmed",        label: "Carefully Reserved",               note: "Received with the same care you gave to choosing it. ABDAN will confirm personally. 💛" },
+  { key: "preparing",        label: "Being Prepared Thoughtfully",      note: "Each piece is being packed with quiet attention — the way it deserves to travel." },
+  { key: "shipped",          label: "Something Beautiful Is On Its Way", note: "On its journey to you — tracking details shared via WhatsApp." },
+  { key: "out_for_delivery", label: "Arriving Quietly Soon",            note: "Almost with you now." },
+  { key: "delivered",        label: "Resting Gently at Your Door",      note: "It has arrived. Wear it well, wear it yours. 💛" },
 ];
 
 const FILTERS = [
@@ -508,9 +511,177 @@ const MOOD_MAP = {
   "Signature Picks":   { headline: "The Most Considered Edit",              body: "Pieces chosen for their restraint, careful finish, and the lasting presence they carry — long after the occasion has ended and the memory has settled." },
 };
 
+/* ── Emotional Intelligence Memory Key ────────────────────────────────────
+   Single localStorage key for all soft-memory data. Schema (all optional):
+     visitCount    — how many sessions have occurred on this device
+     lastVisit     — unix timestamp of previous session
+     lastFilter    — last mood filter the user engaged with
+     lastViewedIds — recent product IDs (max 6, most-recent first)
+     moodAffinity  — {[filter]: count} engagement per mood over time        */
+const MEMORY_KEY = "abdan-memory";
+
 let _toastTimer = null;
 let _revealObserver = null;
 let _seasonalContext = null;
+
+/* ══════════════════════════════════════════════════════════════════════════
+   EMOTIONAL INTELLIGENCE LAYER — Soft Memory & Personalization System
+   Philosophy: like a thoughtful luxury stylist, not an ecommerce algorithm.
+   Everything stored locally, privately, and with complete user respect.
+   Personalization should feel invisible — observed, not announced.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── readMemory / saveMemory — lightweight localStorage helpers ──────────
+   All reads are try/catch-guarded; quota failures silently no-op.          */
+function readMemory() {
+  try { return JSON.parse(localStorage.getItem(MEMORY_KEY) || "{}"); }
+  catch { return {}; }
+}
+
+function saveMemory(updates) {
+  const mem = readMemory();
+  Object.assign(mem, updates);
+  try { localStorage.setItem(MEMORY_KEY, JSON.stringify(mem)); }
+  catch { /* storage quota — degrade silently */ }
+  return mem;
+}
+
+/* ── initMemorySystem ────────────────────────────────────────────────────
+   Called once at page load. Increments visit count, normalises schema,
+   and returns the current memory object for use in init().                 */
+function initMemorySystem() {
+  const mem   = readMemory();
+  const count = (mem.visitCount || 0) + 1;
+  return saveMemory({
+    visitCount:    count,
+    lastVisit:     Date.now(),
+    lastViewedIds: Array.isArray(mem.lastViewedIds)                              ? mem.lastViewedIds : [],
+    moodAffinity:  (mem.moodAffinity && typeof mem.moodAffinity === "object")   ? mem.moodAffinity  : {},
+    lastFilter:    mem.lastFilter || "All",
+  });
+}
+
+/* ── recordProductView ───────────────────────────────────────────────────
+   Called on every product sheet open. Keeps a deduped, recency-ordered
+   list of the last 6 products the user explored on this device.            */
+function recordProductView(productId) {
+  const mem    = readMemory();
+  const viewed = (Array.isArray(mem.lastViewedIds) ? mem.lastViewedIds : []).filter(id => id !== productId);
+  viewed.unshift(productId);
+  saveMemory({ lastViewedIds: viewed.slice(0, 6) });
+}
+
+/* ── recordFilterUsage ───────────────────────────────────────────────────
+   Called on every non-"All" filter selection. Builds a mood affinity map
+   used to bias the editorial campaign and personalise the Space dashboard.  */
+function recordFilterUsage(filter) {
+  if (!filter || filter === "All") return;
+  const mem = readMemory();
+  const af  = (mem.moodAffinity && typeof mem.moodAffinity === "object") ? mem.moodAffinity : {};
+  af[filter] = (af[filter] || 0) + 1;
+  saveMemory({ moodAffinity: af, lastFilter: filter });
+}
+
+/* ── getAffinityMood ─────────────────────────────────────────────────────
+   Returns the filter the user has engaged with most — or null if no clear
+   preference has emerged yet.                                               */
+function getAffinityMood() {
+  const mem = readMemory();
+  const af  = (mem.moodAffinity && typeof mem.moodAffinity === "object") ? mem.moodAffinity : {};
+  let best = null, bestCount = 0;
+  Object.entries(af).forEach(([filter, count]) => {
+    if (count > bestCount) { best = filter; bestCount = count; }
+  });
+  return best;
+}
+
+/* ── renderSoftlyReturning ───────────────────────────────────────────────
+   Surfaces recently explored pieces from the second visit onward.
+   Section remains hidden on first visits and when no history exists.
+   Language: "Pieces That May Stay With You" — not "Recently Viewed".       */
+function renderSoftlyReturning() {
+  const section = document.getElementById("softlyReturning");
+  if (!section) return;
+
+  const mem      = readMemory();
+  const ids      = Array.isArray(mem.lastViewedIds) ? mem.lastViewedIds : [];
+  const isReturn = (mem.visitCount || 1) > 1;
+
+  if (!ids.length || !isReturn) { section.hidden = true; return; }
+
+  const products = ids.map(id => PRODUCTS.find(p => p.id === id)).filter(Boolean);
+  if (!products.length) { section.hidden = true; return; }
+
+  const grid = document.getElementById("srGrid");
+  if (!grid) return;
+
+  grid.innerHTML = products.map(p => `
+    <article class="sr-card reveal" data-preview="${p.id}"
+             role="button" tabindex="0" aria-label="View ${p.name}">
+      <div class="sr-card__media">
+        <img src="${p.image}" alt="${p.name}" loading="lazy" />
+      </div>
+      <div class="sr-card__info">
+        <p class="sr-card__tag">${p.primaryTag}</p>
+        <p class="sr-card__name">${p.name}</p>
+      </div>
+    </article>
+  `).join("");
+
+  grid.querySelectorAll("[data-preview]").forEach(card => {
+    const open = () => openProduct(card.dataset.preview || "");
+    card.addEventListener("click", open);
+    card.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
+    });
+  });
+
+  /* Image fade-in — same pattern as product grid */
+  grid.querySelectorAll("img").forEach(img => {
+    const onLoad = () => img.classList.add("img-loaded");
+    if (img.complete && img.naturalWidth > 0) requestAnimationFrame(onLoad);
+    else {
+      img.addEventListener("load",  onLoad, { once: true });
+      img.addEventListener("error", onLoad, { once: true });
+    }
+  });
+
+  section.hidden = false;
+  revealElements();
+}
+
+/* ── renderEmotionalRecommendations ──────────────────────────────────────
+   Shows 2–3 emotionally adjacent pieces inside the open product sheet.
+   Matches by primaryTag (same mood family), excludes the current piece.
+   Label: "Quietly chosen around this" — never "You may also like".         */
+function renderEmotionalRecommendations(product) {
+  const container = document.getElementById("emotionalRecs");
+  const listEl    = document.getElementById("emotionalRecsChips");
+  if (!container || !listEl) return;
+
+  const related = PRODUCTS
+    .filter(p => p.primaryTag === product.primaryTag && p.id !== product.id)
+    .slice(0, 3);
+
+  if (!related.length) { container.hidden = true; return; }
+
+  listEl.innerHTML = related.map(p => `
+    <button type="button" class="er-chip" data-preview="${p.id}" aria-label="View ${p.name}">
+      <span class="er-chip__name">${p.name}</span>
+      <span class="er-chip__sub">${p.curationLine || p.secondaryTags.occasion}</span>
+    </button>
+  `).join("");
+
+  listEl.querySelectorAll("[data-preview]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      closeProduct();
+      /* Brief pause lets the sheet slide out before the next one opens */
+      setTimeout(() => openProduct(btn.dataset.preview || ""), 320);
+    });
+  });
+
+  container.hidden = false;
+}
 
 const state = {
   theme: localStorage.getItem("abdan-theme") || "light",
@@ -905,11 +1076,11 @@ function renderSpaceOrders(phone) {
     return;
   }
   const statusLabel = {
-    confirmed:        "Confirmed",
-    preparing:        "Preparing",
-    shipped:          "Shipped",
-    out_for_delivery: "Out for Delivery",
-    delivered:        "Delivered",
+    confirmed:        "Carefully Reserved",
+    preparing:        "Being Prepared",
+    shipped:          "On Its Way",
+    out_for_delivery: "Arriving Soon",
+    delivered:        "Arrived 💛",
   };
   const cards = orders.map((order) => {
     const dateStr = order.createdAt
@@ -933,9 +1104,11 @@ function renderSpaceOrders(phone) {
 }
 
 function showSpaceDashboard(profile, isNew = false) {
-  const first = (profile.displayName || profile.fullName || "").split(" ")[0] || "you";
-  const greetingEl = document.getElementById("spaceDashGreeting");
-  const taglineEl  = document.getElementById("spaceDashTagline");
+  const first       = (profile.displayName || profile.fullName || "").split(" ")[0] || "you";
+  const affinityMood = getAffinityMood();
+  const greetingEl  = document.getElementById("spaceDashGreeting");
+  const taglineEl   = document.getElementById("spaceDashTagline");
+
   if (greetingEl) {
     greetingEl.textContent = isNew
       ? `Your Space is Ready, ${first} 💛`
@@ -944,8 +1117,33 @@ function showSpaceDashboard(profile, isNew = false) {
   if (taglineEl) {
     taglineEl.textContent = isNew
       ? "Everything you love, thoughtfully kept in one place."
-      : "Your space is exactly as you left it.";
+      : affinityMood
+        ? `Your space remembers you — including your affinity for ${affinityMood}.`
+        : "Your space is exactly as you left it.";
   }
+
+  /* ── Mood profile strip — surfaces affinity if it exists ──────────── */
+  const moodProfileEl = document.getElementById("spaceMoodProfile");
+  const moodValEl     = document.getElementById("spaceMoodValue");
+  const moodExploreEl = document.getElementById("spaceMoodExplore");
+  if (moodProfileEl) {
+    if (affinityMood && moodValEl) {
+      moodValEl.textContent = affinityMood;
+      moodProfileEl.hidden  = false;
+      if (moodExploreEl) {
+        moodExploreEl.onclick = () => {
+          state.filter = affinityMood;
+          renderFilters();
+          renderProducts();
+          const section = document.getElementById("products");
+          if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+        };
+      }
+    } else {
+      moodProfileEl.hidden = true;
+    }
+  }
+
   showSpaceView("spaceDashboard");
   /* Render order history for this phone number */
   renderSpaceOrders(profile.phone || "");
@@ -1295,6 +1493,9 @@ function openProduct(productId) {
   state.selectedSize = product.sizes?.[0] || DEFAULT_SIZES[0];
   state.selectedColor = product.colors?.[0] || DEFAULT_COLORS[0];
 
+  /* ── Emotional memory: record this exploration ───────────────────────── */
+  recordProductView(productId);
+
   /* ── Modal image: reset skeleton + fade-in on load ─────────────────── */
   const mediaEl = dom.productSheet.querySelector(".product-sheet__media");
   dom.productImage.classList.remove("img-loaded");
@@ -1343,6 +1544,7 @@ function openProduct(productId) {
   dom.selectedColorLabel.textContent = state.selectedColor || "Select";
   dom.productCheckoutPanel.hidden = true;
   renderShareButtons(product);
+  renderEmotionalRecommendations(product); /* emotionally adjacent pieces */
 
   /* Reset scroll so every open starts from the top of the content area */
   const contentEl = dom.productSheet.querySelector(".product-sheet__content");
@@ -1459,9 +1661,9 @@ function showOrderSuccess(customerName, order) {
   dom.cartItems.innerHTML = `
     <div class="cart-success">
       ${checkSvg}
-      <p class="cart-success__title">Order received, ${first}</p>
-      <p class="cart-success__body">Your selection has been received with the same care you put into choosing it. ABDAN will confirm and prepare your pieces personally.</p>
-      <p class="cart-success__note">Opening WhatsApp now so you can follow up directly with us. 💛</p>
+      <p class="cart-success__title">Carefully reserved, ${first}</p>
+      <p class="cart-success__body">Every piece you have chosen is now quietly held — awaiting personal confirmation and thoughtful preparation before it begins its journey to you.</p>
+      <p class="cart-success__note">Opening WhatsApp so you can stay in touch with ABDAN directly. 💛</p>
       ${ref ? `<p class="cart-success__ref">Ref · ${ref}</p>` : ""}
       ${timeline}
     </div>`;
@@ -2233,6 +2435,9 @@ function attachEvents() {
     if (!button) return;
     state.filter = button.dataset.filter || "All";
 
+    /* ── Emotional memory: record mood engagement ─────────────────── */
+    recordFilterUsage(state.filter);
+
     /* ── Filter chip spring micro-interaction ─────────────────────── */
     button.classList.remove("lx-selecting");
     requestAnimationFrame(() => {
@@ -2521,9 +2726,13 @@ function initSeasonalContext() {
 function renderEditorialCampaign() {
   if (!document.getElementById("editorialCampaign")) return;
 
-  /* Date-stable rotation: floor(unix-days) mod campaign count */
-  const dayIdx  = Math.floor(Date.now() / 86400000) % CAMPAIGNS.length;
-  const campaign = CAMPAIGNS[dayIdx];
+  /* Campaign selection: prefer the narrative that matches the user's affinity
+     mood. Falls back to date-stable rotation if no clear preference exists.
+     This makes the editorial section feel attuned — not algorithmic.         */
+  const affinityMood  = getAffinityMood();
+  const affinityMatch = affinityMood ? CAMPAIGNS.find(c => c.mood === affinityMood) : null;
+  const dayIdx        = Math.floor(Date.now() / 86400000) % CAMPAIGNS.length;
+  const campaign      = affinityMatch || CAMPAIGNS[dayIdx];
 
   const kickerEl = document.getElementById("campaignKicker");
   const headEl   = document.getElementById("campaignHeadline");
@@ -2631,10 +2840,21 @@ function init() {
   initEntryExperience();     /* must run first — covers page during render  */
   initTimeOfDay();
   initSeasonalContext();     /* sets [data-season] + populates _seasonalContext */
+
+  /* ── Emotional Intelligence: initialise memory + restore continuity ────
+     Memory is read before setTheme/renderFilters so state is already
+     personalised when the first render fires. Filter restoration happens
+     silently — no announcement, no toast. The mood-editorial and collection
+     simply open in the mood that already feels familiar.                    */
+  const memory = initMemorySystem();
+  if (memory.visitCount > 1 && memory.lastFilter && memory.lastFilter !== "All" && FILTERS.includes(memory.lastFilter)) {
+    state.filter = memory.lastFilter; /* silent mood continuity */
+  }
+
   setTheme(state.theme);
   renderFilters();
-  renderEditorialCampaign(); /* editorial campaign section (above products)     */
-  renderProducts();          /* also calls renderMoodEditorial() internally     */
+  renderEditorialCampaign(); /* editorial campaign section — affinity-biased  */
+  renderProducts();          /* also calls renderMoodEditorial() internally   */
   renderFooterContent();
   renderCart();
   attachEvents();
@@ -2647,6 +2867,15 @@ function init() {
   renderAdminRoute();
   initSpaceAuth();
   safeCreateIcons();
+
+  /* ── Softly Returning — recently explored pieces (2nd+ visit) ─────── */
+  renderSoftlyReturning();
+
+  /* ── Returning user: a single soft whisper on the second visit only ──
+     Third visit onward: continuity is the welcome — no announcement.     */
+  if (memory.visitCount === 2) {
+    setTimeout(() => showToast("Welcome back 💛"), 2800);
+  }
 
   /* ── Seed studio product catalog (first run only) ──────────────────── */
   if (!localStorage.getItem("abdan-studio-products")) {

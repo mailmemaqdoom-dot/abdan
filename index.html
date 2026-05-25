@@ -295,6 +295,22 @@
         </div>
       </section>
 
+      <!-- ══ SOFTLY RETURNING — Emotional continuity for returning visitors ═══
+           Hidden on first visit and when no exploration history exists.
+           JS (renderSoftlyReturning) shows this only from the second visit.
+           Language: "Pieces That May Stay With You" — not "Recently Viewed".
+           ══════════════════════════════════════════════════════════════════ -->
+      <section class="softly-returning section-frame" id="softlyReturning" hidden
+               aria-label="Pieces you have explored before">
+        <div class="container">
+          <header class="softly-returning__header reveal">
+            <p class="section-kicker" id="srKicker">Returning softly</p>
+            <h2 class="softly-returning__headline">Pieces That May Stay With You</h2>
+          </header>
+          <div class="softly-returning__grid" id="srGrid"></div>
+        </div>
+      </section>
+
       <section class="collection-section section-frame" id="products">
         <div class="container">
           <header class="section-heading reveal">
@@ -717,6 +733,16 @@
                 </article>
               </div>
 
+              <!-- ── Mood profile — quietly surfaces affinity if it exists ── -->
+              <div class="space-mood-profile reveal" id="spaceMoodProfile" hidden>
+                <div class="space-mood-profile__inner">
+                  <span class="space-mood-profile__kicker">A mood remembered</span>
+                  <p class="space-mood-profile__value" id="spaceMoodValue"></p>
+                  <button type="button" class="text-link space-mood-profile__cta"
+                          id="spaceMoodExplore">Explore this mood →</button>
+                </div>
+              </div>
+
               <!-- ── Order history: populated by renderSpaceOrders() ─── -->
               <div class="space-orders" id="spaceOrdersPanel"></div>
 
@@ -985,6 +1011,14 @@
 
             <div class="product-soul-block">
               <p id="productSoul"></p>
+            </div>
+
+            <!-- Emotional recommendations — same-mood pieces, different story.
+                 Hidden when fewer than 2 same-mood products exist.
+                 Label: "Quietly chosen around this" — never "You may also like". -->
+            <div class="emotional-recs" id="emotionalRecs" hidden>
+              <p class="emotional-recs__label">Quietly chosen around this</p>
+              <div class="emotional-recs__list" id="emotionalRecsChips"></div>
             </div>
 
             <div class="share-row">
