@@ -1,0 +1,46 @@
+/*
+ * ═══════════════════════════════════════════════════════════════════
+ *  ABDAN CALLIGRAPH — Font Placement Instructions
+ * ═══════════════════════════════════════════════════════════════════
+ *
+ *  The primary brand identity font "Abdan Calligraph" is a proprietary
+ *  typeface commissioned for the ABDAN brand. The font files must be
+ *  placed in this folder for the @font-face declaration in
+ *  css/style.css to activate it.
+ *
+ *  REQUIRED FILES (place both here):
+ *  ┌────────────────────────────────────────────────────────────────┐
+ *  │  assets/fonts/AbdanCalligraph.woff2   ← primary (smaller file) │
+ *  │  assets/fonts/AbdanCalligraph.woff    ← legacy fallback        │
+ *  └────────────────────────────────────────────────────────────────┘
+ *
+ *  HOW IT WORKS
+ *  The @font-face declaration in css/style.css uses:
+ *    font-display: optional
+ *  This means:
+ *  · If the font file is found → Abdan Calligraph loads with zero
+ *    layout shift (browser uses it only if available before first paint)
+ *  · If the file is missing  → Cormorant Garamond loads as fallback
+ *    (closest available approximation, no broken text)
+ *
+ *  WHERE IT IS USED
+ *  · .lx-entry__wordmark  — loading screen "ABDAN" wordmark
+ *  · .footer-mark         — footer brand mark
+ *  · var(--font-calligraphy) — any future identity moments
+ *
+ *  WHERE IT MUST NEVER BE USED
+ *  · Product titles, names, or descriptions
+ *  · Navigation labels or dock links
+ *  · Buttons, forms, or checkout text
+ *  · Section headings (use Libre Baskerville)
+ *  · Body copy of any kind (use Open Sans)
+ *
+ *  FONT CONVERSION
+ *  If you have the font in another format (.ttf, .otf), convert to
+ *  .woff2 using: https://www.fontsquirrel.com/tools/webfont-generator
+ *  or: https://cloudconvert.com/ttf-to-woff2
+ *
+ * ═══════════════════════════════════════════════════════════════════
+ *  DO NOT import or use this file in the site — it is documentation.
+ * ═══════════════════════════════════════════════════════════════════
+ */

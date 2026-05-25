@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="ABDAN logo mark">
+  <title>ABDAN</title>
+  <desc>ABDAN brand mark — calligraphic icon in gold on emerald</desc>
+
+  <!-- Emerald background circle -->
+  <circle cx="100" cy="100" r="100" fill="#023d3a"/>
+
+  <!-- Ornate border ring -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="#c5a13b" stroke-width="2.2" opacity="0.7"/>
+  <circle cx="100" cy="100" r="84" fill="none" stroke="#c5a13b" stroke-width="0.8" opacity="0.4"/>
+
+  <!-- Decorative border dots -->
+  <g fill="#c5a13b" opacity="0.55">
+    <circle cx="100" cy="12"  r="1.8"/>
+    <circle cx="131" cy="18"  r="1.5"/>
+    <circle cx="157" cy="35"  r="1.5"/>
+    <circle cx="175" cy="60"  r="1.5"/>
+    <circle cx="183" cy="90"  r="1.5"/>
+    <circle cx="180" cy="121" r="1.5"/>
+    <circle cx="166" cy="148" r="1.5"/>
+    <circle cx="143" cy="168" r="1.5"/>
+    <circle cx="115" cy="181" r="1.5"/>
+    <circle cx="84"  cy="183" r="1.5"/>
+    <circle cx="55"  cy="174" r="1.5"/>
+    <circle cx="32"  cy="156" r="1.5"/>
+    <circle cx="17"  cy="130" r="1.5"/>
+    <circle cx="11"  cy="100" r="1.5"/>
+    <circle cx="16"  cy="70"  r="1.5"/>
+    <circle cx="31"  cy="44"  r="1.5"/>
+    <circle cx="55"  cy="25"  r="1.5"/>
+    <circle cx="82"  cy="13"  r="1.5"/>
+  </g>
+
+  <!--
+    ABDAN Calligraphic Mark
+    The mark is a stylised calligraphic form:
+    · A large sweeping left arc (the crescent body)
+    · Two flowing upward horns from the base
+    · A rightward sweep completing the form
+    Rendered using Bézier curves to approximate the organic brand mark.
+  -->
+  <g fill="#c5a13b">
+
+    <!-- Main crescent / left arc body -->
+    <path d="
+      M 88 45
+      C 68 42, 52 56, 50 76
+      C 48 96, 58 116, 72 128
+      C 80 136, 88 140, 96 138
+      C 102 136, 106 130, 104 122
+      C 102 114, 94 108, 88 104
+      C 80 98, 74 90, 74 80
+      C 74 70, 80 62, 88 60
+      C 94 58, 100 62, 102 68
+      C 104 74, 100 82, 96 86
+      L 96 86
+      C 92 90, 90 96, 94 102
+      C 96 106, 102 108, 108 106
+      C 116 102, 120 92, 118 80
+      C 116 64, 104 48, 88 45
+      Z
+    " opacity="0.95"/>
+
+    <!-- Right flowing sweep — upper horn -->
+    <path d="
+      M 108 106
+      C 116 102, 126 96, 132 88
+      C 138 80, 140 70, 136 62
+      C 134 56, 128 52, 122 54
+      C 116 56, 112 64, 114 72
+      C 116 78, 122 82, 124 88
+      C 126 94, 122 102, 116 106
+      L 108 106
+      Z
+    " opacity="0.9"/>
+
+    <!-- Lower right flourish — the downward sweep / tail -->
+    <path d="
+      M 96 138
+      C 100 142, 106 148, 110 154
+      C 114 160, 114 166, 110 170
+      C 106 174, 100 174, 96 170
+      C 92 166, 90 160, 92 154
+      C 94 148, 96 142, 96 138
+      Z
+    " opacity="0.85"/>
+
+  </g>
+
+  <!-- Gold gradient highlight overlay for depth -->
+  <defs>
+    <radialGradient id="goldSheen" cx="42%" cy="38%" r="52%">
+      <stop offset="0%"   stop-color="#e8c96b" stop-opacity="0.22"/>
+      <stop offset="60%"  stop-color="#c5a13b" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#c5a13b" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="100" cy="100" r="100" fill="url(#goldSheen)"/>
+
+</svg>

@@ -1,0 +1,106 @@
+/*
+ * ═══════════════════════════════════════════════════════════════════
+ *  ABDAN — Official Brand Colour Palette
+ *  Source: ABDAN Branding Guide (assets/brand/branding-guide.jpeg)
+ *
+ *  Usage: import this file OR copy tokens into your stylesheet.
+ *  The live site uses these values via :root in css/style.css.
+ * ═══════════════════════════════════════════════════════════════════
+ *
+ *  COLOUR SYSTEM OVERVIEW
+ *  ─────────────────────────────────────────────────────────────────
+ *
+ *  PRIMARY PALETTE
+ *  ┌──────────────────────┬─────────┬──────────────────────────────┐
+ *  │ Name                 │ Hex     │ Use                          │
+ *  ├──────────────────────┼─────────┼──────────────────────────────┤
+ *  │ Emerald Green        │ #023d3a │ Primary brand, backgrounds,  │
+ *  │                      │         │ CTA buttons, logo bg         │
+ *  ├──────────────────────┼─────────┼──────────────────────────────┤
+ *  │ Emerald Deep         │ #012f2c │ Darker surfaces, footers,    │
+ *  │                      │         │ pressed states               │
+ *  ├──────────────────────┼─────────┼──────────────────────────────┤
+ *  │ Warm Gold            │ #c5a13b │ Accents, borders, highlights,│
+ *  │                      │         │ icon mark, trust signals     │
+ *  ├──────────────────────┼─────────┼──────────────────────────────┤
+ *  │ Soft Cream           │ #e6dfcb │ Backgrounds, card surfaces,  │
+ *  │                      │         │ muted tones                  │
+ *  ├──────────────────────┼─────────┼──────────────────────────────┤
+ *  │ Ivory                │ #f8f5ec │ Page background, primary bg, │
+ *  │                      │         │ light surface base           │
+ *  └──────────────────────┴─────────┴──────────────────────────────┘
+ *
+ *  SECONDARY PALETTE
+ *  ┌──────────────────────┬─────────┬──────────────────────────────┐
+ *  │ Name                 │ Hex     │ Use                          │
+ *  ├──────────────────────┼─────────┼──────────────────────────────┤
+ *  │ Ink                  │ #162f2d │ Primary text on light bg     │
+ *  ├──────────────────────┼─────────┼──────────────────────────────┤
+ *  │ Muted                │ #5d6964 │ Secondary text, captions     │
+ *  ├──────────────────────┼─────────┼──────────────────────────────┤
+ *  │ Ivory Deep           │ #efe8d8 │ Page gradient mid-point      │
+ *  └──────────────────────┴─────────┴──────────────────────────────┘
+ *
+ *  DO NOT USE
+ *  · Pure black (#000) — never in brand contexts
+ *  · Pure white (#fff) — use Ivory (#f8f5ec) instead
+ *  · Any other green not in this palette
+ *  · Saturated or neon colours of any kind
+ *
+ * ═══════════════════════════════════════════════════════════════════
+ */
+
+:root {
+  /* ── Primary Brand Colours ── */
+  --color-emerald:       #023d3a;   /* Emerald Green — primary brand */
+  --color-emerald-deep:  #012f2c;   /* Emerald Deep  — dark surfaces */
+  --color-gold:          #c5a13b;   /* Warm Gold     — accent & icon */
+  --color-cream:         #e6dfcb;   /* Soft Cream    — muted grounds */
+  --color-ivory:         #f8f5ec;   /* Ivory         — page base     */
+  --color-ivory-deep:    #efe8d8;   /* Ivory Deep    — gradient stop */
+
+  /* ── Text Colours ── */
+  --color-ink:           #162f2d;   /* Primary text  (dark emerald)  */
+  --color-muted:         #5d6964;   /* Secondary text                */
+  --color-dim:           #7a8d89;   /* Tertiary / placeholder text   */
+
+  /* ── Transparent Gold — border & line tints ── */
+  --color-gold-10:   rgba(197, 161, 59, 0.10);
+  --color-gold-18:   rgba(197, 161, 59, 0.18);
+  --color-gold-28:   rgba(197, 161, 59, 0.28);
+  --color-gold-38:   rgba(197, 161, 59, 0.38);
+  --color-gold-60:   rgba(197, 161, 59, 0.60);
+
+  /* ── Transparent Emerald — borders & lines ── */
+  --color-emerald-08: rgba(2, 61, 58, 0.08);
+  --color-emerald-12: rgba(2, 61, 58, 0.12);
+  --color-emerald-20: rgba(2, 61, 58, 0.20);
+
+  /* ── Surface Colours (light mode) ── */
+  --color-surface:        rgba(248, 245, 236, 0.92);
+  --color-surface-strong: rgba(252, 249, 242, 0.98);
+  --color-surface-soft:   rgba(230, 223, 203, 0.18);
+  --color-card:           rgba(255, 252, 246, 0.78);
+
+  /* ── Page Gradient ── */
+  --color-page-gradient: linear-gradient(
+    180deg,
+    #f8f5ec 0%,
+    #f5efdf 50%,
+    #f8f5ec 100%
+  );
+}
+
+/*
+ * ─── DARK MODE OVERRIDES ───────────────────────────────────────────
+ * Applied via html[data-theme="dark"] in the main stylesheet.
+ * Reference only — do not import this file for dark mode overrides;
+ * see css/style.css Section 18 for the full dark mode token layer.
+ *
+ *   Dark bg:           #0c1714
+ *   Dark surface:      rgba(18, 30, 28, 0.82)
+ *   Dark card:         rgba(22, 36, 34, 0.72)
+ *   Dark text primary: #e6dfcb  (Soft Cream becomes primary text)
+ *   Dark gold CTA:     #c5a13b  (unchanged — brand constant)
+ *   Dark emerald btn:  #c5a13b  (gold replaces emerald for CTA)
+ * ─────────────────────────────────────────────────────────────────── */
