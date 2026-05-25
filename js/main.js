@@ -431,8 +431,86 @@ const TEASERS = {
   },
 };
 
+/* ── Editorial Campaign System ───────────────────────────────────────────
+   Four daily-rotating editorial narratives. Each campaign is a luxury
+   editorial direction — felt like an opening page, not a promotion.
+   Rotation: Math.floor(Date.now() / 86400000) % 4 → stable all day.       */
+const CAMPAIGNS = [
+  {
+    id:       "soft-light-slow-days",
+    kicker:   "An editorial selection",
+    headline: "Soft Light, Slow Days",
+    body:     "Some pieces arrive not as choices but as recognitions — a fabric that already understands how your mornings begin, a silhouette that knows how your evenings end. These are those pieces.",
+    mood:     "Everyday Grace",
+  },
+  {
+    id:       "worn-between-sunlight",
+    kicker:   "Quietly chosen for you",
+    headline: "Worn Between Sunlight",
+    body:     "The most honest dressing happens between appointments — the quiet hours when comfort and grace are chosen together, without compromise. These pieces understand that balance.",
+    mood:     "Modest Essence",
+  },
+  {
+    id:       "for-slower-evenings",
+    kicker:   "Evening editorial",
+    headline: "For Slower Evenings",
+    body:     "There is a particular kind of beauty in the woman who arrives already composed — not from effort, but from having chosen something that simply holds her well through the hours that belong to her.",
+    mood:     "Evening Calm",
+  },
+  {
+    id:       "light-layers-warm-moments",
+    kicker:   "The considered edit",
+    headline: "Light Layers, Warmer Moments",
+    body:     "Fabric that moves with the celebration rather than against it — pieces that understand the particular way festive dressing should feel: rich in feeling, light in spirit, deeply personal.",
+    mood:     "Festive Glow",
+  },
+];
+
+/* ── Seasonal Storytelling Engine ────────────────────────────────────────
+   Atmospheric seasonal context — editorial and timeless, never promotional.
+   Sets [data-season] on <html> for CSS tints; surface in moodEditorial
+   header when state.filter === "All".                                       */
+const SEASONAL_STORIES = {
+  spring: {
+    label:    "Early Spring",
+    headline: "Softer Mornings Ahead",
+    body:     "The light changes before anything else does. These pieces were chosen for the weeks when warmth returns slowly — and dressing begins to feel like a quiet celebration again.",
+  },
+  summer: {
+    label:    "Summer",
+    headline: "Worn in the Warmth",
+    body:     "Long days that ask for fabrics that breathe, silhouettes that move, and pieces that carry you from morning prayer to evening gathering without a second thought.",
+  },
+  autumn: {
+    label:    "Autumn",
+    headline: "Layered, Unhurried",
+    body:     "The season that asks for texture, depth, and warmth held close. These pieces were selected for the quieter mood that arrives with the cooler air and softer afternoon light.",
+  },
+  winter: {
+    label:    "Winter",
+    headline: "Warmth Kept Close",
+    body:     "The coldest months carry their own kind of elegance — pieces chosen for the woman who wants to feel gathered, soft, and beautifully composed through every slow winter day.",
+  },
+};
+
+/* ── Mood Discovery Map ───────────────────────────────────────────────────
+   Transforms filter categories into emotion-driven editorial moments.
+   Each entry narrates the feeling of the category — not its inventory.
+   Keyed by FILTERS[] values; state.filter maps directly.                   */
+const MOOD_MAP = {
+  "All":               { headline: "Everything, Quietly Curated",           body: "Seven moods. One considered edit. Every piece is personally chosen — presented not as inventory, but as an invitation to something that feels like yours." },
+  "Everyday Grace":    { headline: "For Slower Mornings",                   body: "The pieces you reach for without thinking — because they simply feel right. Soft, unhurried, and made to carry you through the full length of a devoted day." },
+  "Modest Essence":    { headline: "Quiet Confidence",                      body: "A quieter way of being seen. Silhouettes that honour the beautiful discipline of covering with considered drape and deeply personal intention." },
+  "Festive Glow":      { headline: "When the Day Calls for Light",          body: "For celebrations that ask you to arrive already luminous — pieces chosen to hold the warmth of the room rather than demand it from the room itself." },
+  "Workflow Elegance": { headline: "Composed and Present",                  body: "Clean tailoring for the woman whose morning begins before others wake. Polished where it needs to be, breathable where it counts, always quietly assured." },
+  "Soft Statement":    { headline: "Softly, Unforgettably",                 body: "The pieces that earn the question 'where did you get that?' — expressive without effort, noticed without having announced a thing." },
+  "Evening Calm":      { headline: "For the Hours That Belong to You",      body: "When the day quiets and the light shifts. Chosen for the particular beauty of the woman who arrives to an evening already composed, already at ease." },
+  "Signature Picks":   { headline: "The Most Considered Edit",              body: "Pieces chosen for their restraint, careful finish, and the lasting presence they carry — long after the occasion has ended and the memory has settled." },
+};
+
 let _toastTimer = null;
 let _revealObserver = null;
+let _seasonalContext = null;
 
 const state = {
   theme: localStorage.getItem("abdan-theme") || "light",
@@ -1037,6 +1115,7 @@ function renderProducts() {
     });
 
     revealElements();
+    renderMoodEditorial(); /* sync mood editorial with current filter state */
   };
 
   /* ── Filter dissolve: fade-out → swap → fade-in ─────────────────────
@@ -2413,6 +2492,121 @@ function lxEntryDissolve(el) {
   setTimeout(cleanup, 800); /* fallback */
 }
 
+/* ── Seasonal context ────────────────────────────────────────────────────
+   Returns season key from current month; sets [data-season] on <html> so
+   CSS applies atmospheric tints. Stores result in _seasonalContext for
+   use in renderMoodEditorial.
+   Ranges (0-indexed months): spring 2–4, summer 5–7, autumn 8–10,
+   winter 11/0/1 (Dec–Feb).                                               */
+function getCurrentSeason() {
+  const m = new Date().getMonth();
+  if (m >= 2 && m <= 4)  return "spring";
+  if (m >= 5 && m <= 7)  return "summer";
+  if (m >= 8 && m <= 10) return "autumn";
+  return "winter";
+}
+
+function initSeasonalContext() {
+  const season = getCurrentSeason();
+  _seasonalContext = SEASONAL_STORIES[season];
+  document.documentElement.dataset.season = season;
+  return _seasonalContext;
+}
+
+/* ── Render editorial campaign ───────────────────────────────────────────
+   Selects today's campaign via a date-stable index (same campaign all day,
+   rotates at midnight). Renders editorial copy, product chips that open
+   the product sheet, and sets the campaign image from the first product
+   matching the campaign's mood.                                            */
+function renderEditorialCampaign() {
+  if (!document.getElementById("editorialCampaign")) return;
+
+  /* Date-stable rotation: floor(unix-days) mod campaign count */
+  const dayIdx  = Math.floor(Date.now() / 86400000) % CAMPAIGNS.length;
+  const campaign = CAMPAIGNS[dayIdx];
+
+  const kickerEl = document.getElementById("campaignKicker");
+  const headEl   = document.getElementById("campaignHeadline");
+  const bodyEl   = document.getElementById("campaignBody");
+  const chipsEl  = document.getElementById("campaignChips");
+  const imgEl    = document.getElementById("campaignImg");
+
+  if (kickerEl) kickerEl.textContent = campaign.kicker;
+  if (headEl)   headEl.textContent   = campaign.headline;
+  if (bodyEl)   bodyEl.textContent   = campaign.body;
+
+  /* Up to 3 product chips from the campaign's mood */
+  const moodProducts = PRODUCTS.filter((p) => p.primaryTag === campaign.mood).slice(0, 3);
+  if (chipsEl) {
+    chipsEl.innerHTML = moodProducts.map((p) => `
+      <button type="button" class="campaign-chip" data-preview="${p.id}" aria-label="View ${p.name}">
+        ${p.name}
+      </button>
+    `).join("");
+    chipsEl.querySelectorAll("[data-preview]").forEach((btn) => {
+      btn.addEventListener("click", () => openProduct(btn.dataset.preview || ""));
+    });
+  }
+
+  /* Campaign image: first product in the mood — sets the editorial atmosphere */
+  if (imgEl && moodProducts[0]) {
+    imgEl.src = moodProducts[0].image;
+    imgEl.alt = campaign.headline;
+    const onLoad = () => imgEl.classList.add("img-loaded");
+    if (imgEl.complete && imgEl.naturalWidth > 0) {
+      requestAnimationFrame(onLoad);
+    } else {
+      imgEl.addEventListener("load",  onLoad, { once: true });
+      imgEl.addEventListener("error", onLoad, { once: true });
+    }
+  }
+
+  /* Stagger visual reveal: appears half a beat after the copy */
+  const visual = document.querySelector(".editorial-campaign__visual");
+  if (visual) visual.style.setProperty("--reveal-delay", "140ms");
+}
+
+/* ── Render mood editorial header ────────────────────────────────────────
+   Updates the emotional context block above the product grid.
+   Initial render (element not yet in viewport): set content instantly.
+   On filter change (element already visible): fade-out → swap → fade-in.
+   Seasonal label only surfaces when "All" is selected — giving atmospheric
+   context to the unfiltered state without cluttering category views.       */
+function renderMoodEditorial() {
+  const moodEl = document.getElementById("moodEditorial");
+  if (!moodEl) return;
+
+  const moodData  = MOOD_MAP[state.filter] || MOOD_MAP["All"];
+  const isVisible = moodEl.classList.contains("is-visible");
+
+  const setContent = () => {
+    const seasonEl = document.getElementById("moodSeason");
+    const headEl   = document.getElementById("moodHeadline");
+    const bodyEl   = document.getElementById("moodBody");
+    if (seasonEl) {
+      /* Seasonal label: visible only on "All" — gives temporal, atmospheric context */
+      seasonEl.textContent = (state.filter === "All" && _seasonalContext)
+        ? _seasonalContext.label
+        : "";
+    }
+    if (headEl) headEl.textContent = moodData.headline;
+    if (bodyEl) bodyEl.textContent = moodData.body;
+  };
+
+  if (!isVisible) {
+    /* Initial render — content is set before the IntersectionObserver reveal fires */
+    setContent();
+    return;
+  }
+
+  /* Filter change — brief 120ms fade for graceful content transition */
+  moodEl.classList.add("is-updating");
+  setTimeout(() => {
+    setContent();
+    moodEl.classList.remove("is-updating");
+  }, 120);
+}
+
 /* ── Time-of-day atmospheric warmth ──────────────────────────────────────
    Applies a barely-visible sepia/saturation shift to the hero image based
    on the current hour. Max range: 5% sepia, 12% saturation — invisible on
@@ -2434,11 +2628,13 @@ function init() {
   // Layout: z-index hierarchy intact · no overlap regressions
   // Responsive: mobile scrollable dock + desktop pill nav validated
   // Dark mode: compatible · Static HTML/CSS/JS · Cloudflare Pages ready
-  initEntryExperience();  /* must run first — covers page during render  */
+  initEntryExperience();     /* must run first — covers page during render  */
   initTimeOfDay();
+  initSeasonalContext();     /* sets [data-season] + populates _seasonalContext */
   setTheme(state.theme);
   renderFilters();
-  renderProducts();
+  renderEditorialCampaign(); /* editorial campaign section (above products)     */
+  renderProducts();          /* also calls renderMoodEditorial() internally     */
   renderFooterContent();
   renderCart();
   attachEvents();

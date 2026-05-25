@@ -267,6 +267,34 @@
         </div>
       </section>
 
+      <!-- ══ EDITORIAL CAMPAIGN ═══════════════════════════════════════════════
+           Daily rotating editorial narrative — bridges the brand promise and
+           the curated collection. Feels like an opening editorial page, not a
+           promotional banner. Content populated by renderEditorialCampaign().
+           Campaign index is date-stable: same narrative all day, rotates quietly
+           at midnight. Four directions; each serves a different emotional season.
+           ══════════════════════════════════════════════════════════════════ -->
+      <section class="editorial-campaign section-frame" id="editorialCampaign" aria-label="Editorial">
+        <div class="container">
+          <div class="editorial-campaign__inner">
+
+            <article class="editorial-campaign__copy reveal">
+              <p class="section-kicker editorial-campaign__kicker" id="campaignKicker"></p>
+              <h2 class="editorial-campaign__headline" id="campaignHeadline"></h2>
+              <p class="editorial-campaign__body" id="campaignBody"></p>
+              <div class="editorial-campaign__chips" id="campaignChips" aria-label="Featured pieces in this narrative"></div>
+            </article>
+
+            <div class="editorial-campaign__visual reveal">
+              <div class="editorial-campaign__frame">
+                <img id="campaignImg" src="" alt="" loading="lazy" />
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
       <section class="collection-section section-frame" id="products">
         <div class="container">
           <header class="section-heading reveal">
@@ -295,6 +323,15 @@
               Everyday Grace · Modest Essence · Festive Glow · Workflow Elegance · Soft Statement ·
               Evening Calm · Signature Picks
             </p>
+          </div>
+
+          <!-- Mood editorial — emotional context for the current filter state.
+               JS populates and updates via renderMoodEditorial() on every
+               filter change. Seasonal label visible only when "All" is selected. -->
+          <div class="mood-editorial reveal" id="moodEditorial" aria-live="polite" aria-atomic="true">
+            <span class="mood-editorial__season" id="moodSeason" aria-hidden="true"></span>
+            <p class="mood-editorial__headline" id="moodHeadline"></p>
+            <p class="mood-editorial__body" id="moodBody"></p>
           </div>
 
           <div class="filter-row reveal" id="filterRow" aria-label="Collection filters">
