@@ -120,10 +120,9 @@
 }
 
 /* ── Abdan Calligraph — self-hosted brand font ──────────────────────────
-   When AbdanCalligraph.woff2 is placed in ./assets/fonts/, it activates
-   automatically across all logo/identity elements.
-   font-display: optional → browser uses fallback immediately on first load
-   without invisible text or layout shift — zero performance regression.    */
+   Place AbdanCalligraph.woff2 at assets/fonts/ — the @font-face activates
+   automatically. font-display: swap shows the fallback immediately and
+   switches to the real font when it loads (per brand implementation spec). */
 @font-face {
   font-family: "Abdan Calligraph";
   src:
@@ -131,7 +130,29 @@
     url("../assets/fonts/AbdanCalligraph.woff")  format("woff");
   font-weight: normal;
   font-style:  normal;
-  font-display: optional;
+  font-display: swap;
+}
+
+/* ── .abdan-calligraph — brand utility class ────────────────────────────
+   Apply to every "ABDAN" text instance that is a brand identity moment
+   (logo wordmark, footer signature, quote attribution, order confirmation,
+   packaging labels). Use ONLY for the brand name — never for UI labels,
+   product titles, headings, or body copy.
+   Color: #0C3B2E per brand guide (dark forest emerald).
+   Activates immediately when AbdanCalligraph.woff2 is present; falls back
+   to Cormorant Garamond (closest calligraphic web approximation) until
+   the official font file is placed.                                        */
+.abdan-calligraph {
+  font-family: "Abdan Calligraph", "Cormorant Garamond", Georgia, serif;
+  font-weight: normal;
+  font-style:  normal;
+  letter-spacing: 0.5px;     /* natural spacing per brand spec — do not increase */
+  text-transform: uppercase;
+  color: #0C3B2E;             /* brand dark green on light backgrounds */
+}
+
+html[data-theme="dark"] .abdan-calligraph {
+  color: var(--cream);        /* warm cream on dark backgrounds */
 }
 
 html[data-theme="dark"] {
@@ -5875,33 +5896,39 @@ html[data-theme="dark"] .lx-entry__logo {
    The SVG has a transparent background and fill="#023d3a" (emerald).
    Renders crisply on the ivory entry overlay at any pixel density.
    No mix-blend-mode needed — transparency is intrinsic to SVG.        */
+/* ── Wordmark image — full logo JPEG (light mode only) ───────────────
+   abdan-wordmark-full.jpeg IS the official Abdan Calligraph style —
+   the actual name board letterforms, not a font approximation.
+   mix-blend-mode: multiply on ivory overlay: white JPEG pixels multiply
+   to ivory (white × ivory = ivory), leaving only the emerald calligraphy
+   and gold mark perfectly visible at full fidelity.                    */
 .lx-entry__wordmark-img {
   display: block;
   width: clamp(200px, 55vw, 280px);
   height: auto;
+  mix-blend-mode: multiply;
   pointer-events: none;
 }
 
-/* ── Wordmark CSS text — dark mode fallback only ─────────────────────
-   The SVG fill is dark emerald — invisible on dark backgrounds.
-   Dark mode falls back to CSS text (Abdan Calligraph / Cormorant CG).
-   Light mode: hidden — the SVG is the exact representation.           */
+/* ── Wordmark CSS text — dark mode only ──────────────────────────────
+   mix-blend-mode: multiply fails on dark backgrounds (JPEG white pixels
+   become black). Dark mode uses .abdan-calligraph class — switches to
+   the real font as soon as AbdanCalligraph.woff2 is placed in fonts/.
+   Light mode: hidden — the JPEG is the definitive representation.     */
 .lx-entry__wordmark-text {
-  display: none; /* hidden in light mode — SVG takes over              */
+  display: none; /* hidden in light mode — JPEG takes over             */
 }
 
 html[data-theme="dark"] .lx-entry__wordmark-img {
-  display: none; /* hidden in dark mode — dark fill invisible on dark bg */
+  display: none; /* hidden in dark mode — multiply fails on dark bg    */
 }
 
 html[data-theme="dark"] .lx-entry__wordmark-text {
   display: block;
-  font-family: var(--font-calligraphy);
   font-size: clamp(2rem, 6vw, 3.25rem);
-  font-weight: 400;
   letter-spacing: 0.22em;
-  text-transform: uppercase;
   color: var(--cream);
+  /* .abdan-calligraph class also applied in HTML — sets font-family   */
 }
 
 /* ── Tagline: emotionally warm, intimate scale ───────────────────── */

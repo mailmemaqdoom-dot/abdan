@@ -61,18 +61,21 @@
         </div>
 
         <!-- Step 2 — Brand wordmark
-             Light mode: real logo image (mix-blend-mode: multiply drops white bg)
-             Dark mode:  CSS calligraphic text fallback                           -->
+             Uses the actual Abdan name board JPEG — this IS the official
+             Abdan Calligraph style, not a font approximation.
+             mix-blend-mode: multiply drops the white JPEG background on
+             the ivory overlay so only the emerald calligraphy shows.
+             Dark mode: CSS text fallback (font-display: swap activates
+             the real font as soon as AbdanCalligraph.woff2 is placed). -->
         <div class="lx-entry__wordmark" aria-label="ABDAN">
           <img
             class="lx-entry__wordmark-img"
-            src="./assets/logo/abdan-wordmark.svg"
+            src="./assets/logo/abdan-wordmark-full.jpeg"
             alt="ABDAN"
             width="260"
-            height="69"
             draggable="false"
           />
-          <span class="lx-entry__wordmark-text" aria-hidden="true">ABDAN</span>
+          <span class="lx-entry__wordmark-text abdan-calligraph" aria-hidden="true">ABDAN</span>
         </div>
 
         <!-- Step 3 — Emotional tagline -->
@@ -283,7 +286,7 @@
           <blockquote>
             Modest fashion can feel emotional, refined, and deeply personal. That belief shapes everything here.
           </blockquote>
-          <p>— ABDAN</p>
+          <p>— <span class="abdan-calligraph">ABDAN</span></p>
         </div>
       </section>
 
