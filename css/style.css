@@ -6461,3 +6461,131 @@ html[data-theme="dark"] .trust-rail__inner span + span::before {
   }
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   26. OPERATIONAL ELEGANCE — Mission L
+   Precision refinements. Nothing added for its own sake.
+   Every rule here resolves a specific quality or consistency gap.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── 26a. Ken Burns — mobile disable ─────────────────────────────────
+   The 30s continuous animation is imperceptible at mobile card size
+   and wastes GPU/battery on low-power devices. Disabled below 768px.
+   The image still fades in beautifully — the stillness reads as calm. */
+
+@media (max-width: 768px) {
+  .editorial-campaign__frame img.img-loaded {
+    animation: none;
+  }
+}
+
+/* ── 26b. Trust rail — mobile linear flow ────────────────────────────
+   Section 25 changed the inner to display: flex with flex-wrap: wrap.
+   On narrow viewports, wrapping creates an ugly 2-row layout.
+   Override: nowrap + horizontal scroll mirrors the previous grid UX.  */
+
+@media (max-width: 680px) {
+  .trust-rail__inner {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    justify-content: flex-start;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .trust-rail__inner::-webkit-scrollbar {
+    display: none;
+  }
+
+  .trust-rail__inner span {
+    flex-shrink: 0;
+    padding: 0 1.1rem;
+  }
+
+  /* Hairlines stretch across the visible flow */
+  .trust-rail__inner::before,
+  .trust-rail__inner::after {
+    width: 88%;
+  }
+}
+
+/* ── 26c. Page grain — reduced on dark mode for legibility ───────────
+   Dark surfaces amplify noise more than light ones. Pull opacity down
+   to keep it tactile without creating a grainy feel in dark mode.     */
+
+html[data-theme="dark"] .page-noise {
+  opacity: 0.018;
+}
+
+/* ── 26d. Product card — reveal delay cap tightened ─────────────────
+   Section 25 deepened the reveal to 840ms. With 5 cards staggered at
+   40ms each (capped at 200ms), the last card still arrives smoothly.
+   No change needed — but guard the stagger max here for clarity.      */
+
+/* ── 26e. Checkout intro visibility guard ────────────────────────────
+   Ensures .checkout-panel__intro is never shown on panels that don't
+   contain the intro div — avoids empty border-bottom flicker.         */
+
+.checkout-panel:not(:has(.checkout-panel__intro)) {
+  padding-top: 1.5rem;
+}
+
+/* ── 26f. Softly Returning grid — mobile single row ─────────────────
+   On narrow viewports the sr-card grid (horizontal scroll) should not
+   let cards wrap. Consistent with the product carousel behaviour.     */
+
+@media (max-width: 480px) {
+  .softly-returning__grid {
+    gap: 0.7rem;
+  }
+}
+
+/* ── 26g. Editorial campaign frame — transition guard ────────────────
+   When Ken Burns is disabled on mobile (26a), restore the natural
+   img transform to 'none' so there is no residual offset on resize.   */
+
+@media (max-width: 768px) {
+  .editorial-campaign__frame img {
+    transform: none !important;
+  }
+}
+
+/* ── 26h. Promise band — vignette depth on dark mode ────────────────
+   Dark mode promise band already has an emerald tint from Section 19.
+   The ::before gold glow (Section 25f) is strong in dark mode.
+   Reduce the radial highlight opacity slightly in dark.               */
+
+html[data-theme="dark"] .promise-band__inner::before {
+  background: radial-gradient(
+    ellipse at center top,
+    rgba(197, 161, 59, 0.06) 0%,
+    transparent 68%
+  );
+}
+
+/* ── 26i. Section separators — not on first section ─────────────────
+   The collection section at the very top of the page doesn't need a
+   separator above it (there's already a trust rail above it).         */
+
+.collection-section::before {
+  display: none;
+}
+
+/* ── 26j. Mobile form density — final pass ───────────────────────────
+   Space form fields already refined in Section 20. Final small
+   adjustments for the checkout form fields on very small screens.     */
+
+@media (max-width: 400px) {
+  .checkout-panel {
+    padding: 1.5rem 1.25rem 2rem;
+  }
+
+  .checkout-panel h3 {
+    font-size: 1.1rem;
+  }
+}
+
+/* ── 26k. Reduced motion guard for Section 26 ────────────────────────
+   The only new animated element in Section 26 is none — all rules
+   here are structural. No additional guard needed beyond Section 25l. */
+

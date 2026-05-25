@@ -95,7 +95,7 @@ function buildProductNarrative(product) {
   const hash = product.name.length % 3;
 
   return {
-    description: `${hooks[hash]} ${connections[(hash + 1) % 3]} ${feels[(hash + 2) % 3]} Every fold is a reminder that choosing yourself can also be an act of devotion. 💛`,
+    description: `${hooks[hash]} ${connections[(hash + 1) % 3]} ${feels[(hash + 2) % 3]}`,
     styling:
       stylingTips[product.primaryTag] ||
       `Pair this ${style.toLowerCase()} ${product.name} with pieces that already feel like you. The most memorable finish is often the most restrained one.`,
@@ -299,7 +299,7 @@ const PRODUCTS = [
     styling:
       "Keep the rest of the look restrained: a nude or blush sandal, one fine jewellery piece, and a soft hair arrangement. The organza is already leading the room. Let it.",
     reach:
-      "Because you have spent enough quiet evenings in the background. Sometimes the gathering is an invitation — not to be loud, but to let the softness speak. This piece reaches back when you reach for it.",
+      "Because you have spent enough quiet evenings in the background. Sometimes the gathering is an invitation — not to be loud, but to let the softness speak.",
     madeFor:
       "For the woman who knows how to be noticed without performing. The one who brings warmth to small gatherings and leaves an impression without needing to announce a thing. She is present. That is enough.",
     pairsBeautifully:
@@ -430,7 +430,7 @@ const TEASERS = {
     icon: "🌸",
     title: "Coming Soon — ABDAN Community",
     message:
-      "Imagine a warm and private space where women share fashion stories, ask for opinions, celebrate style, and feel joyfully seen. That is the community taking shape, one voice at a time.",
+      "A warm and private space where women share style stories, ask for honest opinions, and celebrate each other's choices. That is the community taking shape, one voice at a time.",
   },
 };
 
@@ -443,7 +443,7 @@ const CAMPAIGNS = [
     id:       "soft-light-slow-days",
     kicker:   "An editorial selection",
     headline: "Soft Light, Slow Days",
-    body:     "Some pieces arrive not as choices but as recognitions — a fabric that already understands how your mornings begin, a silhouette that knows how your evenings end. These are those pieces.",
+    body:     "Some pieces feel less like choices and more like recognitions — a silhouette that belongs to your mornings, a fabric that holds you through the day. These are those pieces.",
     mood:     "Everyday Grace",
   },
   {
@@ -464,7 +464,7 @@ const CAMPAIGNS = [
     id:       "light-layers-warm-moments",
     kicker:   "The considered edit",
     headline: "Light Layers, Warmer Moments",
-    body:     "Fabric that moves with the celebration rather than against it — pieces that understand the particular way festive dressing should feel: rich in feeling, light in spirit, deeply personal.",
+    body:     "Fabric that moves with the celebration rather than against it — chosen for the particular way festive dressing should feel: rich in feeling, light in spirit, deeply personal.",
     mood:     "Festive Glow",
   },
 ];
@@ -501,8 +501,8 @@ const SEASONAL_STORIES = {
    Each entry narrates the feeling of the category — not its inventory.
    Keyed by FILTERS[] values; state.filter maps directly.                   */
 const MOOD_MAP = {
-  "All":               { headline: "Everything, Quietly Curated",           body: "Seven moods. One considered edit. Every piece is personally chosen — presented not as inventory, but as an invitation to something that feels like yours." },
-  "Everyday Grace":    { headline: "For Slower Mornings",                   body: "The pieces you reach for without thinking — because they simply feel right. Soft, unhurried, and made to carry you through the full length of a devoted day." },
+  "All":               { headline: "Everything, Quietly Curated",           body: "Seven moods. One considered edit. Every piece is personally chosen — not as inventory, but as an invitation to something that could belong to you." },
+  "Everyday Grace":    { headline: "For Slower Mornings",                   body: "The pieces you reach for without thinking — because they simply feel right. Soft, unhurried, and made to carry you through the full length of a day." },
   "Modest Essence":    { headline: "Quiet Confidence",                      body: "A quieter way of being seen. Silhouettes that honour the beautiful discipline of covering with considered drape and deeply personal intention." },
   "Festive Glow":      { headline: "When the Day Calls for Light",          body: "For celebrations that ask you to arrive already luminous — pieces chosen to hold the warmth of the room rather than demand it from the room itself." },
   "Workflow Elegance": { headline: "Composed and Present",                  body: "Clean tailoring for the woman whose morning begins before others wake. Polished where it needs to be, breathable where it counts, always quietly assured." },
@@ -1117,9 +1117,7 @@ function showSpaceDashboard(profile, isNew = false) {
   if (taglineEl) {
     taglineEl.textContent = isNew
       ? "Everything you love, thoughtfully kept in one place."
-      : affinityMood
-        ? `Your space remembers you — including your affinity for ${affinityMood}.`
-        : "Your space is exactly as you left it.";
+      : "Your space is exactly as you left it.";
   }
 
   /* ── Mood profile strip — surfaces affinity if it exists ──────────── */
