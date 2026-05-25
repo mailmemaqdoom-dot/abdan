@@ -371,22 +371,26 @@ html[data-theme="dark"] .footer-mark {
   display: block;
 }
 
-/* ── Brand pill name — calligraphic style ────────────────────
-   Uses Abdan Calligraph (activates when font file is placed at
-   assets/fonts/AbdanCalligraph.woff2). Falls back to Cormorant
-   Garamond — closest calligraphic serif available via Google.
-   Emerald green matches the actual logo wordmark colour.       */
+/* ── Brand pill name — SVG wordmark ──────────────────────────
+   Replaced CSS text with SVG img — the exact calligraphic
+   letterforms from the Abdan brand identity, at any resolution.
+   Dark mode: CSS filter shifts emerald fill to warm cream.     */
 .brand-pill__name {
-  font-family: var(--font-calligraphy);
-  font-size: 0.92rem;
-  font-weight: 400;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--emerald);
+  display: flex;
+  align-items: center;
+  line-height: 1;
 }
 
-html[data-theme="dark"] .brand-pill__name {
-  color: var(--gold);
+.brand-pill__wordmark {
+  display: block;
+  height: 16px;
+  width: auto;
+  pointer-events: none;
+}
+
+html[data-theme="dark"] .brand-pill__wordmark {
+  /* Dark emerald → warm cream: zero brightness then invert to white, sepia warms it */
+  filter: brightness(0) invert(1) sepia(0.18) saturate(0.9);
 }
 
 .brand-pill small {
@@ -2720,9 +2724,8 @@ html[data-theme="dark"] .testimonial-card--featured {
     font-size: 1.05rem;
   }
 
-  .brand-pill__name {
-    font-size: 0.8rem;
-    letter-spacing: 0.18em;
+  .brand-pill__wordmark {
+    height: 14px; /* slightly smaller on mobile */
   }
 
   .brand-pill small {
@@ -5868,29 +5871,27 @@ html[data-theme="dark"] .lx-entry__logo {
   transform: translateY(0);
 }
 
-/* ── Wordmark image — real logo JPEG (light mode only) ───────────────
-   mix-blend-mode: multiply on ivory background: the white areas of the
-   JPEG become transparent (white × ivory ≈ ivory), leaving only the
-   dark emerald letterforms and gold icon mark perfectly visible.
-   No font approximation — this IS the actual Abdan Calligraph style.  */
+/* ── Wordmark image — SVG wordmark (light mode) ──────────────────────
+   The SVG has a transparent background and fill="#023d3a" (emerald).
+   Renders crisply on the ivory entry overlay at any pixel density.
+   No mix-blend-mode needed — transparency is intrinsic to SVG.        */
 .lx-entry__wordmark-img {
   display: block;
   width: clamp(200px, 55vw, 280px);
   height: auto;
-  mix-blend-mode: multiply;
   pointer-events: none;
 }
 
 /* ── Wordmark CSS text — dark mode fallback only ─────────────────────
-   mix-blend-mode: multiply is invisible on dark backgrounds, so dark
-   mode falls back to CSS text using Abdan Calligraph / Cormorant CG.
-   Light mode: hidden — the image is the correct representation.       */
+   The SVG fill is dark emerald — invisible on dark backgrounds.
+   Dark mode falls back to CSS text (Abdan Calligraph / Cormorant CG).
+   Light mode: hidden — the SVG is the exact representation.           */
 .lx-entry__wordmark-text {
-  display: none; /* hidden in light mode — image takes over             */
+  display: none; /* hidden in light mode — SVG takes over              */
 }
 
 html[data-theme="dark"] .lx-entry__wordmark-img {
-  display: none; /* hidden in dark mode — mix-blend-mode fails on dark  */
+  display: none; /* hidden in dark mode — dark fill invisible on dark bg */
 }
 
 html[data-theme="dark"] .lx-entry__wordmark-text {

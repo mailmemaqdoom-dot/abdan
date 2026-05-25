@@ -1,0 +1,193 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 524 140"
+     role="img"
+     aria-label="ABDAN"
+     style="display:block">
+
+  <title>ABDAN</title>
+  <desc>ABDAN calligraphic wordmark — brand identity mark in emerald green</desc>
+
+  <g fill="#023d3a">
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         A  (first — with decorative calligraphic swash)
+         Apex x≈64  ·  body x: 18→108  ·  swash descends to y≈138
+         ════════════════════════════════════════════════════════════ -->
+
+    <!-- Thin left diagonal leg (hairline stroke, tapers from apex) -->
+    <polygon points="59,7  66,7  30,100  18,100"/>
+
+    <!-- Thick right diagonal leg (main calligraphic stem) -->
+    <polygon points="62,7  70,7  107,100  91,100"/>
+
+    <!-- Hairline crossbar at 57% cap height -->
+    <rect x="29" y="56" width="57" height="5"/>
+
+    <!-- Apex wedge serif -->
+    <polygon points="52,3  76,3  75,10  53,10"/>
+
+    <!-- Left foot serif (base of thin leg) -->
+    <rect x="11" y="100" width="24" height="6"/>
+
+    <!-- Right foot serif (base of thick leg) -->
+    <rect x="87" y="100" width="25" height="6"/>
+
+    <!-- Decorative calligraphic swash — sweeps left-down from left foot,
+         loops back right in an elegant S-curve terminal -->
+    <path d="
+      M 22,100
+      C 17,106  9,118   5,127
+      C 1,136   7,142  16,140
+      C 25,138  32,129  33,121
+      C 35,113  28,106  22,102
+      Z
+    "/>
+
+    <!-- Swash thin connecting bridge from foot to loop body -->
+    <path d="
+      M 18,100
+      C 15,103  13,107  14,112
+      C 15,108  18,104  20,102
+      Z
+    "/>
+
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         B
+         Left stem x: 120→138  ·  bowls to x≈210
+         ════════════════════════════════════════════════════════════ -->
+
+    <!-- Vertical left stem -->
+    <rect x="120" y="5" width="18" height="95"/>
+
+    <!-- Top stem serif -->
+    <rect x="112" y="5" width="26" height="6"/>
+
+    <!-- Bottom stem serif -->
+    <rect x="112" y="94" width="26" height="6"/>
+
+    <!-- Outer B silhouette — both bowls as one continuous filled shape.
+         Upper bowl is smaller; lower bowl is larger and wider.
+         The spine (where the bowls meet the stem at mid-cap) creates
+         the characteristic B waist.                                   -->
+    <path d="
+      M 138,5
+      L 166,5
+      C 196,5   210,17  210,31
+      C 210,44  196,53  170,55
+      C 196,57  214,67  214,79
+      C 214,92  198,100 167,100
+      L 138,100
+      Z
+    "/>
+
+    <!-- Upper bowl white counter -->
+    <path d="
+      M 138,15
+      L 158,15
+      C 180,15  192,22  192,31
+      C 192,40  180,47  158,47
+      L 138,47
+      Z
+    " fill="white"/>
+
+    <!-- Lower bowl white counter (larger than upper) -->
+    <path d="
+      M 138,60
+      L 162,60
+      C 186,60  196,68  196,79
+      C 196,90  186,92  162,92
+      L 138,92
+      Z
+    " fill="white"/>
+
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         D
+         Left stem x: 222→240  ·  bowl to x≈316
+         ════════════════════════════════════════════════════════════ -->
+
+    <!-- Vertical left stem -->
+    <rect x="222" y="5" width="18" height="95"/>
+
+    <!-- Top stem serif -->
+    <rect x="214" y="5" width="26" height="6"/>
+
+    <!-- Bottom stem serif -->
+    <rect x="214" y="94" width="26" height="6"/>
+
+    <!-- Outer D bowl — clean single arc meeting stem at top and bottom -->
+    <path d="
+      M 240,5
+      L 263,5
+      C 302,5   316,26  316,52
+      C 316,78  302,100 263,100
+      L 240,100
+      Z
+    "/>
+
+    <!-- D bowl white counter -->
+    <path d="
+      M 240,18
+      L 261,18
+      C 290,18  298,34  298,52
+      C 298,70  290,86  261,86
+      L 240,86
+      Z
+    " fill="white"/>
+
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         A  (second — same structure, no swash)
+         Apex x≈368  ·  body x: 322→412
+         ════════════════════════════════════════════════════════════ -->
+
+    <!-- Thin left diagonal leg -->
+    <polygon points="363,7  370,7  334,100  322,100"/>
+
+    <!-- Thick right diagonal leg -->
+    <polygon points="365,7  373,7  411,100  395,100"/>
+
+    <!-- Hairline crossbar -->
+    <rect x="333" y="56" width="57" height="5"/>
+
+    <!-- Apex wedge serif -->
+    <polygon points="356,3  380,3  379,10  357,10"/>
+
+    <!-- Left foot serif -->
+    <rect x="315" y="100" width="24" height="6"/>
+
+    <!-- Right foot serif -->
+    <rect x="391" y="100" width="25" height="6"/>
+
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         N
+         Left stem x: 424→442  ·  Right stem x: 492→510
+         Thin diagonal from top-left → bottom-right
+         ════════════════════════════════════════════════════════════ -->
+
+    <!-- Left vertical stem -->
+    <rect x="424" y="5" width="18" height="95"/>
+
+    <!-- Right vertical stem -->
+    <rect x="492" y="5" width="18" height="95"/>
+
+    <!-- Thin calligraphic diagonal (hairline, goes upper-left → lower-right) -->
+    <polygon points="442,5  450,5  492,100  484,100"/>
+
+    <!-- Left stem — top serif -->
+    <rect x="416" y="5" width="26" height="6"/>
+
+    <!-- Left stem — bottom serif -->
+    <rect x="416" y="94" width="26" height="6"/>
+
+    <!-- Right stem — top serif -->
+    <rect x="484" y="5" width="26" height="6"/>
+
+    <!-- Right stem — bottom serif -->
+    <rect x="484" y="94" width="26" height="6"/>
+
+  </g>
+
+</svg>
