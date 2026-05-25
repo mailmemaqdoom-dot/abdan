@@ -6028,3 +6028,436 @@ html[data-theme="dark"] .lx-entry__progress {
   }
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   25. LUXURY BRAND MATURITY — Mission K
+   Refinement, not addition. Intentionality over decoration.
+   ABDAN now feels like a mature luxury fashion house in digital form.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── 25a. Typography maturity ─────────────────────────────────────────
+   text-wrap: balance on headings eliminates orphaned words.
+   text-wrap: pretty on prose softens editorial rhythm.
+   font-feature-settings activates OpenType ligatures + kerning on
+   Cormorant Garamond — perceptible at display sizes, invisible otherwise. */
+
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+.hero-body,
+.product-soul p,
+.editorial-copy p,
+.story-card p,
+.promise-band__inner p,
+.testimonial-card p,
+.section-heading p {
+  text-wrap: pretty;
+}
+
+/* Display headings — OpenType refinements */
+.hero-copy h1,
+.section-heading h2,
+.promise-band__inner blockquote,
+.lx-entry__wordmark,
+.editorial-campaign__title {
+  font-feature-settings: "liga" 1, "kern" 1, "dlig" 1;
+}
+
+/* Hero h1 — tighten word rhythm at display scale */
+.hero-copy h1 {
+  word-spacing: -0.015em;
+}
+
+/* Promise band blockquote — cinematic condensed rhythm (refined from 19d) */
+.promise-band__inner blockquote {
+  letter-spacing: -0.025em;
+  line-height: 1.28;
+}
+
+/* ── 25b. Page grain + vignette — ambient atmosphere ─────────────────
+   A barely-perceptible fractal noise overlay lends tactile depth to flat
+   screens — the quality of uncoated paper, not a filter effect.
+   The radial vignette grounds attention at the centre without darkening.
+   Both are pointer-events: none so they never intercept interaction.     */
+
+.page-noise {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.88' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 320px 320px;
+  background-repeat: repeat;
+  opacity: 0.022;
+  mix-blend-mode: overlay;
+  will-change: initial;
+}
+
+.page-vignette {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 80% 70% at 50% 50%,
+    transparent 50%,
+    rgba(2, 8, 8, 0.11) 100%
+  );
+}
+
+html[data-theme="dark"] .page-noise {
+  mix-blend-mode: screen;
+  opacity: 0.028;
+}
+
+html[data-theme="dark"] .page-vignette {
+  background: radial-gradient(
+    ellipse 80% 70% at 50% 50%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.22) 100%
+  );
+}
+
+/* ── 25c. Cinematic photography — Ken Burns on editorial frame ─────────
+   Applies ONLY to .editorial-campaign__frame img.img-loaded.
+   The hero visual-card img is intentionally excluded — its CSS hover
+   transform transition would conflict with a WAAPI/keyframe animation
+   on the same property. The editorial frame has no hover transform.     */
+
+@keyframes lx-kb-campaign {
+  0%   { transform: scale(1)    translate(0%,     0%);    }
+  25%  { transform: scale(1.04) translate(-0.6%,  -0.4%); }
+  50%  { transform: scale(1.07) translate(-0.3%,  -0.8%); }
+  75%  { transform: scale(1.04) translate(0.4%,   -0.5%); }
+  100% { transform: scale(1)    translate(0%,      0%);   }
+}
+
+.editorial-campaign__frame img.img-loaded {
+  animation: lx-kb-campaign 30s ease-in-out infinite;
+  transform-origin: center center;
+}
+
+/* ── 25d. Reveal animation — deepened entrance ────────────────────────
+   Increased translate (10px→14px) and duration (720ms→840ms) for a
+   slower, more considered reveal — the weight of quality, not speed.   */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity   840ms var(--ease-out)  var(--reveal-delay, 0ms),
+    transform 840ms var(--ease-snap) var(--reveal-delay, 0ms);
+}
+
+/* Section heading — deepened cinematic entrance */
+.section-heading.reveal {
+  transform: translateY(22px) scale(0.997);
+  will-change: opacity, transform;
+}
+
+.section-heading.reveal.is-visible {
+  transform: translateY(0) scale(1);
+  transition-duration: 980ms, 980ms;
+}
+
+/* ── 25e. Section atmospheric separators ──────────────────────────────
+   Ultra-thin gold hairlines between major editorial sections.
+   Perceived as spatial breathing rather than borders.                  */
+
+.collection-section::before,
+.promise-section::before,
+.story-section::before,
+.testimonials-section::before,
+.what-you-love::before {
+  content: "";
+  display: block;
+  width: 4rem;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(197, 161, 59, 0.38),
+    transparent
+  );
+  margin: 0 auto;
+  position: relative;
+  top: 0;
+}
+
+/* ── 25f. Promise band — atmospheric depth ───────────────────────────
+   A radial gold glow above the blockquote breathes depth into the
+   section. Barely visible — felt rather than seen.                    */
+
+.promise-band__inner {
+  position: relative;
+  overflow: hidden;
+}
+
+.promise-band__inner::before {
+  content: "";
+  position: absolute;
+  top: -40%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 180%;
+  background: radial-gradient(
+    ellipse at center top,
+    rgba(197, 161, 59, 0.09) 0%,
+    transparent 68%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.promise-band__inner > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── 25g. Trust rail — editorial hairline treatment ──────────────────
+   Evolved from functional badge-grid to a quiet editorial line.
+   Displayed as a single flex row with pipe dividers between items.
+   The grid background and heavy border are removed entirely.          */
+
+.trust-rail__inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: 1.25rem 0;
+  position: relative;
+}
+
+/* Hairlines above and below */
+.trust-rail__inner::before,
+.trust-rail__inner::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 72%;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(197, 161, 59, 0.28),
+    transparent
+  );
+}
+
+.trust-rail__inner::before { top: 0; }
+.trust-rail__inner::after  { bottom: 0; }
+
+.trust-rail__inner span {
+  padding: 0 1.5rem;
+  background: transparent;
+  font-size: 0.7rem;
+  letter-spacing: 0.09em;
+  text-transform: none;
+  font-style: italic;
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--muted);
+  text-align: center;
+  position: relative;
+  line-height: 1;
+}
+
+/* Pipe dividers — between spans only (not before first) */
+.trust-rail__inner span + span::before {
+  content: "·";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(197, 161, 59, 0.4);
+  font-style: normal;
+  font-size: 0.8rem;
+}
+
+html[data-theme="dark"] .trust-rail__inner {
+  background: transparent;
+  border: none;
+}
+
+html[data-theme="dark"] .trust-rail__inner span {
+  color: rgba(230, 223, 203, 0.52);
+}
+
+html[data-theme="dark"] .trust-rail__inner span + span::before {
+  color: rgba(197, 161, 59, 0.32);
+}
+
+/* ── 25h. Checkout psychology — premium perception ───────────────────
+   The checkout panel earns focused attention. More internal breathing
+   room, a quiet gold introductory border, and heading refinement
+   signal that what follows matters — not a transaction, an agreement. */
+
+.checkout-panel {
+  padding: 2rem 2rem 2.5rem;
+}
+
+.checkout-panel__intro {
+  border-bottom: 1px solid rgba(197, 161, 59, 0.18);
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.checkout-panel__intro p {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.05rem;
+  line-height: 1.72;
+  color: var(--text-soft);
+  letter-spacing: 0.005em;
+}
+
+.checkout-panel h3 {
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ink);
+  margin-bottom: 1.5rem;
+}
+
+/* ── 25i. Desktop editorial cinema ────────────────────────────────────
+   1100px: wider editorial prose column, campaign frame larger.
+   1400px: full cinematic hero typography scale, max editorial column.  */
+
+@media (min-width: 1100px) {
+  .editorial-campaign__frame {
+    aspect-ratio: 2 / 3;
+    max-height: 680px;
+  }
+
+  .editorial-campaign__body {
+    max-width: 38ch;
+  }
+
+  .section-heading p {
+    max-width: 48ch;
+  }
+
+  .hero-grid {
+    align-items: center;
+    gap: 4.5rem;
+  }
+}
+
+@media (min-width: 1400px) {
+  .hero-copy h1 {
+    font-size: clamp(3.2rem, 6vw, 5.4rem);
+  }
+
+  .editorial-campaign__frame {
+    max-height: 780px;
+  }
+
+  .promise-band__inner blockquote {
+    font-size: clamp(2rem, 3.2vw, 2.8rem);
+  }
+
+  .products-grid {
+    gap: 2rem;
+  }
+
+  .section-heading p {
+    max-width: 52ch;
+    font-size: 1.05rem;
+  }
+}
+
+/* ── 25j. Product card — deeper hover lift + slower image settle ───────
+   -7px lift (from -5px) gives cards more physical presence on hover.
+   Image transition extended to 680ms — the weight of quality photography. */
+
+.product-card:hover {
+  transform: translateY(-7px);
+}
+
+.product-card__media img {
+  transition:
+    opacity   680ms var(--ease-out),
+    transform 680ms var(--ease-out);
+}
+
+/* ── 25k. Seasonal visual depth — hero image atmosphere ───────────────
+   [data-season] is set by JS on <html>. Barely-there filter shifts
+   the hero image's mood to match the brand's seasonal narrative.
+   Range: ±4% sepia, ±5% saturation, ±2% brightness — invisible on
+   casual viewing, perceptible as "something feels right about today."   */
+
+[data-season="spring"] .hero-visual img {
+  filter: sepia(1%) saturate(107%) brightness(101%);
+  transition: filter 3000ms ease;
+}
+
+[data-season="summer"] .hero-visual img {
+  filter: sepia(4%) saturate(110%) brightness(101%) contrast(101%);
+  transition: filter 3000ms ease;
+}
+
+[data-season="autumn"] .hero-visual img {
+  filter: sepia(6%) saturate(105%) brightness(99%) contrast(102%);
+  transition: filter 3000ms ease;
+}
+
+[data-season="winter"] .hero-visual img {
+  filter: sepia(2%) saturate(94%) brightness(100%) contrast(100%);
+  transition: filter 3000ms ease;
+}
+
+/* Seasonal depth — editorial campaign frame tonal shift */
+[data-season="spring"] .editorial-campaign__frame {
+  box-shadow: var(--shadow-lift), 0 0 0 1px rgba(197, 161, 59, 0.06);
+}
+
+[data-season="summer"] .editorial-campaign__frame {
+  box-shadow: var(--shadow-lift), 0 0 0 1px rgba(197, 161, 59, 0.09);
+}
+
+[data-season="autumn"] .editorial-campaign__frame {
+  box-shadow: var(--shadow-deep), 0 0 0 1px rgba(197, 161, 59, 0.1);
+}
+
+[data-season="winter"] .editorial-campaign__frame {
+  box-shadow: var(--shadow-lift), 0 0 0 1px rgba(197, 161, 59, 0.05);
+}
+
+/* ── 25l. Reduced motion — comprehensive guard ───────────────────────
+   Section 25 animations: Ken Burns, page grain, reveal deepening.
+   All disabled. Grain layer itself is harmless; animation is nulled.   */
+
+@media (prefers-reduced-motion: reduce) {
+  /* Ken Burns — disable for editorial campaign frame */
+  .editorial-campaign__frame img.img-loaded {
+    animation: none !important;
+  }
+
+  /* Reveal — collapse to near-instant (respects global guard above,
+     but re-stated here explicitly for clarity and robustness)         */
+  .reveal,
+  .section-heading.reveal {
+    transition-duration: 0.01ms !important;
+  }
+
+  /* Seasonal image filter — no transition */
+  [data-season] .hero-visual img,
+  [data-season] .editorial-campaign__frame img {
+    transition: none !important;
+  }
+
+  /* Page grain — keep the texture but remove any animation if added */
+  .page-noise {
+    animation: none !important;
+  }
+}
+
