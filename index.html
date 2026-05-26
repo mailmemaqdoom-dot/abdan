@@ -27,9 +27,12 @@
     <title>ABDAN | Your Devotion Meets Style</title>
 
     <!-- ── Favicon & App Icons ──────────────────────────────────────── -->
+    <!-- Primary: SVG favicon — crisp at every size, theme-responsive   -->
     <link rel="icon" type="image/svg+xml"  href="./assets/favicon.svg" />
+    <!-- Fallback: JPEG for browsers that don't support SVG favicons     -->
     <link rel="icon" type="image/jpeg"     href="./assets/abdan-icon.jpg" sizes="any" />
-    <link rel="apple-touch-icon"           href="./assets/abdan-icon.jpg" />
+    <!-- Apple home screen: use the emblem SVG (modern iOS/macOS support)-->
+    <link rel="apple-touch-icon"           href="./assets/logo/abdan-logo.svg" />
 
     <!-- ── Entry skip: runs before first paint so overlay never flickers ── -->
     <script>try{if(sessionStorage.getItem("abdan-entry-seen")){document.documentElement.dataset.entrySkip="1"}}catch(e){}</script>
@@ -55,9 +58,9 @@
     <div id="lxEntry" class="lx-entry" aria-hidden="true" role="presentation">
       <div class="lx-entry__inner">
 
-        <!-- Step 1 — Logo mark: brand seal (dark mode) / hidden in light mode -->
+        <!-- Step 1 — Official circular emblem mark (SVG — scales perfectly) -->
         <div class="lx-entry__logo" aria-hidden="true">
-          <img src="./assets/abdan-icon.jpg" alt="" width="58" height="58" />
+          <img src="./assets/logo/abdan-logo.svg" alt="" width="72" height="72" />
         </div>
 
         <!-- Step 2 — Brand wordmark
@@ -68,9 +71,12 @@
              Dark mode: CSS text fallback (font-display: swap activates
              the real font as soon as AbdanCalligraph.woff2 is placed). -->
         <div class="lx-entry__wordmark" aria-label="ABDAN">
-          <svg class="abdan-sig" overflow="visible" focusable="false" aria-hidden="true">
-            <use href="#abdan-wordmark"></use>
-          </svg>
+          <!-- Light mode: official uploaded wordmark SVG -->
+          <img class="lx-entry__wordmark-img"
+               src="./assets/logo/abdan-wordmark.svg"
+               alt="ABDAN" draggable="false" />
+          <!-- Dark mode: CSS text fallback (emerald SVG fill invisible on dark bg) -->
+          <span class="lx-entry__wordmark-text abdan-calligraph" aria-hidden="true">ABDAN</span>
         </div>
 
         <!-- Step 3 — Emotional tagline -->
@@ -190,13 +196,17 @@
     <header class="site-header" id="siteHeader">
       <a href="#hero" class="brand-pill" aria-label="ABDAN home">
         <span class="brand-mark" aria-hidden="true">
-          <img src="./assets/abdan-icon.jpg" alt="" width="45" height="45" fetchpriority="high" />
+          <!-- Official circular emblem SVG — retina-perfect at all sizes -->
+          <img src="./assets/logo/abdan-logo.svg" alt="" width="45" height="45" fetchpriority="high" />
         </span>
         <span>
           <strong class="brand-pill__name" aria-label="ABDAN">
-            <svg class="abdan-sig" overflow="visible" focusable="false" aria-hidden="true">
-              <use href="#abdan-wordmark"></use>
-            </svg>
+            <!-- Light mode: official wordmark SVG -->
+            <img class="brand-pill__wordmark"
+                 src="./assets/logo/abdan-wordmark.svg"
+                 alt="ABDAN" height="20" draggable="false" />
+            <!-- Dark mode: CSS text fallback -->
+            <span class="brand-pill__wordmark-text abdan-calligraph" aria-hidden="true">ABDAN</span>
           </strong>
           <small>Your Devotion Meets Style</small>
         </span>
@@ -865,9 +875,12 @@
             <h1>
               <!-- Official calligraphy for brand identity moment in admin -->
               <span class="admin-wordmark" aria-label="ABDAN">
-                <svg class="abdan-sig" overflow="visible" focusable="false" aria-hidden="true">
-                  <use href="#abdan-wordmark"></use>
-                </svg>
+                <!-- Light mode: official wordmark SVG -->
+                <img class="admin-wordmark__img"
+                     src="./assets/logo/abdan-wordmark.svg"
+                     alt="ABDAN" draggable="false" />
+                <!-- Dark mode: CSS text fallback -->
+                <span class="admin-wordmark__text abdan-calligraph" aria-hidden="true">ABDAN</span>
               </span><span class="admin-wordmark__suffix"> Admin</span>
             </h1>
             <p>
@@ -1218,14 +1231,18 @@
       <div class="container footer-grid">
         <section class="footer-column footer-brand">
           <div class="footer-mark" aria-hidden="true">
-            <img src="./assets/logo/abdan-seal-dark.jpeg" alt="" width="45" height="45" />
+            <!-- Official circular emblem SVG — works in both themes -->
+            <img src="./assets/logo/abdan-logo.svg" alt="" width="45" height="45" />
           </div>
           <!-- Official calligraphy wordmark — brand signature moment in footer.
                Light: JPEG with multiply blend. Dark: CSS text in warm cream. -->
           <div class="footer-wordmark" aria-label="ABDAN">
-            <svg class="abdan-sig" overflow="visible" focusable="false" aria-hidden="true">
-              <use href="#abdan-wordmark"></use>
-            </svg>
+            <!-- Light mode: official wordmark SVG -->
+            <img class="footer-wordmark__img"
+                 src="./assets/logo/abdan-wordmark.svg"
+                 alt="ABDAN" draggable="false" />
+            <!-- Dark mode: CSS text fallback -->
+            <span class="footer-wordmark__text abdan-calligraph" aria-hidden="true">ABDAN</span>
           </div>
           <p class="footer-tagline">Your Devotion Meets Style</p>
           <p>

@@ -10463,3 +10463,181 @@ html[data-theme="dark"] .product-card__media {
 }
 
 /* ═══ END SECTION 41 ════════════════════════════════════════════════════ */
+
+/* ╔══════════════════════════════════════════════════════════════════════╗
+   ║  SECTION 42 — Official Logo Asset System                             ║
+   ║  Replace §37 inline SVG text symbol with the actual uploaded files   ║
+   ║  Assets: abdan-logo.svg (emblem) · abdan-wordmark.svg (letterforms)  ║
+   ╚══════════════════════════════════════════════════════════════════════╝
+
+   §37 replaced all logo usages with <svg><use href="#abdan-wordmark">
+   — a hand-crafted Cormorant Garamond text approximation, not the real
+   brand asset. §42 restores the official uploaded SVG files throughout.
+
+   abdan-logo.svg     — circular emerald+gold emblem, 200×200 viewBox
+   abdan-wordmark.svg — ABDAN letterform vector, 524×140 viewBox
+                        fill="#023d3a" with white counters (B,D holes)
+                        Works on warm/light backgrounds; dark mode
+                        switches to CSS text fallback (.abdan-calligraph)
+   ──────────────────────────────────────────────────────────────────── */
+
+/* ── 42a. Retire the §37 inline SVG symbol system ───────────────────────
+   The .abdan-sig elements (which contained <use href="#abdan-wordmark">)
+   are still in the DOM for backward-compatibility but must not render.
+   We now use <img> tags pointing to the real SVG files instead.         */
+.abdan-sig {
+  display: none !important;
+}
+
+/* ── 42b. Restore official image/text slots — override §37 suppression ──
+   §37 set all __wordmark, __img, __text slots to display:none !important.
+   §42 reverses this for each slot. Light mode shows the SVG image;
+   dark mode switches to the .abdan-calligraph text fallback.
+   The pre-§37 CSS already had this logic — we're restoring it.          */
+
+/* — Light mode: show SVG image, hide text ─ */
+.brand-pill__wordmark      { display: block !important; }
+.brand-pill__wordmark-text { display: none  !important; }
+
+.lx-entry__wordmark-img    { display: block !important; }
+.lx-entry__wordmark-text   { display: none  !important; }
+
+.footer-wordmark__img      { display: block !important; }
+.footer-wordmark__text     { display: none  !important; }
+
+.admin-wordmark__img       { display: block !important; }
+.admin-wordmark__text      { display: none  !important; }
+
+/* — Dark mode: hide SVG image (emerald fill nearly invisible on dark bg)
+       show CSS text fallback in warm cream instead ─ */
+html[data-theme="dark"] .brand-pill__wordmark      { display: none  !important; }
+html[data-theme="dark"] .brand-pill__wordmark-text { display: block !important; }
+
+html[data-theme="dark"] .lx-entry__wordmark-img    { display: none  !important; }
+html[data-theme="dark"] .lx-entry__wordmark-text   { display: block !important; }
+
+html[data-theme="dark"] .footer-wordmark__img      { display: none  !important; }
+html[data-theme="dark"] .footer-wordmark__text     { display: block !important; }
+
+html[data-theme="dark"] .admin-wordmark__img       { display: none  !important; }
+html[data-theme="dark"] .admin-wordmark__text      { display: block !important; }
+
+/* ── 42c. SVG wordmark image rendering ──────────────────────────────────
+   mix-blend-mode: multiply was needed for JPEG wordmarks to drop the
+   white JPEG background. The SVG has no background — it's transparent
+   vector paths. Remove multiply; use normal rendering.
+   max-width: 100% ensures it never overflows its container.             */
+.brand-pill__wordmark,
+.lx-entry__wordmark-img,
+.footer-wordmark__img,
+.admin-wordmark__img {
+  mix-blend-mode:  normal;     /* no JPEG bg to drop — render as vector */
+  pointer-events:  none;
+  max-width:       100%;
+  flex-shrink:     0;
+}
+
+/* ── 42d. Wordmark sizing at each location ───────────────────────────────
+   Aspect ratio: 524 ÷ 140 = 3.74 : 1
+   width: auto preserves this exactly at any specified height.           */
+
+/* Navbar brand pill — sits inside the pill row, max ~2rem tall */
+.brand-pill__wordmark {
+  height: 20px;
+  width:  auto;
+}
+@media (max-width: 767px) {
+  .brand-pill__wordmark { height: 17px; }
+}
+
+/* Loading screen — the hero brand moment */
+.lx-entry__wordmark-img {
+  width:  clamp(210px, 54vw, 290px);
+  height: auto;
+}
+
+/* Footer — brand signature block */
+.footer-wordmark__img {
+  height: 28px;
+  width:  auto;
+}
+
+/* Admin panel heading */
+.admin-wordmark__img {
+  height: 30px;
+  width:  auto;
+}
+
+/* ── 42e. Brand mark container — circular SVG emblem ────────────────────
+   The old system used JPEG images that needed transform:scale(1.07) to
+   fill the circle and cover any white JPEG fringe.
+   The SVG emblem has its own emerald background circle filling the
+   viewBox exactly — no fringe, no scale hack needed.
+   object-fit: contain is equivalent to cover for a square SVG in a
+   square circular container (same dimensions → no gaps).                */
+.brand-mark img,
+.footer-mark img {
+  object-fit:      contain;
+  object-position: center;
+  transform:       none;        /* override the old scale(1.07) JPEG hack */
+}
+
+/* SVG emblem carries its own emerald fill — container bg not needed     */
+.brand-mark {
+  background: transparent;
+  overflow:   hidden;           /* keep circular clip */
+}
+.footer-mark {
+  background: transparent;
+  overflow:   hidden;
+}
+
+/* Dark mode: quiet gold ring around the emblem — restrained halo        */
+html[data-theme="dark"] .footer-mark {
+  box-shadow: 0 0 0 1.5px rgba(197, 161, 59, 0.36);
+}
+html[data-theme="dark"] .brand-mark {
+  box-shadow: 0 0 0 1px rgba(197, 161, 59, 0.28);
+}
+
+/* ── 42f. Loading screen — show emblem in both themes ───────────────────
+   The old CSS hid .lx-entry__logo in light mode (because the old JPEG
+   wordmark included the icon mark built into it). The new wordmark SVG
+   is letters only — no emblem. Show the icon circle in both themes.     */
+.lx-entry__logo {
+  display: block !important;    /* was: display:none in light mode */
+}
+html[data-theme="dark"] .lx-entry__logo {
+  display: block !important;
+}
+.lx-entry__logo img {
+  width:      72px;
+  height:     72px;
+  object-fit: contain;
+  transform:  none;
+  border-radius: 50%;           /* clip SVG to circle in the entry layout */
+}
+
+/* ── 42g. Loading screen layout — emblem + wordmark vertical stack ───────
+   With both emblem and wordmark now showing in light mode, add a small
+   gap between the two elements for editorial breathing.                  */
+.lx-entry__inner {
+  gap: 0.9rem;                  /* was likely tighter — give elements room */
+}
+
+/* ── 42h. Brand pill layout — wordmark image alignment ──────────────────
+   The <img> replaces the <svg>; ensure it aligns vertically within the
+   strong/pill name container.                                            */
+.brand-pill__name {
+  display:     inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+/* ── 42i. Apple touch icon note ─────────────────────────────────────────
+   The <link rel="apple-touch-icon"> now points to abdan-logo.svg.
+   Modern iOS/iPadOS (14+) and macOS Safari support SVG favicons.
+   For older iOS where SVG isn't supported as app icon, the JPEG
+   favicon.svg fallback link above provides coverage.                     */
+
+/* ═══ END SECTION 42 ════════════════════════════════════════════════════ */
