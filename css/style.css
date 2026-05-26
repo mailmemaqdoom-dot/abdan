@@ -8076,3 +8076,127 @@ html[data-theme="dark"] .space-profile-privacy {
   .toast                     { transition: opacity 160ms linear; }
   .section-heading.reveal    { transform: none; }
 }
+
+
+/* ════════════════════════════════════════════════════════════════════
+   32. LIVE EXPERIENCE REFINEMENT — Observation Cycle
+   ─────────────────────────────────────────────────────────────────
+   Philosophy: observe, then subtract. Every change here came from
+   experiencing the platform as a real customer would — emotionally
+   tired, quietly browsing, trusting slowly.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── 32a. Space "why" block — remove box treatment ───────────────────
+   Two left-border blocks in the same view (space-why + space-browse-cta)
+   created a formulaic, UI-kit feeling. Luxury doesn't repeat patterns.
+   The "why" text is editorial — it should read like editorial copy.    */
+.space-why {
+  padding: 0.5rem 0 1.75rem;
+  background: none;
+  border: none;
+}
+
+/* ── 32b. Browse invitation — simplify from box to editorial row ─────
+   The gold left-border was the same visual language as space-why above.
+   Using it twice, adjacent, felt template-like. Simplified to a clean
+   horizontal row: italic text on the left, button on the right.       */
+.space-browse-cta {
+  background: none;
+  border: none;
+  padding: 1.5rem 0 0.5rem;
+  border-top: 1px solid var(--line);
+}
+html[data-theme="dark"] .space-browse-cta {
+  background: none;
+}
+
+/* ── 32c. Dark mode form inputs — slightly warmer surface ────────────
+   rgba(230,223,203, 0.04) was nearly invisible on the dark surface.
+   Lifting to 0.07 gives the field a perceivable warm glass tone
+   without competing with the typography sitting inside it.            */
+html[data-theme="dark"] .space-field input {
+  background: rgba(230, 223, 203, 0.07);
+}
+html[data-theme="dark"] .space-field input:focus {
+  background: rgba(230, 223, 203, 0.10);
+}
+
+/* ── 32d. Trust rail — dark mode text lift ───────────────────────────
+   0.52 opacity was slightly too recessive. 0.62 keeps the restraint
+   while ensuring the four items are readable at a glance.             */
+html[data-theme="dark"] .trust-rail__inner span {
+  color: rgba(230, 223, 203, 0.62);
+}
+
+/* ── 32e. Hero trust mini — tighter, quieter ────────────────────────
+   Three items of trust copy. Currently as a plain paragraph. Give it
+   a little more breathing room from the hero actions above.          */
+.trust-mini {
+  margin-top: 1.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+.trust-mini p {
+  font-size: var(--type-body-sm);
+  line-height: 1.75;
+  color: var(--text-soft);
+}
+
+/* ── 32f. Product sheet editorial story labels — softer weight ───────
+   Currently likely inheriting body font at default weight. Keep the
+   same font but reduce letter-spacing slightly for a more editorial feel
+   on the story section labels ("Why You'll Reach for This", etc.)     */
+.editorial-story__label {
+  letter-spacing: 0.06em;
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* ── 32g. Cart drawer trust rail — reduce icon size ─────────────────
+   The three trust items (Secure checkout, Personally confirmed, Careful
+   dispatch) use the default 1.1rem icons. At this micro scale, 0.9rem
+   reads as more refined and less badge-like.                         */
+.cart-trust-item [data-lucide] {
+  width:  0.9rem;
+  height: 0.9rem;
+  opacity: 0.7;
+}
+.cart-trust-item span {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+
+/* ── 32h. Space privilege cards — icon refinement ────────────────────
+   Privilege card icons at default 1.1rem are balanced. Reduce opacity
+   slightly so they recede as supporting detail, not headline.        */
+.space-privilege-card [data-lucide] {
+  opacity: 0.55;
+}
+
+/* ── 32i. Teaser modal CTA — secondary variant spacing ──────────────
+   Changed from primary-button to secondary-button (HTML fix 32 pass).
+   Ensure the secondary button in the modal centre-aligns properly.   */
+.teaser-modal__panel .secondary-button {
+  align-self: center;
+}
+
+/* ── 32j. Form field gap — slightly more breath ─────────────────────
+   0.28rem between label and hint was tight enough to feel rushed.
+   0.35rem: the form breathes between label layers.                  */
+.space-field {
+  gap: 0.35rem;
+}
+
+/* ── 32k. Space sign-in card kicker — quieter entrance ──────────────
+   "Welcome back" kicker above the sign-in heading. Ensure the kicker
+   has appropriate space above the card heading.                      */
+.space-auth-card .section-kicker {
+  margin-bottom: 0.35rem;
+}
+
+/* ── 32l. Reduced motion guard ──────────────────────────────────────*/
+@media (prefers-reduced-motion: reduce) {
+  .trust-mini { transition: none; }
+}

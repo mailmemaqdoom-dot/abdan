@@ -1196,7 +1196,7 @@ async function handleSpaceSignin(event) {
   try {
     const result = await authenticateSpace(email, password);
     if (!result) {
-      showSpaceError("spaceSigninError", "These details don't match a space. Please try again.");
+      showSpaceError("spaceSigninError", "These details don't match. Please try again.");
       resetButtonLoading(submitBtn);
       return;
     }
@@ -1212,7 +1212,7 @@ async function handleSpaceSignin(event) {
     showSpaceDashboard(result.profile, false);
     resetButtonLoading(submitBtn);
   } catch {
-    showSpaceError("spaceSigninError", "Something gentle went wrong. Please try once more.");
+    showSpaceError("spaceSigninError", "Something went wrong. Please try once more.");
     resetButtonLoading(submitBtn);
   }
 }
@@ -1245,7 +1245,7 @@ async function handleSpaceCreate(event) {
     showSpaceDashboard(profile, true);
     resetButtonLoading(submitBtn);
   } catch (err) {
-    showSpaceError("spaceCreateError", err instanceof Error ? err.message : "Something gentle went wrong. Please try once more.");
+    showSpaceError("spaceCreateError", err instanceof Error ? err.message : "Something went wrong. Please try once more.");
     resetButtonLoading(submitBtn);
   }
 }
@@ -1322,7 +1322,7 @@ function renderSpaceWishlist() {
       renderSpaceWishlist();
       updateSavedPiecesCount();
       safeCreateIcons();
-      showToast("Piece gently removed. 💛");
+      showToast("Removed 💛");
     });
   });
 
@@ -1382,7 +1382,7 @@ function renderSpaceProfile(email) {
         <p class="space-profile-form__note">Your email address cannot be changed. For help, reach out on WhatsApp 💛</p>
         <p class="space-form__error" id="spaceProfileError" role="alert" hidden></p>
         <div class="space-profile-form__actions">
-          <button type="submit" class="primary-button">Save gently</button>
+          <button type="submit" class="primary-button">Save changes</button>
           <button type="button" class="ghost-button" id="spaceEditCancel">Cancel</button>
         </div>
       </form>
@@ -1442,7 +1442,7 @@ function renderSpaceProfile(email) {
     } catch { /* ignore */ }
 
     renderSpaceProfile(email);
-    showToast("Your details have been gently saved. 💛");
+    showToast("Saved 💛");
   });
 
   safeCreateIcons();
@@ -2236,7 +2236,7 @@ function addToCart() {
   if (!product) return;
 
   if (!state.selectedSize || !state.selectedColor) {
-    showToast("Choose a size and colour to continue. 💛");
+    showToast("Choose a size and colour to continue.");
     return;
   }
 
@@ -2365,7 +2365,7 @@ function getFormPayload(form) {
 
 function validateCheckoutDetails(details) {
   if (!details.name || !details.phone) {
-    showToast("Please add your name and phone number to continue. 💛");
+    showToast("Please add your name and number to continue.");
     return false;
   }
   return true;
@@ -2397,7 +2397,7 @@ function buildWhatsAppOrderMessage(details, items, paymentMethod, extra = {}) {
 function launchRazorpay(details, items) {
   const total = items.reduce((sum, item) => sum + getNumericPrice(item.priceLabel) * item.quantity, 0);
   if (!window.Razorpay) {
-    showToast("Razorpay couldn't load. Please try UPI or reach us on WhatsApp. 💛");
+    showToast("Razorpay couldn't load. Try UPI or reach us on WhatsApp.");
     return;
   }
 
@@ -2526,7 +2526,7 @@ function handleProductUpi() {
 async function copyUpi() {
   try {
     await navigator.clipboard.writeText(BRAND.upiId);
-    showToast("UPI ID copied quietly 💛");
+    showToast("UPI ID copied 💛");
   } catch {
     showToast(`UPI: ${BRAND.upiId}`);
   }
