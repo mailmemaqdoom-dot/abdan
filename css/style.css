@@ -7165,3 +7165,769 @@ html[data-theme="dark"] .admin-wordmark__text {
 }
 
 
+/* ═══════════════════════════════════════════════════════════════════════
+   SECTION 30 — YOUR SPACE 💛 LUXURY MEMBER ECOSYSTEM
+   ─────────────────────────────────────────────────────────────────────
+   Complete visual system for the premium member space experience.
+   Philosophy: editorial calm, intimate warmth, operational smoothness.
+   No dashboard aesthetics. No gamification. No clutter.
+   This space should feel: seen, safe, and softly luxurious.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+
+/* ── 30a. Dashboard greeting header ─────────────────────────────────
+   Lighter and more intimate than editorial-panel. No card background —
+   just generous breathing room and the personal greeting.             */
+.space-dash-head {
+  padding: 2rem 0 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 0.25rem;
+}
+
+.space-dash-head__text {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.space-dash-head .space-heading {
+  margin: 0.25rem 0 0.4rem;
+}
+
+.space-dash-head .space-auth-intro {
+  margin: 0;
+}
+
+/* "Leave quietly" — text-only, whisper-weight */
+.space-leave-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0.35rem 0;
+  font-family: var(--font-ui);
+  font-size: var(--type-body-sm);
+  font-weight: 400;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: color var(--t-fast);
+  white-space: nowrap;
+  align-self: center;
+}
+
+.space-leave-btn:hover { color: var(--text-soft); }
+
+html[data-theme="dark"] .space-leave-btn       { color: rgba(230, 223, 203, 0.35); }
+html[data-theme="dark"] .space-leave-btn:hover { color: var(--cream); }
+
+
+/* ── 30b. Section tab navigation ────────────────────────────────────
+   Four text tabs: Your Space · Saved Pieces · Your Journey · Profile
+   Active state: gold underline, full-weight text.
+   No borders, no rounded pills — pure editorial restraint.           */
+.space-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 2rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.space-tabs::-webkit-scrollbar { display: none; }
+
+.space-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.85rem 1.1rem;
+  background: none;
+  border: none;
+  font-family: var(--font-ui);
+  font-size: var(--type-body-sm);
+  font-weight: 400;
+  color: var(--text-soft);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--t-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.space-tab::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0.5rem;
+  right: 0.5rem;
+  height: 1.5px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transition: transform 220ms var(--ease-out);
+  transform-origin: left center;
+}
+
+.space-tab:hover              { color: var(--text-main); }
+.space-tab.is-active          { color: var(--ink); font-weight: 600; }
+.space-tab.is-active::after   { transform: scaleX(1); }
+
+/* Saved Pieces count badge */
+.space-tab__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.3rem;
+  border-radius: var(--radius-pill);
+  background: var(--gold);
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+html[data-theme="dark"] .space-tab            { color: rgba(230, 223, 203, 0.45); }
+html[data-theme="dark"] .space-tab:hover      { color: var(--cream); }
+html[data-theme="dark"] .space-tab.is-active  { color: var(--cream); }
+
+
+/* ── 30c. Tab panels ─────────────────────────────────────────────────
+   Each panel fades in when activated. No harsh show/hide.            */
+.space-tab-panel {
+  animation: none;
+}
+
+.space-tab-panel.is-active {
+  animation: spaceTabReveal 320ms var(--ease-snap) both;
+}
+
+@keyframes spaceTabReveal {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ── 30d. Overview: privilege moments ────────────────────────────────
+   Three quiet cards: Early Access · Private Releases · Seasonal Notes.
+   Belonging without gamification — membership feels, not points.     */
+.space-privilege-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.space-privilege-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.35rem 1.25rem 1.4rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--paper-strong);
+  transition: border-color var(--t-base), box-shadow var(--t-base);
+}
+
+.space-privilege-card:hover {
+  border-color: rgba(197, 161, 59, 0.35);
+  box-shadow: var(--shadow-xs);
+}
+
+.space-privilege-card [data-lucide] {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--gold);
+  margin-bottom: 0.2rem;
+  flex-shrink: 0;
+}
+
+.space-privilege-card strong {
+  font-family: var(--font-ui);
+  font-size: var(--type-body-sm);
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: 0.01em;
+}
+
+.space-privilege-card span {
+  font-size: var(--type-micro);
+  color: var(--text-soft);
+  line-height: 1.55;
+  letter-spacing: 0.01em;
+}
+
+html[data-theme="dark"] .space-privilege-card {
+  background: rgba(255, 252, 245, 0.03);
+  border-color: rgba(255, 255, 255, 0.07);
+}
+html[data-theme="dark"] .space-privilege-card:hover {
+  border-color: rgba(197, 161, 59, 0.25);
+  background: rgba(255, 252, 245, 0.05);
+}
+
+
+/* ── 30e. Overview: browse invitation ────────────────────────────── */
+.space-browse-cta {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.35rem 1.5rem;
+  border-radius: var(--radius-md);
+  background: var(--surface-soft);
+  border-left: 2px solid var(--gold);
+}
+
+.space-browse-cta__text {
+  flex: 1;
+  margin: 0;
+  font-family: var(--font-editorial);
+  font-size: var(--type-body);
+  font-style: italic;
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+
+html[data-theme="dark"] .space-browse-cta {
+  background: rgba(197, 161, 59, 0.06);
+}
+
+
+/* ── 30f. Shared: section heading ────────────────────────────────────
+   Used in Journey, Saved Pieces, Profile panels as section label.    */
+.space-section-heading {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding: 0 0.1rem;
+}
+
+
+/* ── 30g. Journey panel: order timeline cards ─────────────────────── */
+.space-journey-card {
+  background: var(--paper-strong);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 1.35rem 1.4rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: box-shadow 240ms var(--ease-out);
+}
+
+.space-journey-card:hover { box-shadow: var(--shadow-sm); }
+
+.space-journey-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.space-journey-card__ref {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.space-journey-card__date {
+  font-size: 0.7rem;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.space-journey-card__items {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* Journey timeline track */
+.space-journey-track {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow: visible;
+}
+
+.space-journey-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.space-journey-step__dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  border: 1.5px solid var(--line-strong);
+  background: transparent;
+  transition: background var(--t-fast), border-color var(--t-fast), box-shadow var(--t-fast);
+  flex-shrink: 0;
+}
+
+.space-journey-step.is-done .space-journey-step__dot {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+
+.space-journey-step.is-current .space-journey-step__dot {
+  background: var(--gold);
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(197, 161, 59, 0.22);
+}
+
+.space-journey-step__label {
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  text-align: center;
+}
+
+.space-journey-step.is-done .space-journey-step__label,
+.space-journey-step.is-current .space-journey-step__label {
+  color: var(--text-main);
+}
+
+/* Connector lines between dots */
+.space-journey-line {
+  flex: 1;
+  height: 1.5px;
+  background: var(--line-strong);
+  min-width: 0.5rem;
+  margin-bottom: 1rem; /* aligns with dot center visually */
+  transition: background var(--t-fast);
+}
+
+.space-journey-line.is-done { background: var(--gold); }
+
+/* Journey card footer: status badge + total */
+.space-journey-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.space-journey-card__status {
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 0.22rem 0.65rem;
+  border-radius: var(--radius-pill);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.space-journey-card__status[data-status="confirmed"]       { background: rgba(197,161,59,0.12);  color: #8c6b10; }
+.space-journey-card__status[data-status="preparing"]       { background: rgba(2,61,58,0.1);       color: var(--emerald); }
+.space-journey-card__status[data-status="shipped"]         { background: rgba(59,130,246,0.1);    color: #2563eb; }
+.space-journey-card__status[data-status="out_for_delivery"]{ background: rgba(234,88,12,0.1);     color: #c2410c; }
+.space-journey-card__status[data-status="delivered"]       { background: rgba(22,163,74,0.12);    color: #15803d; }
+
+.space-journey-card__total {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* Journey empty state */
+.space-journey-empty {
+  text-align: center;
+  padding: 3rem 1.5rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.space-journey-empty [data-lucide] {
+  width: 2rem;
+  height: 2rem;
+  color: var(--muted);
+  opacity: 0.5;
+}
+
+.space-journey-empty p {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-size: var(--type-body);
+  color: var(--text-soft);
+  max-width: 30ch;
+  line-height: var(--leading-relaxed);
+  margin: 0;
+}
+
+html[data-theme="dark"] .space-journey-card {
+  background: rgba(255, 252, 245, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+html[data-theme="dark"] .space-journey-card__status[data-status="confirmed"] {
+  background: rgba(197,161,59,0.1); color: var(--gold);
+}
+
+
+/* ── 30h. Saved Pieces panel ─────────────────────────────────────────
+   Clean editorial grid. Each saved card shows the product image,
+   name, price label, and a whisper-light remove button.              */
+.space-saved-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: 1rem;
+}
+
+.space-saved-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  overflow: hidden;
+  background: var(--paper-strong);
+  transition: box-shadow 240ms var(--ease-out), border-color 240ms;
+}
+
+.space-saved-card:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: rgba(197, 161, 59, 0.3);
+}
+
+.space-saved-card__img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--surface-soft);
+}
+
+.space-saved-card__img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  display: block;
+  transition: transform 500ms var(--ease-out);
+}
+
+.space-saved-card:hover .space-saved-card__img img { transform: scale(1.04); }
+
+.space-saved-card__img-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--surface-soft) 0%, var(--line) 100%);
+}
+
+.space-saved-card__body {
+  padding: 0.8rem 0.9rem 0.75rem;
+  flex: 1;
+}
+
+.space-saved-card__name {
+  margin: 0 0 0.2rem;
+  font-size: var(--type-body-sm);
+  font-weight: 600;
+  color: var(--text-main);
+  line-height: 1.35;
+}
+
+.space-saved-card__price {
+  margin: 0;
+  font-size: var(--type-micro);
+  color: var(--text-soft);
+  letter-spacing: 0.03em;
+}
+
+/* Remove button: top-right ghost cross */
+.space-saved-card__remove {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: rgba(255, 252, 245, 0.88);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--t-fast), background var(--t-fast);
+}
+
+.space-saved-card__remove [data-lucide] {
+  width: 0.8rem;
+  height: 0.8rem;
+  color: var(--text-soft);
+}
+
+.space-saved-card:hover .space-saved-card__remove,
+.space-saved-card__remove:focus-visible { opacity: 1; }
+
+.space-saved-card__remove:hover { background: white; }
+
+/* Saved empty state */
+.space-saved-empty {
+  text-align: center;
+  padding: 3rem 1.5rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.space-saved-empty [data-lucide] {
+  width: 2rem;
+  height: 2rem;
+  color: var(--muted);
+  opacity: 0.45;
+}
+
+.space-saved-empty p {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-size: var(--type-body);
+  color: var(--text-soft);
+  max-width: 32ch;
+  line-height: var(--leading-relaxed);
+  margin: 0;
+}
+
+html[data-theme="dark"] .space-saved-card {
+  background: rgba(255, 252, 245, 0.03);
+  border-color: rgba(255, 255, 255, 0.07);
+}
+html[data-theme="dark"] .space-saved-card__remove {
+  background: rgba(14, 18, 16, 0.85);
+}
+
+
+/* ── 30i. Profile panel ───────────────────────────────────────────── */
+.space-profile-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--paper-strong);
+  margin-bottom: 1.5rem;
+}
+
+/* Initials avatar — warm emerald circle */
+.space-profile-avatar {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: var(--emerald);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.space-profile-initials {
+  font-family: var(--font-calligraphy);
+  font-size: 1.6rem;
+  color: rgba(230, 223, 203, 0.9);
+  line-height: 1;
+  user-select: none;
+}
+
+.space-profile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.space-profile-display {
+  margin: 0 0 0.2rem;
+  font-family: var(--font-display);
+  font-size: var(--type-heading-md);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.space-profile-full-name {
+  margin: 0 0 0.3rem;
+  font-size: var(--type-body-sm);
+  color: var(--text-soft);
+}
+
+.space-profile-meta {
+  margin: 0.1rem 0 0;
+  font-size: var(--type-body-sm);
+  color: var(--text-soft);
+}
+
+.space-profile-joined {
+  margin: 0.55rem 0 0;
+  font-size: var(--type-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Profile edit section */
+.space-profile-edit-section {
+  margin-bottom: 1.75rem;
+}
+
+.space-edit-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font-ui);
+  font-size: var(--type-body-sm);
+  font-weight: 600;
+  color: var(--gold);
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: opacity var(--t-fast);
+  margin-bottom: 1.25rem;
+  display: block;
+}
+
+.space-edit-toggle:hover { opacity: 0.75; }
+
+.space-profile-form {
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+}
+
+.space-profile-form__note {
+  font-size: var(--type-body-sm);
+  color: var(--text-dim);
+  font-style: italic;
+  margin: 0 0 0.5rem;
+  line-height: 1.5;
+}
+
+.space-profile-form__actions {
+  display: flex;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+/* Privacy reassurance at profile bottom */
+.space-profile-privacy {
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius-md);
+  background: var(--surface-soft);
+  text-align: center;
+}
+
+.space-profile-privacy__text {
+  margin: 0 0 0.85rem;
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-size: var(--type-body-sm);
+  color: var(--text-soft);
+}
+
+html[data-theme="dark"] .space-profile-card {
+  background: rgba(255, 252, 245, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+html[data-theme="dark"] .space-profile-form {
+  background: rgba(255, 252, 245, 0.04);
+  border-color: rgba(255, 255, 255, 0.07);
+}
+html[data-theme="dark"] .space-profile-privacy {
+  background: rgba(255, 252, 245, 0.04);
+}
+
+
+/* ── 30j. Mobile refinements for all Space panels ───────────────────
+   Stack layouts, touch-ergonomic sizing, breathing room.            */
+@media (max-width: 720px) {
+  .space-dash-head {
+    padding: 1.5rem 0 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.85rem;
+  }
+
+  .space-leave-btn { align-self: flex-start; }
+
+  .space-tab { padding: 0.75rem 0.85rem; font-size: 0.8rem; }
+
+  .space-privilege-row {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .space-privilege-card {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.85rem;
+    padding: 1rem 1.1rem;
+  }
+
+  .space-privilege-card [data-lucide] { margin-bottom: 0; margin-top: 0.1rem; }
+
+  .space-browse-cta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem;
+  }
+
+  .space-saved-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .space-saved-card__remove { opacity: 1; } /* always visible on mobile */
+
+  .space-profile-card {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .space-journey-track {
+    /* On very narrow screens, reduce dot size slightly */
+    gap: 0;
+  }
+
+  .space-journey-step__label { font-size: 0.52rem; }
+
+  .space-profile-form__actions { flex-direction: column; }
+
+  .space-profile-form__actions .primary-button,
+  .space-profile-form__actions .ghost-button { width: 100%; }
+}
+
+
+/* ── 30k. Reduced motion guard ──────────────────────────────────────
+   No new animations fire for prefers-reduced-motion users.          */
+@media (prefers-reduced-motion: reduce) {
+  .space-tab-panel.is-active { animation: none; }
+  .space-saved-card__img img { transition: none; }
+  .space-journey-step__dot   { transition: none; }
+}
+

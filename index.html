@@ -726,53 +726,85 @@
           <div class="space-view" id="spaceDashboard" hidden>
             <div class="space-dashboard">
 
-              <header class="space-dashboard__header editorial-panel reveal">
-                <div class="space-dashboard__greeting">
-                  <p class="section-kicker">Your personal space</p>
-                  <h2 id="spaceDashGreeting">Your Space 💛</h2>
+              <!-- ── Greeting header ──────────────────────────────────── -->
+              <header class="space-dash-head reveal">
+                <div class="space-dash-head__text">
+                  <p class="section-kicker" id="spaceDashKicker">Your personal space</p>
+                  <h2 class="space-heading" id="spaceDashGreeting">Your Space 💛</h2>
                   <p class="space-auth-intro" id="spaceDashTagline">Everything you love, thoughtfully kept in one place.</p>
                 </div>
-                <div class="space-dashboard__actions">
-                  <a class="secondary-button" href="#products">Browse collection</a>
-                  <button type="button" class="ghost-button" id="spaceSignoutBtn">Leave your space</button>
-                </div>
+                <button type="button" class="space-leave-btn" id="spaceSignoutBtn">
+                  Leave quietly
+                </button>
               </header>
 
-              <div class="account-features reveal">
-                <article class="feature-card">
-                  <i data-lucide="heart"></i>
-                  <h3>Moments Loved</h3>
-                  <p>The pieces you've saved, quietly kept for when you're ready to return to them.</p>
-                </article>
-                <article class="feature-card">
-                  <i data-lucide="shopping-bag"></i>
-                  <h3>Your Keepsakes</h3>
-                  <p>Every order becomes a memory of the day you chose something just for yourself.</p>
-                </article>
-                <article class="feature-card">
-                  <i data-lucide="sparkles"></i>
-                  <h3>Style Profile</h3>
-                  <p>So ABDAN can remember what you love and recommend with intimacy rather than noise.</p>
-                </article>
-                <article class="feature-card">
-                  <i data-lucide="mail"></i>
-                  <h3>Personal Notes</h3>
-                  <p>Greetings, style updates, and contact that feels warm and welcome.</p>
-                </article>
-              </div>
+              <!-- ── Gentle section navigation ──────────────────────── -->
+              <nav class="space-tabs" id="spaceTabs" aria-label="Your Space sections">
+                <button class="space-tab is-active" data-space-tab="overview" type="button">Your Space</button>
+                <button class="space-tab" data-space-tab="saved" type="button">
+                  Saved Pieces
+                  <span class="space-tab__count" id="spaceTabSavedCount" hidden></span>
+                </button>
+                <button class="space-tab" data-space-tab="journey" type="button">Your Journey</button>
+                <button class="space-tab" data-space-tab="profile" type="button">Your Profile</button>
+              </nav>
 
-              <!-- ── Mood profile — quietly surfaces affinity if it exists ── -->
-              <div class="space-mood-profile reveal" id="spaceMoodProfile" hidden>
-                <div class="space-mood-profile__inner">
-                  <span class="space-mood-profile__kicker">A mood remembered</span>
-                  <p class="space-mood-profile__value" id="spaceMoodValue"></p>
-                  <button type="button" class="text-link space-mood-profile__cta"
-                          id="spaceMoodExplore">Explore this mood →</button>
+              <!-- ── Panel: Your Space (overview) ───────────────────── -->
+              <div class="space-tab-panel is-active" id="spaceTabOverview">
+
+                <!-- Mood affinity strip — shown only when affinity data exists -->
+                <div class="space-mood-profile" id="spaceMoodProfile" hidden>
+                  <div class="space-mood-profile__inner">
+                    <span class="space-mood-profile__kicker">A mood remembered</span>
+                    <p class="space-mood-profile__value" id="spaceMoodValue"></p>
+                    <button type="button" class="text-link space-mood-profile__cta" id="spaceMoodExplore">Explore this mood →</button>
+                  </div>
                 </div>
+
+                <!-- Quiet privilege moments — belonging without gamification -->
+                <div class="space-privilege-row">
+                  <div class="space-privilege-card">
+                    <i data-lucide="clock" aria-hidden="true"></i>
+                    <strong>Early Access</strong>
+                    <span>Reserved selections before the collection opens</span>
+                  </div>
+                  <div class="space-privilege-card">
+                    <i data-lucide="gem" aria-hidden="true"></i>
+                    <strong>Private Releases</strong>
+                    <span>Pieces quietly held for inner circle members</span>
+                  </div>
+                  <div class="space-privilege-card">
+                    <i data-lucide="mail" aria-hidden="true"></i>
+                    <strong>Seasonal Notes</strong>
+                    <span>Thoughtful correspondence, never commercial noise</span>
+                  </div>
+                </div>
+
+                <!-- Browse invitation -->
+                <div class="space-browse-cta">
+                  <p class="space-browse-cta__text">The collection is waiting, curated with care.</p>
+                  <a class="secondary-button" href="#products">Browse the collection</a>
+                </div>
+
               </div>
 
-              <!-- ── Order history: populated by renderSpaceOrders() ─── -->
-              <div class="space-orders" id="spaceOrdersPanel"></div>
+              <!-- ── Panel: Saved Pieces ─────────────────────────────── -->
+              <div class="space-tab-panel" id="spaceTabSaved" hidden>
+                <!-- Rendered by renderSpaceWishlist() -->
+                <div id="spaceWishlistPanel"></div>
+              </div>
+
+              <!-- ── Panel: Your Journey (order history) ────────────── -->
+              <div class="space-tab-panel" id="spaceTabJourney" hidden>
+                <!-- Rendered by renderSpaceOrders() -->
+                <div id="spaceOrdersPanel"></div>
+              </div>
+
+              <!-- ── Panel: Your Profile ────────────────────────────── -->
+              <div class="space-tab-panel" id="spaceTabProfile" hidden>
+                <!-- Rendered by renderSpaceProfile() -->
+                <div id="spaceProfilePanel"></div>
+              </div>
 
             </div>
           </div>

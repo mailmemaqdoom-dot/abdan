@@ -1059,7 +1059,7 @@ function showSpaceView(viewId) {
   }, 200);
 }
 
-/* ── Render order history cards for a phone number in Your Space ─────────
+/* ── Render order journey cards — premium storytelling timeline ───────────
    Matches orders where customerPhone === phone (same device = same LS).    */
 function renderSpaceOrders(phone) {
   const panel = document.getElementById("spaceOrdersPanel");
@@ -1069,56 +1069,85 @@ function renderSpaceOrders(phone) {
     const all = JSON.parse(localStorage.getItem("abdan-studio-orders") || "[]");
     orders = all.filter((o) => String(o.customerPhone || "").replace(/\D/g, "") === String(phone || "").replace(/\D/g, ""));
   } catch { /* ignore */ }
+
   if (!orders.length) {
     panel.innerHTML = `
-      <p class="space-orders__heading">Your Orders</p>
-      <p class="space-orders__empty">No orders yet — when you place one, it'll appear here as a quiet reminder of the day you chose something just for yourself. 💛</p>`;
+      <p class="space-section-heading">Your Journey</p>
+      <div class="space-journey-empty">
+        <i data-lucide="package" aria-hidden="true"></i>
+        <p>When you place your first order, its journey to you will unfold here — quietly and beautifully.</p>
+        <a class="secondary-button" href="#products">Begin your journey</a>
+      </div>`;
+    safeCreateIcons();
     return;
   }
-  const statusLabel = {
+
+  const statusSteps    = ["confirmed", "preparing", "shipped", "out_for_delivery", "delivered"];
+  const statusLabel    = {
     confirmed:        "Carefully Reserved",
     preparing:        "Being Prepared",
     shipped:          "On Its Way",
     out_for_delivery: "Arriving Soon",
     delivered:        "Arrived 💛",
   };
+  const stepLabel      = ["Reserved", "Prepared", "Dispatched", "Arriving", "Home 💛"];
+
   const cards = orders.map((order) => {
-    const dateStr = order.createdAt
+    const dateStr      = order.createdAt
       ? new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
       : "";
-    const itemsSummary = (order.items || []).map((i) => `${i.name} (${i.size}/${i.color} ×${i.quantity})`).join(", ");
+    const itemsSummary = (order.items || [])
+      .map((i) => `${i.name}${i.quantity > 1 ? ` ×${i.quantity}` : ""}`)
+      .join(", ");
+    const currentIdx   = statusSteps.indexOf(order.status || "confirmed");
+
+    const stepsHtml = statusSteps.map((step, idx) => {
+      const isDone    = idx <= currentIdx;
+      const isCurrent = idx === currentIdx;
+      const connector = idx < statusSteps.length - 1
+        ? `<div class="space-journey-line${isDone && idx < currentIdx ? " is-done" : ""}" aria-hidden="true"></div>`
+        : "";
+      return `<div class="space-journey-step${isDone ? " is-done" : ""}${isCurrent ? " is-current" : ""}" aria-label="${stepLabel[idx]}">
+        <span class="space-journey-step__dot"></span>
+        <span class="space-journey-step__label">${stepLabel[idx]}</span>
+      </div>${connector}`;
+    }).join("");
+
     return `
-      <div class="space-order-card">
-        <div class="space-order-card__header">
-          <span class="space-order-card__ref">${order.ref || order.id || "—"}</span>
-          <span class="space-order-card__status" data-status="${order.status || "confirmed"}">${statusLabel[order.status] || "Confirmed"}</span>
+      <div class="space-journey-card">
+        <div class="space-journey-card__head">
+          <span class="space-journey-card__ref">${order.ref || order.id || "—"}</span>
+          <span class="space-journey-card__date">${dateStr}</span>
         </div>
-        <div class="space-order-card__items">${itemsSummary || "—"}</div>
-        <div class="space-order-card__footer">
-          <span class="space-order-card__total">${formatCurrency(order.total || 0)}</span>
-          <span class="space-order-card__date">${dateStr}</span>
+        ${itemsSummary ? `<p class="space-journey-card__items">${itemsSummary}</p>` : ""}
+        <div class="space-journey-track" role="list" aria-label="Order journey">${stepsHtml}</div>
+        <div class="space-journey-card__foot">
+          <span class="space-journey-card__status" data-status="${order.status || "confirmed"}">${statusLabel[order.status] || "Carefully Reserved"}</span>
+          <span class="space-journey-card__total">${formatCurrency(order.total || 0)}</span>
         </div>
       </div>`;
   }).join("");
-  panel.innerHTML = `<p class="space-orders__heading">Your Orders</p>${cards}`;
+
+  panel.innerHTML = `<p class="space-section-heading">Your Journey</p>${cards}`;
+  safeCreateIcons();
 }
 
 function showSpaceDashboard(profile, isNew = false) {
-  const first       = (profile.displayName || profile.fullName || "").split(" ")[0] || "you";
+  const first        = (profile.displayName || profile.fullName || "").split(" ")[0] || "you";
   const affinityMood = getAffinityMood();
+
+  /* ── Greeting copy ───────────────────────────────────────────────── */
+  const kickerEl    = document.getElementById("spaceDashKicker");
   const greetingEl  = document.getElementById("spaceDashGreeting");
   const taglineEl   = document.getElementById("spaceDashTagline");
 
-  if (greetingEl) {
-    greetingEl.textContent = isNew
-      ? `Your Space is Ready, ${first} 💛`
-      : `Welcome back, ${first} 💛`;
-  }
-  if (taglineEl) {
-    taglineEl.textContent = isNew
-      ? "Everything you love, thoughtfully kept in one place."
-      : "Your space is exactly as you left it.";
-  }
+  if (kickerEl)   kickerEl.textContent   = isNew ? "A space made for you" : "Welcome back";
+  if (greetingEl) greetingEl.textContent = isNew
+    ? `Your Space is ready, ${first} 💛`
+    : `${first}'s Space 💛`;
+  if (taglineEl)  taglineEl.textContent  = isNew
+    ? "A quieter space, thoughtfully yours."
+    : "Your space is exactly as you left it.";
 
   /* ── Mood profile strip — surfaces affinity if it exists ──────────── */
   const moodProfileEl = document.getElementById("spaceMoodProfile");
@@ -1143,8 +1172,16 @@ function showSpaceDashboard(profile, isNew = false) {
   }
 
   showSpaceView("spaceDashboard");
-  /* Render order history for this phone number */
+
+  /* ── Populate all panels ─────────────────────────────────────────── */
   renderSpaceOrders(profile.phone || "");
+  renderSpaceWishlist();
+  renderSpaceProfile(profile.email || "");
+  updateSavedPiecesCount();
+
+  /* Reset to overview tab on entry */
+  showSpaceTab("overview");
+
   if (isNew) showToast("Your Space is ready. Welcome. 💛");
 }
 
@@ -1217,6 +1254,198 @@ function handleSpaceSignout() {
   clearSpaceSession();
   showSpaceView("spaceEntry");
   showToast("Until next time 💛");
+}
+
+/* ── Space tab navigation ────────────────────────────────────────────
+   Four panels: overview · saved · journey · profile.
+   Activated via data-space-tab delegation in main init section.       */
+function showSpaceTab(tabId) {
+  const panelMap = { overview: "spaceTabOverview", saved: "spaceTabSaved", journey: "spaceTabJourney", profile: "spaceTabProfile" };
+  document.querySelectorAll("[data-space-tab]").forEach((t) => {
+    t.classList.toggle("is-active", t.dataset.spaceTab === tabId);
+    t.setAttribute("aria-selected", t.dataset.spaceTab === tabId ? "true" : "false");
+  });
+  Object.entries(panelMap).forEach(([key, panelId]) => {
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+    const isActive = key === tabId;
+    panel.hidden = !isActive;
+    panel.classList.toggle("is-active", isActive);
+  });
+}
+
+/* ── Render wishlist as "Saved Pieces" in the space ──────────────────
+   Uses the global PRODUCTS constant (source of truth for product data). */
+function renderSpaceWishlist() {
+  const panel = document.getElementById("spaceWishlistPanel");
+  if (!panel) return;
+
+  const wishlistIds = getWishlist();                       /* Set of id strings */
+  const saved       = PRODUCTS.filter((p) => wishlistIds.has(String(p.id)));
+
+  if (!saved.length) {
+    panel.innerHTML = `
+      <p class="space-section-heading">Saved Pieces</p>
+      <div class="space-saved-empty">
+        <i data-lucide="heart" aria-hidden="true"></i>
+        <p>Nothing saved yet — when a piece catches your heart, it waits quietly here.</p>
+        <a class="secondary-button" href="#products">Browse the collection</a>
+      </div>`;
+    safeCreateIcons();
+    return;
+  }
+
+  const cards = saved.map((p) => `
+    <div class="space-saved-card">
+      <div class="space-saved-card__img" aria-hidden="true">
+        ${p.image
+          ? `<img src="${p.image}" alt="" loading="lazy" />`
+          : `<div class="space-saved-card__img-placeholder"></div>`}
+      </div>
+      <div class="space-saved-card__body">
+        <p class="space-saved-card__name">${p.name}</p>
+        <p class="space-saved-card__price">${p.priceLabel || ""}</p>
+      </div>
+      <button class="space-saved-card__remove" data-remove-saved="${p.id}"
+              type="button" aria-label="Remove ${p.name} from saved pieces">
+        <i data-lucide="x" aria-hidden="true"></i>
+      </button>
+    </div>`).join("");
+
+  panel.innerHTML = `<p class="space-section-heading">Saved Pieces</p><div class="space-saved-grid">${cards}</div>`;
+
+  panel.querySelectorAll("[data-remove-saved]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const wl = getWishlist();
+      wl.delete(btn.dataset.removeSaved);
+      saveWishlist(wl);
+      renderSpaceWishlist();
+      updateSavedPiecesCount();
+      safeCreateIcons();
+      showToast("Piece gently removed. 💛");
+    });
+  });
+
+  safeCreateIcons();
+}
+
+/* ── Update the Saved Pieces tab badge count ─────────────────────── */
+function updateSavedPiecesCount() {
+  const countEl = document.getElementById("spaceTabSavedCount");
+  if (!countEl) return;
+  const n = getWishlist().size;
+  if (n > 0) { countEl.textContent = n; countEl.hidden = false; }
+  else        { countEl.hidden = true; }
+}
+
+/* ── Render profile view + inline edit form ───────────────────────── */
+function renderSpaceProfile(email) {
+  const panel = document.getElementById("spaceProfilePanel");
+  if (!panel) return;
+
+  const profiles   = getSpaceProfiles();
+  const profile    = profiles[email?.toLowerCase?.() || ""] || {};
+  const initials   = ((profile.displayName || profile.fullName || "?").charAt(0)).toUpperCase();
+  const joinedDate = profile.createdAt
+    ? new Date(profile.createdAt).toLocaleDateString("en-IN", { month: "long", year: "numeric" })
+    : "";
+  const fullDiffers = profile.fullName && profile.fullName !== profile.displayName;
+
+  panel.innerHTML = `
+    <div class="space-profile-card">
+      <div class="space-profile-avatar" aria-hidden="true">
+        <span class="space-profile-initials">${initials}</span>
+      </div>
+      <div class="space-profile-info">
+        <p class="space-profile-display">${profile.displayName || profile.fullName || ""}</p>
+        ${fullDiffers ? `<p class="space-profile-full-name">${profile.fullName}</p>` : ""}
+        <p class="space-profile-meta">${profile.email || ""}</p>
+        ${profile.phone ? `<p class="space-profile-meta">${profile.phone}</p>` : ""}
+        ${joinedDate ? `<p class="space-profile-joined">With ABDAN since ${joinedDate}</p>` : ""}
+      </div>
+    </div>
+
+    <div class="space-profile-edit-section">
+      <button type="button" class="space-edit-toggle" id="spaceEditToggle">Edit my details</button>
+
+      <form class="space-form space-profile-form" id="spaceProfileForm" hidden novalidate>
+        <label class="space-field">
+          <span class="space-field__label">What should we call you?</span>
+          <small class="space-field__hint">Display Name</small>
+          <input type="text" name="displayName" value="${profile.displayName || ""}" autocomplete="nickname" required />
+        </label>
+        <label class="space-field">
+          <span class="space-field__label">A number for gentle updates</span>
+          <small class="space-field__hint">Mobile Number (optional)</small>
+          <input type="tel" name="phone" value="${profile.phone || ""}" autocomplete="tel" placeholder="+91 00000 00000" />
+        </label>
+        <p class="space-profile-form__note">Your email address cannot be changed. For help, reach out on WhatsApp 💛</p>
+        <p class="space-form__error" id="spaceProfileError" role="alert" hidden></p>
+        <div class="space-profile-form__actions">
+          <button type="submit" class="primary-button">Save gently</button>
+          <button type="button" class="ghost-button" id="spaceEditCancel">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="space-profile-privacy">
+      <p class="space-profile-privacy__text">Your space remains private and protected.</p>
+      <ul class="space-trust-list">
+        <li><i data-lucide="check-circle"></i> Private &amp; Secure</li>
+        <li><i data-lucide="check-circle"></i> Carefully Protected</li>
+        <li><i data-lucide="check-circle"></i> Always Under Your Control</li>
+      </ul>
+    </div>`;
+
+  /* Toggle edit form visibility */
+  document.getElementById("spaceEditToggle")?.addEventListener("click", () => {
+    const form   = document.getElementById("spaceProfileForm");
+    const toggle = document.getElementById("spaceEditToggle");
+    if (!form || !toggle) return;
+    form.hidden  = !form.hidden;
+    toggle.textContent = form.hidden ? "Edit my details" : "Cancel editing";
+  });
+
+  document.getElementById("spaceEditCancel")?.addEventListener("click", () => {
+    const form   = document.getElementById("spaceProfileForm");
+    const toggle = document.getElementById("spaceEditToggle");
+    if (form)   form.hidden       = true;
+    if (toggle) toggle.textContent = "Edit my details";
+  });
+
+  /* Save profile changes */
+  document.getElementById("spaceProfileForm")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const form        = e.currentTarget;
+    const displayName = form.displayName.value.trim();
+    const phone       = form.phone?.value?.trim() || "";
+    const errEl       = document.getElementById("spaceProfileError");
+
+    if (!displayName) {
+      if (errEl) { errEl.textContent = "Please tell us what to call you."; errEl.hidden = false; }
+      return;
+    }
+    if (errEl) errEl.hidden = true;
+
+    const allProfiles = getSpaceProfiles();
+    const key         = email?.toLowerCase?.() || "";
+    if (allProfiles[key]) {
+      allProfiles[key].displayName = displayName;
+      allProfiles[key].phone       = phone;
+      localStorage.setItem(SPACE_STORAGE_KEY, JSON.stringify(allProfiles));
+    }
+
+    /* Update session with new display name */
+    try {
+      const sess = JSON.parse(sessionStorage.getItem(SPACE_SESSION_KEY) || "null");
+      if (sess) { sess.displayName = displayName; sessionStorage.setItem(SPACE_SESSION_KEY, JSON.stringify(sess)); }
+    } catch { /* ignore */ }
+
+    renderSpaceProfile(email);
+    showToast("Your details have been gently saved. 💛");
+  });
+
+  safeCreateIcons();
 }
 
 function initSpaceAuth() {
@@ -2550,6 +2779,12 @@ function attachEvents() {
   document.getElementById("spaceToCreate")?.addEventListener("click", () => showSpaceView("spaceCreate"));
   document.getElementById("spaceToSignin")?.addEventListener("click", () => showSpaceView("spaceSignin"));
   document.getElementById("spaceSignoutBtn")?.addEventListener("click", handleSpaceSignout);
+
+  /* ── Space tab delegation — single listener on the nav container ─── */
+  document.getElementById("spaceTabs")?.addEventListener("click", (e) => {
+    const tab = e.target.closest("[data-space-tab]");
+    if (tab) showSpaceTab(tab.dataset.spaceTab);
+  });
 
   /* ── Forgot password reveal ─────────────────────────────────────── */
   document.getElementById("spaceForgotBtn")?.addEventListener("click", () => {
