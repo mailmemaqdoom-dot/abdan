@@ -9603,3 +9603,356 @@ html[data-theme="dark"] .nps-panel__choice:hover {
 }
 
 /* ═══ END SECTION 38 ════════════════════════════════════════════════════ */
+
+/* ╔══════════════════════════════════════════════════════════════════════╗
+   ║  SECTION 39 — CRED-Inspired Interaction & Motion Philosophy          ║
+   ║  Warm dark palette · Tactile press depth · Floating shadow system    ║
+   ║  Skeleton shimmer · Editorial breathing · Cinematic warmth           ║
+   ╚══════════════════════════════════════════════════════════════════════╝
+
+   Philosophy: CRED's interaction intelligence (tactile press, motion
+   restraint, depth hierarchy) reinterpreted through ABDAN's emotional
+   luxury DNA. Every micro-interaction must feel like touched fabric —
+   present but never mechanical. Warmth over coolness, weight over
+   frictionlessness, breath over speed.
+
+   ABDAN warm dark palette:
+     #12100F  →  warm near-black      (deepest background)
+     #1F1B18  →  dark warm brown      (surface)
+     #3B3027  →  medium warm brown    (elevated surface)
+     #7B6654  →  muted warm brown     (dim text, borders)
+     #8A6B4F  →  warm amber-brown     (accent surface)
+     #B79B72  →  warm gold-adjacent   (soft text, highlights)
+   ──────────────────────────────────────────────────────────────────── */
+
+/* ── 39a. Warm dark mode palette ─────────────────────────────────────────
+   Overrides the cold emerald-green dark palette from the base dark block
+   with warm brown tones. CSS cascade: later wins. All rgba values derived
+   from the warm palette above for colour-system consistency.             */
+html[data-theme="dark"] {
+  /* Backgrounds — warm near-black ground */
+  --bg:             linear-gradient(180deg, #12100F 0%, #1A1612 55%, #12100F 100%);
+
+  /* Surfaces — layered warm brown depth */
+  --surface:        rgba(31,  27,  24,  0.92);
+  --surface-strong: rgba(18,  16,  15,  0.97);
+  --surface-soft:   rgba(59,  48,  39,  0.20);
+  --paper:          rgba(31,  27,  24,  0.88);
+  --card-bg:        rgba(33,  29,  25,  0.90);
+  --card-border:    rgba(183, 155, 114, 0.13);
+
+  /* Text — warm, not cold */
+  --text-main:      #F4EDE2;
+  --text-soft:      #B79B72;
+  --text-dim:       #7B6654;
+
+  /* Lines & dividers — warm breath */
+  --line:           rgba(183, 155, 114, 0.11);
+
+  /* Shadows — warm-tinted depth instead of pure black */
+  --shadow-xs:      0 2px  10px rgba(12,  6,  2,  0.24);
+  --shadow-sm:      0 8px  24px rgba(12,  6,  2,  0.30);
+  --shadow-soft:    0 18px 44px rgba(12,  6,  2,  0.36);
+  --shadow-lift:    0 28px 72px rgba(12,  6,  2,  0.46);
+  --shadow-deep:    0 48px 120px rgba(12,  6,  2,  0.60);
+
+  /* Floating surface glow token — used for elevated card presence */
+  --glow-warm:      0 0 0 1px rgba(183, 155, 114, 0.08),
+                    0 24px 64px rgba(12, 6, 2, 0.52),
+                    0 0 80px rgba(138, 107, 79, 0.05);
+}
+
+/* ── 39b. Warm dark background — body layer ──────────────────────────────
+   The background gradient needs to apply to the full viewport height.
+   We reinforce it on the body element for browsers that clip gradients. */
+html[data-theme="dark"] body {
+  background-color: #12100F; /* solid fallback below the gradient */
+}
+
+/* ── 39c. Warm dark drape ────────────────────────────────────────────────
+   §38 created the cinematic theme-switch drape in emerald green.
+   In the new warm dark mode, the drape sweeps warm amber instead.       */
+html[data-theme="dark"] .theme-drape {
+  background: radial-gradient(
+    ellipse 80% 60% at 55% 35%,
+    rgba(138, 107, 79, 0.10) 0%,
+    transparent 68%
+  );
+}
+
+/* ── 39d. Tactile press states ───────────────────────────────────────────
+   CRED-level interaction depth. JS adds .is-pressing on pointerdown,
+   .is-releasing on pointerup. The spring easing (cubic-bezier with
+   overshoot > 1.0) creates a micro-bounce that reads as physical
+   material memory — the surface "remembers" the press.
+
+   Targets: product cards, action buttons, NPS choices, nav orbs.
+   Not applied to text links or form fields (they have their own states). */
+.product-card.is-pressing,
+.orb-button.is-pressing,
+.primary-button.is-pressing,
+.secondary-button.is-pressing,
+.space-form__submit.is-pressing,
+.nps-panel__choice.is-pressing,
+[data-tactile].is-pressing {
+  transform:  scale(0.965);
+  transition: transform 90ms cubic-bezier(0.25, 0.0, 0.40, 1.0) !important;
+}
+
+/* Spring release — overshoot at 1.12 creates the material-memory feel */
+.product-card.is-releasing,
+.orb-button.is-releasing,
+.primary-button.is-releasing,
+.secondary-button.is-releasing,
+.space-form__submit.is-releasing,
+.nps-panel__choice.is-releasing,
+[data-tactile].is-releasing {
+  transform:  scale(1.0);
+  transition: transform 380ms cubic-bezier(0.34, 1.12, 0.64, 1.0) !important;
+}
+
+/* Product cards: preserve existing hover translateY during press */
+.product-card:hover.is-pressing  { transform: translateY(-2px) scale(0.968); }
+.product-card:hover.is-releasing { transform: translateY(-4px) scale(1.0);   }
+
+/* ── 39e. Floating surface architecture ──────────────────────────────────
+   CRED-style depth hierarchy. Cards float above the ground plane with
+   warm-tinted shadows that create a sense of physical separation.
+   Three tiers: resting · hover · pressed.                               */
+html[data-theme="dark"] .product-card {
+  box-shadow: var(--shadow-sm);
+  transition:
+    box-shadow  320ms var(--ease-out),
+    transform   320ms var(--ease-snap),
+    border-color 240ms var(--ease-out);
+}
+html[data-theme="dark"] .product-card:hover {
+  box-shadow:   var(--glow-warm);
+  border-color: rgba(183, 155, 114, 0.18);
+}
+html[data-theme="dark"] .product-card.is-pressing {
+  box-shadow: var(--shadow-xs) !important;
+}
+
+/* Elevated modals, drawers, panels */
+html[data-theme="dark"] .space-modal,
+html[data-theme="dark"] .admin-panel,
+html[data-theme="dark"] .filter-drawer {
+  box-shadow: var(--shadow-deep);
+  border-color: rgba(183, 155, 114, 0.10);
+}
+
+/* ── 39f. Skeleton loading shimmer ──────────────────────────────────────
+   Warm gold shimmer instead of the cold grey default.
+   Applied via .skeleton-shimmer class added by JS during loading states. */
+.skeleton-shimmer {
+  background:      linear-gradient(
+    90deg,
+    rgba(59, 48, 39, 0.0)   0%,
+    rgba(183, 155, 114, 0.11) 40%,
+    rgba(183, 155, 114, 0.16) 50%,
+    rgba(183, 155, 114, 0.11) 60%,
+    rgba(59, 48, 39, 0.0)  100%
+  );
+  background-size: 300% 100%;
+  animation:       abdan-shimmer 1800ms ease infinite;
+  border-radius:   inherit;
+}
+@keyframes abdan-shimmer {
+  0%   { background-position:  200% center; }
+  100% { background-position: -200% center; }
+}
+
+/* Skeleton placeholder shapes */
+.skeleton-line {
+  height:        0.9em;
+  border-radius: 4px;
+  margin-bottom: 0.6em;
+}
+.skeleton-line--short { width: 55%; }
+.skeleton-line--long  { width: 88%; }
+
+/* ── 39g. Editorial breathing room ──────────────────────────────────────
+   CRED's layouts breathe. Dark mode specifically gains more vertical
+   rhythm — shadow and depth create perceived density, so more air
+   is needed to balance the visual weight of the warm tones.             */
+html[data-theme="dark"] .section-frame {
+  padding-top:    calc(var(--section-pad, 5rem) * 1.08);
+  padding-bottom: calc(var(--section-pad, 5rem) * 1.08);
+}
+
+html[data-theme="dark"] .section-heading {
+  margin-bottom: 2.8rem;
+}
+
+html[data-theme="dark"] .product-grid {
+  gap: clamp(1.25rem, 2.8vw, 2rem);
+}
+
+/* ── 39h. Warm surface depth accents ─────────────────────────────────────
+   Subtle warm radial bloom beneath key sections — the page has physical
+   depth, like light warming dark leather from below.                    */
+html[data-theme="dark"] .collection-section .section-frame {
+  background-image: radial-gradient(
+    ellipse 65% 48% at 50% 90%,
+    rgba(138, 107, 79, 0.055) 0%,
+    transparent 68%
+  );
+}
+html[data-theme="dark"] .editorial-campaign.section-frame {
+  background-image: radial-gradient(
+    ellipse 70% 55% at 48% 85%,
+    rgba(183, 155, 114, 0.040) 0%,
+    transparent 72%
+  );
+}
+html[data-theme="dark"] .hero-section {
+  background-image: radial-gradient(
+    ellipse 90% 60% at 50% 100%,
+    rgba(59, 48, 39, 0.25) 0%,
+    transparent 65%
+  );
+}
+
+/* ── 39i. Warm line and border overrides ─────────────────────────────────
+   All hr/dividers in dark mode shift to warm tone.                      */
+html[data-theme="dark"] hr,
+html[data-theme="dark"] .section-divider,
+html[data-theme="dark"] .promise-band__divider {
+  border-color:    rgba(183, 155, 114, 0.12);
+  background-color: rgba(183, 155, 114, 0.10);
+}
+
+/* Footer in warm dark mode */
+html[data-theme="dark"] .site-footer {
+  background:   #12100F;
+  border-color: rgba(183, 155, 114, 0.10);
+}
+
+/* ── 39j. Warm dark form refinement ─────────────────────────────────────
+   Form fields in dark mode: warm border, warm focus glow.              */
+html[data-theme="dark"] .space-field input,
+html[data-theme="dark"] .space-field textarea,
+html[data-theme="dark"] .space-field select {
+  background:   rgba(31, 27, 24, 0.80);
+  border-color: rgba(183, 155, 114, 0.18);
+  color:        var(--text-main);
+}
+html[data-theme="dark"] .space-field.is-active input,
+html[data-theme="dark"] .space-field.is-active textarea {
+  border-color: rgba(183, 155, 114, 0.40);
+  box-shadow:   0 0 0 3px rgba(183, 155, 114, 0.07);
+  background:   rgba(40, 35, 30, 0.90);
+}
+html[data-theme="dark"] .space-field.is-valid input {
+  border-color: rgba(138, 107, 79, 0.42);
+  box-shadow:   0 0 0 3px rgba(138, 107, 79, 0.07);
+}
+
+/* ── 39k. Warm NPS panel ─────────────────────────────────────────────────
+   NPS panel in warm dark mode shifts from cold surface to warm.        */
+html[data-theme="dark"] .nps-panel {
+  background:   rgba(31, 27, 24, 0.96);
+  border-color: rgba(183, 155, 114, 0.14);
+  box-shadow:   var(--shadow-deep);
+}
+html[data-theme="dark"] .nps-panel__choice {
+  border-color: rgba(183, 155, 114, 0.14);
+  color:        #B79B72;
+}
+html[data-theme="dark"] .nps-panel__choice:hover {
+  border-color: rgba(183, 155, 114, 0.40);
+  background:   rgba(183, 155, 114, 0.07);
+  color:        #F4EDE2;
+}
+
+/* ── 39l. Warm dark navigation ───────────────────────────────────────────
+   Header/nav in warm dark mode: warm surface, not cold glass.          */
+html[data-theme="dark"] .site-header {
+  background:   rgba(18, 16, 15, 0.90);
+  border-color: rgba(183, 155, 114, 0.10);
+}
+html[data-theme="dark"] .orb-button {
+  background:   rgba(59, 48, 39, 0.60);
+  border-color: rgba(183, 155, 114, 0.14);
+  color:        #B79B72;
+}
+html[data-theme="dark"] .orb-button:hover {
+  background:   rgba(59, 48, 39, 0.90);
+  border-color: rgba(183, 155, 114, 0.28);
+  color:        #F4EDE2;
+}
+html[data-theme="dark"] .orb-button#themeToggle {
+  color: #B79B72;
+}
+html[data-theme="dark"] .orb-button#themeToggle:hover {
+  background:  rgba(183, 155, 114, 0.12);
+  box-shadow:  0 0 0 1px rgba(183, 155, 114, 0.28),
+               0 0 20px rgba(183, 155, 114, 0.07);
+  color:       var(--gold);
+}
+
+/* ── 39m. Scroll softness ────────────────────────────────────────────────
+   CRED-level scroll feel. Overscroll reveals the warm ground plane.    */
+html[data-theme="dark"] {
+  overscroll-behavior-y: contain;
+  scrollbar-color: rgba(138, 107, 79, 0.28) rgba(18, 16, 15, 1);
+  scrollbar-width: thin;
+}
+html[data-theme="dark"]::-webkit-scrollbar { width: 6px; }
+html[data-theme="dark"]::-webkit-scrollbar-track {
+  background: rgba(18, 16, 15, 1);
+}
+html[data-theme="dark"]::-webkit-scrollbar-thumb {
+  background:    rgba(138, 107, 79, 0.28);
+  border-radius: 3px;
+}
+html[data-theme="dark"]::-webkit-scrollbar-thumb:hover {
+  background: rgba(183, 155, 114, 0.42);
+}
+
+/* ── 39n. Depth hierarchy — admin & modal surfaces ───────────────────────
+   In dark mode, admin panel uses the warm-elevated surface tier.       */
+html[data-theme="dark"] .admin-panel,
+html[data-theme="dark"] .admin-section {
+  background:   rgba(25, 21, 18, 0.92);
+  border-color: rgba(183, 155, 114, 0.10);
+}
+html[data-theme="dark"] .admin-intel-card {
+  background:   rgba(40, 35, 30, 0.80);
+  border-color: rgba(183, 155, 114, 0.10);
+}
+html[data-theme="dark"] .admin-intel-card strong {
+  color: #B79B72;
+}
+
+/* ── 39o. Mobile tactile refinements ─────────────────────────────────────
+   On touch devices, the tactile press scale is slightly softer to feel
+   more natural under a finger than under a cursor.                     */
+@media (hover: none) and (pointer: coarse) {
+  .product-card.is-pressing,
+  .orb-button.is-pressing,
+  .primary-button.is-pressing,
+  [data-tactile].is-pressing {
+    transform: scale(0.972) !important;
+  }
+}
+
+/* ── 39p. Reduced motion guard ───────────────────────────────────────────
+   Tactile scale animations are motion — respect the preference.        */
+@media (prefers-reduced-motion: reduce) {
+  .is-pressing,
+  .is-releasing,
+  .skeleton-shimmer {
+    transform:  none !important;
+    transition: none !important;
+    animation:  none !important;
+  }
+  html[data-theme="dark"] .collection-section .section-frame,
+  html[data-theme="dark"] .editorial-campaign.section-frame,
+  html[data-theme="dark"] .hero-section {
+    background-image: none;
+  }
+}
+
+/* ═══ END SECTION 39 ════════════════════════════════════════════════════ */

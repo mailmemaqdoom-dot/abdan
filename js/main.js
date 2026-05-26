@@ -3231,6 +3231,12 @@ function init() {
   initNPSSystem();
   initAdminIntelligence();
 
+  /* ── §39 CRED-Inspired Interaction & Motion Philosophy ─────────────────
+     Tactile press depth on all interactive surfaces. Must run after the
+     DOM is settled (after §38 systems) so dynamic elements are available.
+     MutationObserver inside the function handles any later injections.   */
+  initTactileSystem();
+
   /* ── §35 Perception Architecture ──────────────────────────────────────
      Time-of-day atmosphere + session pacing activated before page-ready
      so CSS variables are resolved on the first rendered frame.            */
@@ -3418,6 +3424,82 @@ function initSessionPacing() {
     setTimeout(() => body.setAttribute("data-session", "present"), 90_000);
     setTimeout(() => body.setAttribute("data-session", "settled"), 240_000);
   } catch { /* non-critical — fail silently */ }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SECTION 39 — CRED-Inspired Interaction & Motion Philosophy
+   Tactile press depth system. Reinterprets CRED's physical interaction
+   intelligence through ABDAN's warm emotional luxury DNA.
+
+   Philosophy: every interactive surface must feel like touched fabric —
+   it yields gently under a finger (90 ms ease-in press), then springs
+   back with a micro-overshoot (380 ms spring) that reads as material
+   memory. The surface "remembers" it was touched.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+function initTactileSystem() {
+  /* Targets that receive press-depth feedback.
+     .product-card has its own hover-transform; we compose with scale.
+     orb-buttons, action buttons, NPS choices all get the full spring.   */
+  const TACTILE_SELECTOR = [
+    ".product-card",
+    ".orb-button",
+    ".primary-button",
+    ".secondary-button",
+    ".space-form__submit",
+    ".nps-panel__choice",
+    "[data-tactile]",
+  ].join(",");
+
+  function attachTactile(el) {
+    /* Guard: never double-attach */
+    if (el._abdan_tactile) return;
+    el._abdan_tactile = true;
+
+    let pressing = false;
+
+    el.addEventListener("pointerdown", (e) => {
+      /* Only primary pointer (left click / first finger) */
+      if (e.button !== undefined && e.button !== 0) return;
+      pressing = true;
+      el.classList.remove("is-releasing");
+      el.classList.add("is-pressing");
+    }, { passive: true });
+
+    function release() {
+      if (!pressing) return;
+      pressing = false;
+      el.classList.remove("is-pressing");
+      el.classList.add("is-releasing");
+    }
+
+    el.addEventListener("pointerup",     release, { passive: true });
+    el.addEventListener("pointercancel", release, { passive: true });
+    el.addEventListener("pointerleave",  release, { passive: true });
+
+    /* Clean up .is-releasing after the spring finishes */
+    el.addEventListener("transitionend", (e) => {
+      if (e.propertyName === "transform" && e.target === el) {
+        el.classList.remove("is-releasing");
+      }
+    }, { passive: true });
+  }
+
+  /* Attach to all elements present at init time */
+  document.querySelectorAll(TACTILE_SELECTOR).forEach(attachTactile);
+
+  /* MutationObserver: attach to elements injected dynamically later
+     (product cards rendered by JS after search/filter, NPS panel, etc.) */
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (node.nodeType !== 1) continue; /* elements only */
+        if (node.matches?.(TACTILE_SELECTOR)) attachTactile(node);
+        node.querySelectorAll?.(TACTILE_SELECTOR).forEach(attachTactile);
+      }
+    }
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
 }
 
 window.addEventListener("DOMContentLoaded", init);
