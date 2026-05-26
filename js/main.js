@@ -3198,8 +3198,56 @@ function init() {
     const found = PRODUCTS.find((p) => p.id === deepProduct);
     if (found) requestAnimationFrame(() => openProduct(found.id));
   }
+  /* ── §35 Perception Architecture ──────────────────────────────────────
+     Time-of-day atmosphere + session pacing activated before page-ready
+     so CSS variables are resolved on the first rendered frame.            */
+  initTimeAtmosphere();
+  initSessionPacing();
+  if (memory.visitCount >= 3) {
+    document.body.setAttribute("data-returning", "true");
+  }
+
   /* ── Page entrance: fade body in after full hydration ──────────────── */
   requestAnimationFrame(() => document.body.classList.add("page-ready"));
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   §35 — PERCEPTION ARCHITECTURE
+   Invisible intelligence layer. Shapes emotional pacing, sensory atmosphere,
+   and cognitive rhythm. Nothing here should ever be consciously felt.
+   Rules: no visible AI experience, no futuristic signals, no manipulation.
+   Only warmth, calm, and the quiet sense that the space knows the hour.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+function initTimeAtmosphere() {
+  /* Sets html[data-time] once per session based on current hour.
+     CSS reads this attribute to shift colour tokens and promise-band warmth:
+       morning  05–10 → crisp, clean
+       day      11–16 → ABDAN defaults
+       evening  17–20 → warm, amber-kissed
+       night    21–04 → deepest, most intimate                               */
+  try {
+    const h = new Date().getHours();
+    const period =
+      h >=  5 && h < 11 ? "morning"  :
+      h >= 11 && h < 17 ? "day"      :
+      h >= 17 && h < 21 ? "evening"  :
+                          "night";
+    document.documentElement.setAttribute("data-time", period);
+  } catch { /* non-critical — fail silently */ }
+}
+
+function initSessionPacing() {
+  /* Session pacing: reveal transitions deepen as the visitor settles in.
+       90 s  → "present" (engaged browsing pace)
+       4 min → "settled" (relaxed, unhurried, luxurious pace)
+     The change in transition timing is ~130–140 ms — below the threshold
+     of conscious perception but measurably calmer to the nervous system.   */
+  try {
+    const body = document.body;
+    setTimeout(() => body.setAttribute("data-session", "present"), 90_000);
+    setTimeout(() => body.setAttribute("data-session", "settled"), 240_000);
+  } catch { /* non-critical — fail silently */ }
 }
 
 window.addEventListener("DOMContentLoaded", init);

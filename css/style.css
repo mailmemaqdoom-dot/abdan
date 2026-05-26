@@ -8761,3 +8761,129 @@ html[data-theme="dark"] .feature-card {
 }
 
 /* ═══ END SECTION 34 ════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SECTION 35 — EMOTIONAL PERCEPTION ARCHITECTURE
+   Build the invisible layer: time-of-day atmosphere, session pacing, spatial
+   depth, scene progression, and visual silence. Nothing here should ever be
+   consciously noticed. The visitor should only feel that ABDAN breathes.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 35a. Time-of-day atmospheric tones — light mode token shifts ─────────
+   Shifts --ivory and --cream by ~1–3% toward warmth or coolness.
+   Changes are imperceptible in isolation; felt only as ambient comfort.    */
+html[data-time="morning"] { --ivory: #faf6ef; --cream: #e8e1cd; }   /* crisp */
+/* html[data-time="day"] — ABDAN defaults, no override needed             */
+html[data-time="evening"] { --ivory: #f9f2e7; --cream: #e5ddc8; }   /* amber */
+html[data-time="night"]   { --ivory: #f6f0e3; --cream: #e2dac4; }   /* deep  */
+
+/* ── 35b. Session pacing — reveals breathe slower as visitor settles ─────
+   90 s → "present": visitor is engaged; reveals deepen slightly.
+   4 min → "settled": visitor is at rest; transitions become most unhurried. */
+body[data-session="present"] .reveal                  { transition-duration: 1060ms, 1060ms; }
+body[data-session="present"] .section-heading.reveal  { transition-duration: 1180ms, 1180ms; }
+body[data-session="settled"] .reveal                  { transition-duration: 1180ms, 1180ms; }
+body[data-session="settled"] .section-heading.reveal  { transition-duration: 1320ms, 1320ms; }
+
+/* ── 35c. Atmospheric scene tones — section temperature progression ──────
+   Each section carries a micro-ambient tone; no borders or boxes, just
+   an invisible thermal gradient across the scroll journey.               */
+.editorial-campaign.section-frame  { background-color: rgba(197, 161,  59, 0.018); }
+.story-section.section-frame       { background-color: rgba(197, 161,  59, 0.022); }
+.circle-section.section-frame      { background-color: rgba(  2,  61,  58, 0.016); }
+.teaser-section.section-frame      { background-color: rgba(197, 161,  59, 0.012); }
+
+/* ── 35d. Evening / night scene warmth ───────────────────────────────────
+   Editorial and story sections absorb more gold warmth as day deepens.   */
+html[data-time="evening"] .editorial-campaign.section-frame,
+html[data-time="evening"] .story-section.section-frame      { background-color: rgba(197, 161, 59, 0.030); }
+html[data-time="night"]   .editorial-campaign.section-frame,
+html[data-time="night"]   .story-section.section-frame      { background-color: rgba(197, 161, 59, 0.038); }
+
+/* ── 35e. Promise band time-of-day warmth ────────────────────────────────
+   The brand statement becomes warmer as evening arrives — a breath of
+   amber gold enters the emerald, deepening the emotional resonance.      */
+html[data-time="evening"] .promise-band__inner,
+html[data-time="night"]   .promise-band__inner {
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--emerald) 92%, var(--gold) 8%) 0%,
+    var(--emerald)                                          55%,
+    color-mix(in srgb, var(--emerald) 97%, #000           3%) 100%
+  );
+}
+
+/* ── 35f. Spatial depth — shadow plane hierarchy ─────────────────────────
+   Layer 0 (sections): no shadow — flat environment plane.
+   Layer 1 (cards, resting): xs shadow — barely lifted.
+   Layer 2 (cards, hover): soft shadow — tactile, responsive lift.        */
+.product-card                   { box-shadow: var(--shadow-xs); }
+.product-card:hover             { box-shadow: var(--shadow-soft); transform: translateY(-3px); }
+
+/* ── 35g. Dark mode — time-of-day atmospheric depth ─────────────────────
+   Evening and night pull the dark surface deeper toward velvet intimacy. */
+html[data-theme="dark"][data-time="evening"] { --bg: #021a18; --surface: #032220; }
+html[data-theme="dark"][data-time="night"]   { --bg: #01110f; --surface: #011a17; }
+
+html[data-theme="dark"] .product-card        { box-shadow: 0 1px 3px  rgba(0, 0, 0, 0.32); }
+html[data-theme="dark"] .product-card:hover  { box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45); }
+
+/* ── 35h. Atmospheric dark mode promise band ─────────────────────────────
+   Refinement over 34n: deeper tonal layering, evening gold warmth.      */
+html[data-theme="dark"] .promise-band__inner {
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, #012f2c 96%, var(--gold)  4%) 0%,
+    #01302e                                          55%,
+    color-mix(in srgb, #01302e 97%, #000           3%) 100%
+  );
+}
+html[data-theme="dark"][data-time="evening"] .promise-band__inner,
+html[data-theme="dark"][data-time="night"]   .promise-band__inner {
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, #012f2c 90%, var(--gold)  10%) 0%,
+    #01302e                                            55%,
+    color-mix(in srgb, #01302e 96%, #000              4%) 100%
+  );
+}
+
+/* ── 35i. Returning visitor — warm continuity tone ───────────────────────
+   On 3rd+ visit the promise band carries a fractionally stronger gold
+   accent. A signal the space has been lived in, not a welcome banner.   */
+body[data-returning="true"] .promise-band__inner::before {
+  background: radial-gradient(
+    ellipse at 20% 70%,
+    rgba(197, 161, 59, 0.14) 0%,
+    transparent              52%
+  );
+}
+
+/* ── 35j. Visual silence — typography restraint pass ─────────────────────
+   Section sublines quieter; section-kicker more refined; hero copy
+   contained. The eye rests without prompting.                            */
+.section-heading > p   { opacity: 0.54; font-size: 0.91rem; max-width: 44ch; line-height: 1.66; }
+.section-kicker        { letter-spacing: 0.22em; font-size: 0.635rem; }
+.hero-copy             { max-width: 44ch; }
+
+/* ── 35k. Operational invisibility — focus states quieter ───────────────
+   Form focus rings become gold at low opacity — present, not intrusive.  */
+.input-base:focus {
+  box-shadow: 0 0 0 2px rgba(197, 161, 59, 0.22);
+  outline: none;
+}
+
+/* ── 35l. Curated discovery breath — collection entry exhale ────────────
+   A touch more space before products begin. The eye composes before it
+   begins to browse.                                                       */
+.collection-section .section-heading { margin-bottom: clamp(3.2rem, 5.5vh, 4.8rem); }
+
+/* ── 35m. Reduced motion guard ──────────────────────────────────────────  */
+@media (prefers-reduced-motion: reduce) {
+  body[data-session] .reveal,
+  body[data-session] .section-heading.reveal {
+    transition-duration: 1ms, 1ms !important;
+  }
+}
+
+/* ═══ END SECTION 35 ════════════════════════════════════════════════════ */
