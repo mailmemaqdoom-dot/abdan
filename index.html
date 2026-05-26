@@ -68,14 +68,9 @@
              Dark mode: CSS text fallback (font-display: swap activates
              the real font as soon as AbdanCalligraph.woff2 is placed). -->
         <div class="lx-entry__wordmark" aria-label="ABDAN">
-          <img
-            class="lx-entry__wordmark-img"
-            src="./assets/logo/abdan-wordmark-full.jpeg"
-            alt="ABDAN"
-            width="260"
-            draggable="false"
-          />
-          <span class="lx-entry__wordmark-text abdan-calligraph" aria-hidden="true">ABDAN</span>
+          <svg class="abdan-sig" overflow="visible" focusable="false" aria-hidden="true">
+            <use href="#abdan-wordmark"></use>
+          </svg>
         </div>
 
         <!-- Step 3 — Emotional tagline -->
@@ -152,6 +147,36 @@
                 stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
         </symbol>
 
+        <!-- ABDAN luxury signature wordmark — the definitive identity vector.
+             Cormorant Garamond Light Italic (300i): calligraphic stroke contrast,
+             flowing pen angle, hairline delicacy. The mark feels handcrafted
+             because the italic axis mirrors Arabic calligraphic pen movement.
+             The underline stroke is a single cubic Bézier — the flowing baseline
+             that Arabic script draws beneath its letters. At opacity 0.28 it is
+             present but silent: a signature flourish, not an ornament.
+             currentColor makes this system theme-responsive with zero duplication:
+             one symbol, four contexts, two modes. -->
+        <symbol id="abdan-wordmark" viewBox="0 0 210 68">
+          <text
+            x="8" y="51"
+            font-family="'Cormorant Garamond', Georgia, serif"
+            font-size="54"
+            font-weight="300"
+            font-style="italic"
+            letter-spacing="8"
+            fill="currentColor"
+            text-rendering="optimizeLegibility"
+          >ABDAN</text>
+          <path
+            d="M 6 61 C 70 67, 140 60, 204 64"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="0.85"
+            stroke-linecap="round"
+            opacity="0.28"
+          />
+        </symbol>
+
       </defs>
     </svg>
     <!-- ── End SVG sprite ─────────────────────────────────────────────── -->
@@ -169,12 +194,9 @@
         </span>
         <span>
           <strong class="brand-pill__name" aria-label="ABDAN">
-            <!-- Official Abdan Calligraph JPEG — light mode.
-                 mix-blend-mode: multiply drops the white JPEG background
-                 against the warm pill surface; only the emerald calligraphy
-                 remains. Dark mode: JPEG hidden, CSS text span takes over. -->
-            <img class="brand-pill__wordmark" src="./assets/logo/abdan-wordmark-full.jpeg" alt="" draggable="false" />
-            <span class="brand-pill__wordmark-text abdan-calligraph" aria-hidden="true">ABDAN</span>
+            <svg class="abdan-sig" overflow="visible" focusable="false" aria-hidden="true">
+              <use href="#abdan-wordmark"></use>
+            </svg>
           </strong>
           <small>Your Devotion Meets Style</small>
         </span>
@@ -821,8 +843,9 @@
             <h1>
               <!-- Official calligraphy for brand identity moment in admin -->
               <span class="admin-wordmark" aria-label="ABDAN">
-                <img class="admin-wordmark__img" src="./assets/logo/abdan-wordmark-full.jpeg" alt="" draggable="false" />
-                <span class="admin-wordmark__text abdan-calligraph" aria-hidden="true">ABDAN</span>
+                <svg class="abdan-sig" overflow="visible" focusable="false" aria-hidden="true">
+                  <use href="#abdan-wordmark"></use>
+                </svg>
               </span><span class="admin-wordmark__suffix"> Admin</span>
             </h1>
             <p>
@@ -1173,8 +1196,9 @@
           <!-- Official calligraphy wordmark — brand signature moment in footer.
                Light: JPEG with multiply blend. Dark: CSS text in warm cream. -->
           <div class="footer-wordmark" aria-label="ABDAN">
-            <img class="footer-wordmark__img" src="./assets/logo/abdan-wordmark-full.jpeg" alt="ABDAN" draggable="false" />
-            <span class="footer-wordmark__text abdan-calligraph" aria-hidden="true">ABDAN</span>
+            <svg class="abdan-sig" overflow="visible" focusable="false" aria-hidden="true">
+              <use href="#abdan-wordmark"></use>
+            </svg>
           </div>
           <p class="footer-tagline">Your Devotion Meets Style</p>
           <p>

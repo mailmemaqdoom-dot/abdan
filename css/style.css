@@ -9126,3 +9126,135 @@ html[data-theme="dark"] .lx-entry {
 }
 
 /* ═══ END SECTION 36 ════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SECTION 37 — ABDAN SIGNATURE WORDMARK SYSTEM
+   Replaces the fragile JPEG ↔ CSS-text toggle with a single inline SVG
+   identity object. The SVG symbol (#abdan-wordmark) is defined once in the
+   HTML sprite and referenced at all four brand moments via <use>.
+
+   Why this is a true identity upgrade — not a font exercise:
+   ● Vector: crisp at any size, on any display, in any mode
+   ● currentColor: one symbol, two modes (emerald / cream), zero duplication
+   ● Calligraphic underline: cubic Bézier baseline stroke, inspired by the
+     continuous flowing baseline of Arabic script — subtle but architectural
+   ● Full typographic control: letter-spacing, weight, style at SVG level
+   ● No JPEG compression artefacts, no mix-blend-mode hacks, no show/hide
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 37a. Base signature SVG — color, display, overflow ─────────────────
+   currentColor resolves to the CSS `color` property of the element
+   or its nearest color-inheriting ancestor. Theme toggling is handled
+   entirely by switching that computed color value.                       */
+.abdan-sig {
+  display:  block;
+  overflow: visible;          /* prevent viewBox clipping at any scale */
+  color:    #0C3B2E;          /* brand emerald — light mode default */
+}
+
+html[data-theme="dark"] .abdan-sig {
+  color: var(--cream);        /* warm cream on dark surfaces */
+}
+
+/* ── 37b. Entry / splash — the signature arrival moment ─────────────────
+   The largest and most dominant placement. This is the brand's first
+   impression — scale it to feel iconic, not decorative.                 */
+.lx-entry .abdan-sig {
+  width:  clamp(270px, 68vw, 420px);
+  height: auto;
+}
+
+/* ── 37c. Navigation — quietly confident, not a nav label ───────────────
+   In the nav pill the wordmark must establish identity without competing
+   with content. Slightly larger than before — present but not dominant.  */
+.brand-pill .abdan-sig {
+  width:  clamp(92px, 20vw, 128px);
+  height: auto;
+}
+
+/* ── 37d. Footer — brand signature closing mark ─────────────────────────
+   The footer wordmark is a signature at the bottom of the page — slightly
+   larger than it was as JPEG (was 42px height ≈ 135px width equivalent). */
+.footer-wordmark .abdan-sig {
+  width:  clamp(160px, 30vw, 240px);
+  height: auto;
+}
+
+/* ── 37e. Admin — inline with "Admin" suffix text ───────────────────────
+   Must align optically with the suffix span on the same baseline.       */
+.admin-wordmark .abdan-sig {
+  display:        inline-block;
+  vertical-align: middle;
+  width:          clamp(100px, 20vw, 160px);
+  height:         auto;
+}
+
+/* ── 37f. Suppress legacy JPEG / CSS-text system ────────────────────────
+   The SVG now covers all contexts. The old elements remain in DOM for
+   backward-compatibility but must not render.                            */
+.brand-pill__wordmark,
+.brand-pill__wordmark-text,
+.lx-entry__wordmark-img,
+.lx-entry__wordmark-text,
+.footer-wordmark__img,
+.footer-wordmark__text,
+.admin-wordmark__img,
+.admin-wordmark__text {
+  display: none !important;
+}
+
+/* ── 37g. Entry screen — breathing room recalibrated ────────────────────
+   With the larger SVG wordmark, give the entry layout more vertical space
+   between the mark and the tagline below it.                             */
+.lx-entry__wordmark {
+  margin-bottom: 1.75rem;
+}
+
+/* ── 37h. Nav brand pill — layout for SVG wordmark ──────────────────────
+   The <strong> is now flex-aligned around just the SVG (no img or span
+   siblings to juggle). Ensure clean vertical centering.                  */
+.brand-pill__name {
+  display:     flex;
+  align-items: center;
+}
+
+/* ── 37i. Footer wordmark — vertical rhythm ─────────────────────────────
+   The SVG sits slightly taller than the old JPEG height (42px → auto).
+   Recalibrate the margin to maintain footer breathing rhythm.            */
+.footer-wordmark {
+  margin: 0.45rem 0 0.55rem;
+}
+
+/* ── 37j. Dark mode — entry logo icon restored ──────────────────────────
+   In dark mode the circular seal mark above the wordmark is shown for
+   the two-element layout (icon + text). SVG wordmark is fully visible   */
+html[data-theme="dark"] .lx-entry__logo {
+  display: block;    /* existing rule — re-affirmed */
+}
+
+/* ── 37k. Mobile — wordmark scaled for thumb-scroll luxury ─────────────  */
+@media (max-width: 767px) {
+  .lx-entry .abdan-sig  { width: clamp(230px, 76vw, 310px); }
+  .brand-pill .abdan-sig { width: clamp(78px, 23vw, 108px); }
+  .footer-wordmark .abdan-sig { width: clamp(140px, 44vw, 200px); }
+}
+
+/* ── 37l. Wordmark reveal — entry screen cinematic pacing ────────────────
+   The .lx-entry__wordmark container already carries opacity/transform
+   reveal animation (JS adds .is-visible). The SVG inside inherits it.
+   Deepen the reveal: longer duration, slightly more translate.           */
+.lx-entry__wordmark {
+  transform: translateY(14px);   /* was 10px — more cinematic drift */
+  transition:
+    opacity   760ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 760ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── 37m. Wordmark SVG — antialiasing & rendering quality ───────────────
+   SVG text inherits CSS font-smoothing where applicable.                */
+.abdan-sig text {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ═══ END SECTION 37 ════════════════════════════════════════════════════ */
