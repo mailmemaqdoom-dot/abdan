@@ -8887,3 +8887,242 @@ body[data-returning="true"] .promise-band__inner::before {
 }
 
 /* ═══ END SECTION 35 ════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SECTION 36 — CINEMATIC TYPOGRAPHY & CALLIGRAPHIC WORDMARK IDENTITY
+   Two intertwined goals:
+     1. Typography motion — atmospheric, editorial, imperceptibly alive.
+        Letters settle; they do not announce. Pacing is luxury film, not reel.
+     2. ABDAN wordmark — refined to feel like a handcrafted luxury signature
+        with subtle Arabic calligraphic rhythm. Not decorative. Not obvious.
+        Quietly iconic. Emotionally premium.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 36a. Wordmark image scale — quiet dominance ─────────────────────────
+   The wordmark was visually underpowered. Each placement receives calibrated
+   scale: enough presence to feel iconic; never enough to feel loud.         */
+
+/* Entry / splash — signature moment: most dominant placement */
+.lx-entry__wordmark-img {
+  width: clamp(240px, 62vw, 360px);    /* was clamp(200px,55vw,280px) — 28% larger */
+}
+
+/* Navigation — confident but not competing with content */
+.brand-pill__wordmark {
+  height: 28px;                         /* was 22px — 27% more presence */
+}
+
+/* Footer — brand signature closing mark */
+.footer-wordmark__img {
+  height: 42px;                         /* was 32px — 31% more presence */
+}
+
+/* ── 36b. Dark mode calligraphic wordmark text refinement ────────────────
+   When the JPEG blends poorly (dark surfaces), the CSS text fallback activates.
+   It now uses Cormorant Garamond Light Italic (300i) — the closest digital
+   approximation to refined Arabic calligraphic stroke rhythm:
+   - Italic axis: calligraphic pen angle, flowing stroke variation
+   - Weight 300: hairline delicacy, handcrafted quality
+   - Tighter tracking (0.10em): feels written, not stamped              */
+
+/* Entry / splash wordmark */
+html[data-theme="dark"] .lx-entry__wordmark-text {
+  font-size:      clamp(2.8rem, 8vw, 4.4rem);  /* was clamp(2rem,6vw,3.25rem) */
+  font-style:     italic;
+  font-weight:    300;
+  letter-spacing: 0.10em;                       /* was 0.22em */
+}
+
+/* Navigation pill wordmark */
+html[data-theme="dark"] .brand-pill__wordmark-text {
+  font-size:      1.15rem;    /* was 1rem */
+  font-style:     italic;
+  font-weight:    300;
+  letter-spacing: 0.10em;    /* was 0.2em */
+}
+
+/* Footer wordmark */
+html[data-theme="dark"] .footer-wordmark__text {
+  font-size:      1.6rem;     /* was 1.35rem */
+  font-style:     italic;
+  font-weight:    300;
+  letter-spacing: 0.10em;    /* was 0.22em */
+}
+
+/* Admin wordmark (secondary context — maintain hierarchy) */
+html[data-theme="dark"] .admin-wordmark__text {
+  font-style:     italic;
+  font-weight:    300;
+  letter-spacing: 0.10em;
+}
+
+/* ── 36c. Hero h1 — cinematic letter-spacing settle ─────────────────────
+   As the hero heading fades in, its letters close from slightly open
+   tracking toward the editorial tight tracking of §34b.
+   The motion is ~35px of tracking change over 1,400 ms — imperceptible
+   when actively reading, deeply felt as atmospheric quality.             */
+.hero-copy h1.reveal {
+  letter-spacing: 0.015em;    /* initial: slightly open — pre-settle state */
+  transition:
+    opacity        1600ms var(--ease-out)  var(--reveal-delay, 0ms),
+    transform      1600ms var(--ease-snap) var(--reveal-delay, 0ms),
+    letter-spacing 1400ms var(--ease-out)  120ms;   /* delayed — starts after fade begins */
+}
+.hero-copy h1.reveal.is-visible {
+  letter-spacing: -0.03em;    /* settles to §34b editorial tight tracking */
+}
+
+/* Hero sublines — cinematic pacing (slower than base reveal) */
+.hero-copy .tagline-label.reveal,
+.hero-copy .eyebrow-row.reveal {
+  transition:
+    opacity   1100ms var(--ease-out)  var(--reveal-delay, 0ms),
+    transform 1100ms var(--ease-snap) var(--reveal-delay, 0ms);
+}
+.hero-copy p.reveal {
+  transition:
+    opacity   1240ms var(--ease-out)  var(--reveal-delay, 0ms),
+    transform 1240ms var(--ease-snap) var(--reveal-delay, 0ms);
+}
+.hero-copy .hero-actions.reveal {
+  transition:
+    opacity   900ms var(--ease-out)  var(--reveal-delay, 0ms),
+    transform 900ms var(--ease-snap) var(--reveal-delay, 0ms);
+}
+
+/* ── 36d. Section headings — letter-spacing settle ───────────────────────
+   The h2 is a child of the reveal container (.section-heading.reveal).
+   On reveal, it independently transitions from slightly open tracking
+   toward the refined editorial tight tracking of §34k.                  */
+.section-heading h2 {
+  letter-spacing: -0.012em;   /* wider than §34k final: -0.025em */
+  transition: letter-spacing 1000ms var(--ease-out) 60ms;
+}
+.section-heading.is-visible h2 {
+  letter-spacing: -0.025em;   /* §34k target — settles in as section reveals */
+}
+
+/* Campaign / editorial h2 — slightly more pronounced settle */
+.editorial-campaign .section-heading h2,
+.story-section .section-heading h2 {
+  letter-spacing: -0.010em;   /* wider start for more dramatic settle */
+  transition: letter-spacing 1100ms var(--ease-out) 80ms;
+}
+.editorial-campaign .section-heading.is-visible h2,
+.story-section .section-heading.is-visible h2 {
+  letter-spacing: -0.025em;
+}
+
+/* ── 36e. Dark mode heading warmth — ambient luminance ──────────────────
+   A barely-perceptible warm gold luminance surrounds large headings in
+   dark mode. Not visible. Felt as depth, warmth, and presence.          */
+html[data-theme="dark"] .hero-copy h1 {
+  text-shadow: 0 0 100px rgba(197, 161, 59, 0.07);
+}
+html[data-theme="dark"] .section-heading h2 {
+  text-shadow: 0 0 80px rgba(197, 161, 59, 0.05);
+}
+html[data-theme="dark"] .promise-band__inner blockquote {
+  text-shadow: 0 0 60px rgba(197, 161, 59, 0.10);
+}
+
+/* ── 36f. Dark mode body typography warmth ───────────────────────────────
+   Reduce harsh white contrast on body copy. Slight cream tint.          */
+html[data-theme="dark"] .hero-copy p,
+html[data-theme="dark"] .story-card p,
+html[data-theme="dark"] .testimonial-card p {
+  color: rgba(230, 223, 203, 0.82);    /* warm cream at 82% — not pure white */
+}
+
+/* ── 36g. Editorial campaign / story typography pacing ──────────────────
+   Campaign and editorial sections carry slower, more cinematic reveal
+   timing. Slightly deeper translate creates spatial separation.          */
+.editorial-campaign .reveal,
+.story-section      .reveal {
+  transform: translateY(20px);   /* slightly deeper than base 16px */
+  transition:
+    opacity   1100ms var(--ease-out)  var(--reveal-delay, 0ms),
+    transform 1100ms var(--ease-snap) var(--reveal-delay, 0ms);
+}
+
+/* ── 36h. Wordmark text — shared signature properties ───────────────────
+   All calligraphic wordmark text spans (not the inline brand name in body
+   copy) receive refined rendering for maximum calligraphic quality.     */
+.lx-entry__wordmark-text,
+.brand-pill__wordmark-text,
+.footer-wordmark__text,
+.admin-wordmark__text {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "liga" 1, "kern" 1;
+}
+
+/* ── 36i. Light mode wordmark image — sharper rendering ─────────────────
+   The JPEG wordmark is the definitive light-mode identity.
+   Ensure it renders crisply at the new larger sizes.                    */
+.lx-entry__wordmark-img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: auto;    /* let browser choose best at display size */
+}
+
+/* ── 36j. Mobile typography motion — effortless comfort ─────────────────
+   On mobile: reduce initial translate for smoother thumb-scroll rhythm.
+   The vertical distance of 16px travels too far on small screens.       */
+@media (max-width: 767px) {
+  .hero-copy h1.reveal {
+    transform:      translateY(10px);   /* gentler lift on mobile */
+    letter-spacing: 0.008em;            /* less dramatic start-state */
+  }
+  .editorial-campaign .reveal,
+  .story-section      .reveal {
+    transform: translateY(12px);        /* shallower than desktop 20px */
+  }
+  .lx-entry__wordmark-img {
+    width: clamp(220px, 72vw, 300px);   /* mobile: wider relative, contained */
+  }
+}
+
+/* ── 36k. Performance — GPU compositing scoped ───────────────────────────
+   will-change is expensive in memory. Scope it tightly to the cinematic
+   hero h1 only — the element most likely to animate near first paint.   */
+.hero-copy h1.reveal {
+  will-change: opacity, transform;
+}
+.hero-copy h1.reveal.is-visible {
+  will-change: auto;    /* release compositing layer after settle */
+}
+
+/* ── 36l. Dark mode entry screen — deeper atmosphere ────────────────────
+   Entry screen dark bg already uses --emerald-deep. The wordmark text
+   now feels more like a calligraphic ink stamp on deep velvet.          */
+html[data-theme="dark"] .lx-entry {
+  background: var(--emerald-deep);  /* existing — re-affirmed */
+}
+
+/* ── 36m. Reduced motion guard ──────────────────────────────────────────  */
+@media (prefers-reduced-motion: reduce) {
+  /* Letter-spacing transitions: disable completely */
+  .hero-copy h1.reveal,
+  .section-heading h2,
+  .editorial-campaign .section-heading h2,
+  .story-section      .section-heading h2 {
+    transition: opacity 1ms linear, transform 1ms linear !important;
+    letter-spacing: inherit !important;
+  }
+  .hero-copy h1.reveal.is-visible,
+  .section-heading.is-visible h2 {
+    letter-spacing: inherit !important;
+  }
+  /* Hero subline timing — collapse to instant */
+  .hero-copy .tagline-label.reveal,
+  .hero-copy .eyebrow-row.reveal,
+  .hero-copy p.reveal,
+  .hero-copy .hero-actions.reveal,
+  .editorial-campaign .reveal,
+  .story-section      .reveal {
+    transition-duration: 1ms !important;
+  }
+}
+
+/* ═══ END SECTION 36 ════════════════════════════════════════════════════ */
