@@ -1984,18 +1984,18 @@ function toggleWishlist(productId, btn) {
     wl.add(productId);
     btn.classList.add("is-saved");
     btn.setAttribute("aria-label", "Remove from wishlist");
-    /* WAAPI heart bloom — GPU scale spring */
+    /* WAAPI heart bloom — restrained: a quiet bloom, not a performance */
     const svg = btn.querySelector("svg");
     if (svg && typeof svg.animate === "function") {
       svg.animate(
         [
           { transform: "scale(1)" },
-          { transform: "scale(1.42)", offset: 0.28 },
-          { transform: "scale(0.84)", offset: 0.56 },
-          { transform: "scale(1.10)", offset: 0.78 },
+          { transform: "scale(1.22)", offset: 0.28 },
+          { transform: "scale(0.92)", offset: 0.56 },
+          { transform: "scale(1.05)", offset: 0.78 },
           { transform: "scale(1)" },
         ],
-        { duration: 500, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" }
+        { duration: 380, easing: "cubic-bezier(0.16, 1, 0.3, 1)" }   /* ease-snap — was spring 500ms */
       );
     }
     showToast("Quietly saved 💛");
@@ -2255,7 +2255,7 @@ function addToCart() {
         { transform: "scale(1.025)", offset: 0.62 },
         { transform: "scale(1)" },
       ],
-      { duration: 420, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" }
+      { duration: 280, easing: "cubic-bezier(0.16, 1, 0.3, 1)" }   /* ease-snap — was spring 420ms */
     );
   }
 
@@ -2450,7 +2450,7 @@ function setButtonLoading(button, loadingLabel) {
         { transform: "scale(0.96)", offset: 0.18 },
         { transform: "scale(1)" },
       ],
-      { duration: 320, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" }
+      { duration: 220, easing: "cubic-bezier(0.23, 1, 0.32, 1)" }    /* ease-out — no spring needed here */
     );
   }
 }

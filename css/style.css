@@ -7931,3 +7931,148 @@ html[data-theme="dark"] .space-profile-privacy {
   .space-journey-step__dot   { transition: none; }
 }
 
+
+/* ════════════════════════════════════════════════════════════════════
+   31. POST-MATURITY REFINEMENT — Mission III
+   ─────────────────────────────────────────────────────────────────
+   Philosophy: true luxury feels effortless. Motion felt, not performed.
+   Every override here brings a louder moment closer to silence.
+   Principle: subtract rather than add. Reduce rather than replace.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── 31a. Cart button pop ────────────────────────────────────────────
+   Original amplitude 1.22 felt theatrical against a quiet surface.
+   Reduced to 1.10: enough to register, nothing to announce.         */
+@keyframes cartPop {
+  0%   { transform: scale(1); }
+  38%  { transform: scale(1.10); }
+  68%  { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+.cart-button.is-popping {
+  animation: cartPop 360ms var(--ease-snap) forwards;
+}
+
+/* ── 31b. Cart count badge ───────────────────────────────────────────
+   1.52 bounce competed with the product being added.
+   1.22 confirms the action without demanding attention.              */
+@keyframes lx-count-pop {
+  0%   { transform: scale(1); }
+  38%  { transform: scale(1.22); }
+  68%  { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+#cartCount.is-counting {
+  animation: lx-count-pop 300ms var(--ease-snap) forwards;
+}
+
+/* ── 31c. Filter chip selection ──────────────────────────────────────
+   0.88 dip felt like a mechanical click. 1.08 overshoot felt playful.
+   Now 0.96 → 1.03: a whisper of confirmation, nothing more.         */
+@keyframes lx-chip-select {
+  0%   { transform: scale(1); }
+  32%  { transform: scale(0.96); }
+  66%  { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+.option-chip.lx-selecting {
+  animation: lx-chip-select 260ms var(--ease-snap) forwards;
+}
+
+/* ── 31d. Success icon pulse ─────────────────────────────────────────
+   Starting at scale 0.7 was abrupt — a jolt, not a bloom.
+   1.15 peak performed celebration; luxury simply acknowledges.       */
+@keyframes successPulse {
+  0%   { opacity: 0; transform: scale(0.88); }
+  60%  { opacity: 1; transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+/* ── 31e. Toast notification ─────────────────────────────────────────
+   Spring pop on a status message competed with the status itself.
+   Ease-snap: arrives softly, carries no bounce.                      */
+.toast {
+  transition: opacity 240ms var(--ease-out), transform 300ms var(--ease-snap);
+}
+
+/* ── 31f. Space view entrance ────────────────────────────────────────
+   420ms felt like the view was announcing itself.
+   300ms: the view simply appears, ready.                             */
+.space-view.is-entering {
+  animation-duration: 300ms;
+}
+
+/* ── 31g. Product card lift ──────────────────────────────────────────
+   Spring on card hover created a bouncy grid at rest.
+   Ease-snap: cards lift cleanly and settle with no overshoot.        */
+.card {
+  transition:
+    transform    260ms var(--ease-snap),
+    border-color 280ms var(--ease-out),
+    box-shadow   280ms var(--ease-out);
+}
+
+/* ── 31h. Floating orb button ────────────────────────────────────────
+   The orb is persistent chrome — always visible, always still.
+   Spring on persistent UI creates restlessness. Snap settles cleanly.*/
+.orb-button {
+  transition:
+    transform    240ms var(--ease-snap),
+    border-color 180ms var(--ease-out),
+    background   180ms var(--ease-out),
+    color        180ms var(--ease-out);
+}
+
+/* ── 31i. Support pill ───────────────────────────────────────────────
+   A help affordance should feel grounded, not elastic.               */
+.support-pill {
+  transition:
+    transform    220ms var(--ease-snap),
+    border-color 180ms var(--ease-out),
+    background   180ms var(--ease-out),
+    box-shadow   220ms var(--ease-out),
+    opacity      260ms var(--ease-out);
+}
+
+/* ── 31j. Filter chips (browse bar) ─────────────────────────────────
+   Browse-bar chips are repeated elements — spring across many chips
+   reads as restless. Snap keeps the browsing experience calm.        */
+.filter-chip {
+  transition:
+    transform      240ms var(--ease-snap),
+    background     200ms var(--ease-out),
+    border-color   200ms var(--ease-out),
+    color          200ms var(--ease-out),
+    box-shadow     200ms var(--ease-out);
+}
+
+/* ── 31k. Mobile dock links ──────────────────────────────────────────
+   Navigation chrome should be invisible to the eye. Spring on nav
+   tabs draws attention away from content being navigated to.         */
+@media (max-width: 767px) {
+  .dock-link {
+    transition:
+      background    240ms var(--ease-out),
+      color         240ms var(--ease-out),
+      padding       300ms var(--ease-snap),
+      box-shadow    280ms var(--ease-out),
+      transform     220ms var(--ease-snap);
+  }
+}
+
+/* ── 31l. Section heading entrance ──────────────────────────────────
+   22px travel on a heading felt like the page was loading, not breathing.
+   14px: the heading drifts in — present before noticed.              */
+.section-heading.reveal {
+  transform: translateY(14px) scale(0.998);
+}
+
+/* ── 31m. Reduced motion — honour all new animations ────────────────*/
+@media (prefers-reduced-motion: reduce) {
+  .cart-button.is-popping,
+  #cartCount.is-counting,
+  .option-chip.lx-selecting { animation: none; }
+  .space-view.is-entering    { animation: none; }
+  .toast                     { transition: opacity 160ms linear; }
+  .section-heading.reveal    { transform: none; }
+}
