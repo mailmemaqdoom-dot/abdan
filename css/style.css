@@ -9258,3 +9258,348 @@ html[data-theme="dark"] .lx-entry__logo {
 }
 
 /* ═══ END SECTION 37 ════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SECTION 38 — TRUST ARCHITECTURE + SENSORY LUXURY INTERACTION SYSTEM
+   Goal: make ABDAN feel emotionally trustworthy, atmospherically alive,
+   physically soft, and operationally elegant. Every rule here supports
+   emotional comfort and trust — nothing is attention-seeking.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 38a. Cinematic dark mode drape overlay ──────────────────────────────
+   Created dynamically by setTheme(). A soft radial bloom — the feeling
+   of ambient light shifting inside a luxury space.                       */
+.theme-drape {
+  position: fixed;
+  inset:    0;
+  z-index:  10000;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 80% 60% at 55% 35%,
+    rgba(2, 61, 58, 0.14) 0%,
+    transparent 68%
+  );
+  opacity:    0;
+  transition: opacity 220ms ease;
+  will-change: opacity;
+}
+.theme-drape--sweep { opacity: 1; }
+
+/* ── 38b. Dark mode toggle — refined identity ────────────────────────────
+   The toggle button becomes a warm glow on activation — minimal, editorial.
+   No heavy transforms; just an ambient warmth shift.                     */
+.orb-button#themeToggle {
+  transition:
+    background  240ms var(--ease-out),
+    box-shadow  240ms var(--ease-out),
+    color       180ms var(--ease-out);
+}
+.orb-button#themeToggle:hover {
+  background:  rgba(197, 161, 59, 0.10);
+  box-shadow:  0 0 0 1px rgba(197, 161, 59, 0.22);
+  color:       var(--gold);
+}
+html[data-theme="dark"] .orb-button#themeToggle:hover {
+  background: rgba(197, 161, 59, 0.14);
+  box-shadow: 0 0 0 1px rgba(197, 161, 59, 0.30),
+              0 0 20px rgba(197, 161, 59, 0.08);
+}
+
+/* ── 38c. Floating input active states ───────────────────────────────────
+   JS adds .is-active (focused), .has-value (content), .is-valid, .is-invalid
+   to .space-field. These three CSS classes handle all soft state rendering. */
+.space-field {
+  transition: transform 180ms var(--ease-out);
+}
+
+/* Focus: the whole field gently lifts */
+.space-field.is-active { transform: translateY(-1px); }
+
+/* Field label: colour-shifts on focus */
+.space-field.is-active .space-field__label {
+  color: var(--gold);
+  transition: color 200ms var(--ease-out);
+}
+
+/* Field input: softer transition than default */
+.space-field input {
+  transition:
+    border-color 200ms var(--ease-out),
+    box-shadow   240ms var(--ease-out),
+    background   200ms var(--ease-out),
+    transform    180ms var(--ease-out);
+}
+
+/* ── 38d. Validation states — soft, supportive, never alarming ───────────
+   Valid: subtle gold confirmation. Invalid: restrained warm-red, not harsh. */
+.space-field.is-valid input {
+  border-color: rgba(2, 100, 60, 0.40);
+  box-shadow:   0 0 0 3px rgba(2, 100, 60, 0.06);
+}
+.space-field.is-invalid input {
+  border-color: rgba(180, 60, 50, 0.38);
+  box-shadow:   0 0 0 3px rgba(180, 60, 50, 0.05);
+}
+
+/* Validation micro-message via ::after on invalid fields */
+.space-field.is-invalid::after {
+  content:      "This field needs attention";
+  display:      block;
+  font-size:    0.73rem;
+  color:        rgba(160, 50, 40, 0.70);
+  margin-top:   0.25rem;
+  letter-spacing: 0.01em;
+  animation:    abdan-soft-in 260ms var(--ease-out) both;
+}
+@keyframes abdan-soft-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+/* ── 38e. Consent fieldset — elegant, not bureaucratic ──────────────────
+   The consent block feels like a considered agreement, not a checkbox wall. */
+.space-consent {
+  border:        none;
+  padding:       0;
+  margin:        0;
+  display:       grid;
+  gap:           0.85rem;
+}
+.space-consent__legend {
+  font-size:      var(--type-body-sm);
+  font-weight:    600;
+  letter-spacing: 0.01em;
+  color:          var(--text-soft);
+  margin-bottom:  0.5rem;
+  display:        block;
+}
+.space-consent__row {
+  display:     flex;
+  gap:         0.75rem;
+  align-items: flex-start;
+  cursor:      pointer;
+}
+.space-consent__row input[type="checkbox"] {
+  flex-shrink:    0;
+  width:          1.15rem;
+  height:         1.15rem;
+  margin-top:     0.15rem;
+  accent-color:   var(--gold);
+  cursor:         pointer;
+  border-radius:  2px;
+}
+.space-consent__text {
+  font-size:   var(--type-body-sm);
+  color:       var(--text-soft);
+  line-height: 1.55;
+}
+.space-consent__required {
+  font-size:     0.67rem;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color:          var(--text-dim);
+  margin-left:    0.35rem;
+  font-style:     normal;
+}
+.space-consent__optional {
+  font-size:     0.67rem;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color:          var(--text-dim);
+  margin-left:    0.35rem;
+}
+.space-consent__row--optional .space-consent__text {
+  opacity: 0.80;
+}
+
+/* ── 38f. NPS feedback panel ─────────────────────────────────────────────
+   Rises softly from the bottom of the viewport. Auto-dismisses in 10 s.
+   Language is editorial and optional — never urgent, never demanding.    */
+.nps-panel {
+  position:     fixed;
+  bottom:       calc(env(safe-area-inset-bottom, 0px) + 1.5rem);
+  left:         50%;
+  transform:    translateX(-50%) translateY(1.5rem);
+  z-index:      8000;
+  background:   var(--surface);
+  border:       1px solid var(--line);
+  border-radius: var(--radius-xl);
+  box-shadow:   var(--shadow-deep);
+  padding:      1.4rem 1.6rem 1.2rem;
+  width:        min(92vw, 360px);
+  opacity:      0;
+  transition:
+    opacity   360ms var(--ease-out),
+    transform 400ms var(--ease-snap);
+  will-change: opacity, transform;
+}
+.nps-panel--visible {
+  opacity:   1;
+  transform: translateX(-50%) translateY(0);
+}
+.nps-panel__question {
+  font-family:    var(--font-display);
+  font-size:      1.05rem;
+  font-style:     italic;
+  font-weight:    400;
+  letter-spacing: -0.01em;
+  color:          var(--text-main);
+  margin:         0 0 1.1rem;
+  line-height:    1.4;
+}
+.nps-panel__choices {
+  display: grid;
+  gap:     0.5rem;
+}
+.nps-panel__choice {
+  text-align:     left;
+  background:     transparent;
+  border:         1px solid var(--line);
+  border-radius:  var(--radius-md);
+  padding:        0.65rem 1rem;
+  font-size:      0.84rem;
+  color:          var(--text-soft);
+  cursor:         pointer;
+  transition:
+    border-color 180ms var(--ease-out),
+    background   180ms var(--ease-out),
+    color        180ms var(--ease-out);
+}
+.nps-panel__choice:hover {
+  border-color: var(--gold);
+  background:   rgba(197, 161, 59, 0.06);
+  color:        var(--text-main);
+}
+.nps-panel__choice--warm:hover {
+  border-color: rgba(2, 61, 58, 0.45);
+  background:   rgba(2, 61, 58, 0.04);
+}
+.nps-panel__dismiss {
+  display:     block;
+  margin:      0.9rem auto 0;
+  background:  none;
+  border:      none;
+  font-size:   0.73rem;
+  letter-spacing: 0.08em;
+  color:       var(--text-dim);
+  cursor:      pointer;
+  padding:     0.3rem 0.5rem;
+  opacity:     0.70;
+  transition:  opacity 160ms ease;
+}
+.nps-panel__dismiss:hover { opacity: 1; }
+
+/* ── 38g. Admin experience intelligence section ──────────────────────────
+   A calm summary panel that shows emotional signals for the brand owner. */
+.admin-intelligence {
+  margin-bottom: 2rem;
+}
+.admin-intel-grid {
+  display:               grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap:                   1rem;
+  margin-top:            1.25rem;
+}
+.admin-intel-card {
+  background:    var(--surface-soft);
+  border:        1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding:       1.2rem 1.1rem;
+}
+.admin-intel-card strong {
+  display:     block;
+  font-size:   1.8rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  color:       var(--text-main);
+  margin:      0.25rem 0;
+  letter-spacing: -0.02em;
+}
+.admin-intel-card p {
+  font-size:  0.78rem;
+  color:      var(--text-soft);
+  line-height: 1.5;
+  margin:     0;
+}
+.admin-intel-card--response strong {
+  font-size: 0.92rem;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* ── 38h. Sensory materiality — surface warmth ───────────────────────────
+   Very subtle warm gradient on the surface beneath product cards —
+   creates a sense of the page having physical depth and fabric warmth.  */
+.collection-section .section-frame {
+  background-image: radial-gradient(
+    ellipse 70% 50% at 50% 80%,
+    rgba(197, 161, 59, 0.025) 0%,
+    transparent 70%
+  );
+}
+
+/* ── 38i. Save micro-interaction bloom — CSS part ────────────────────────
+   JS uses WAAPI for the scale pulse. CSS ensures the resting icon state
+   is softer, and the saved state has a warm fill transition.             */
+.product-card__save {
+  transition:
+    color       240ms var(--ease-out),
+    background  200ms var(--ease-out),
+    box-shadow  240ms var(--ease-out);
+}
+.product-card__save.is-saved svg path {
+  fill:         var(--gold);
+  stroke:       var(--gold);
+  transition:   fill 320ms var(--ease-snap), stroke 320ms var(--ease-snap);
+}
+.product-card__save:not(.is-saved) svg path {
+  fill:         none;
+  stroke:       currentColor;
+  transition:   fill 200ms ease, stroke 200ms ease;
+}
+
+/* ── 38j. Operational calmness — form submit state ───────────────────────
+   Button press feedback during form submission: subtle depth press.     */
+.space-form__submit:active,
+.primary-button:active {
+  transform:  translateY(1px) scale(0.99);
+  box-shadow: none;
+}
+
+/* ── 38k. Dark mode NPS warmth ───────────────────────────────────────────  */
+html[data-theme="dark"] .nps-panel {
+  background: var(--surface);
+  border-color: var(--line);
+}
+html[data-theme="dark"] .nps-panel__choice:hover {
+  background: rgba(197, 161, 59, 0.08);
+}
+
+/* ── 38l. Mobile refinements ─────────────────────────────────────────────  */
+@media (max-width: 767px) {
+  .nps-panel {
+    bottom:  calc(env(safe-area-inset-bottom, 0px) + 5rem); /* above bottom dock */
+    width:   min(96vw, 340px);
+    padding: 1.2rem 1.3rem 1rem;
+  }
+  .admin-intel-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ── 38m. Reduced motion guard ───────────────────────────────────────────  */
+@media (prefers-reduced-motion: reduce) {
+  .theme-drape,
+  .nps-panel,
+  .space-field,
+  .space-field input {
+    transition: none !important;
+    animation:  none !important;
+  }
+  .theme-drape--sweep { opacity: 0 !important; }
+  .space-field.is-active { transform: none; }
+  .space-field.is-invalid::after { animation: none; }
+}
+
+/* ═══ END SECTION 38 ════════════════════════════════════════════════════ */

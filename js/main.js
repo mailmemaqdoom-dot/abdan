@@ -810,11 +810,31 @@ function safeCreateIcons() {
 
 function setTheme(theme) {
   state.theme = theme;
-  dom.html.setAttribute("data-theme", theme);
-  localStorage.setItem("abdan-theme", theme);
-  const icon = dom.themeToggle.querySelector("i");
-  if (icon) icon.setAttribute("data-lucide", theme === "dark" ? "sun" : "moon");
-  safeCreateIcons();
+
+  /* ── §38 Cinematic atmospheric drape — ambient lighting sweep ──────────
+     A radial-gradient overlay fades in briefly as the theme token changes,
+     then recedes. The effect mimics ambient light shifting inside a luxury
+     space — not an animation, a change of atmosphere.                      */
+  const drape = document.createElement("div");
+  drape.className = "theme-drape";
+  document.body.appendChild(drape);
+
+  requestAnimationFrame(() => {
+    drape.classList.add("theme-drape--sweep");
+
+    /* Switch theme tokens at the sweep's luminance peak (180ms in) */
+    setTimeout(() => {
+      dom.html.setAttribute("data-theme", theme);
+      localStorage.setItem("abdan-theme", theme);
+      const icon = dom.themeToggle?.querySelector("i");
+      if (icon) icon.setAttribute("data-lucide", theme === "dark" ? "sun" : "moon");
+      safeCreateIcons();
+
+      /* Recede — leave only the new atmosphere */
+      drape.classList.remove("theme-drape--sweep");
+      setTimeout(() => drape.remove(), 340);
+    }, 180);
+  });
 }
 
 function isAdminRoute() {
@@ -997,12 +1017,19 @@ async function createSpaceProfile(data) {
   }
   const passwordHash = await hashValue(data.password);
   const profile = {
-    fullName: data.fullName.trim(),
+    fullName:    data.fullName.trim(),
     displayName: data.displayName.trim(),
     email,
-    phone: data.phone?.trim() || "",
+    phone:       data.phone?.trim() || "",
     passwordHash,
-    createdAt: new Date().toISOString(),
+    createdAt:   new Date().toISOString(),
+    /* §38 — Trust & consent record */
+    consent: {
+      agreement:    true,                          /* required — form validates */
+      marketing:    !!data.marketingConsent,        /* optional */
+      timestamp:    new Date().toISOString(),
+      version:      "1.0",
+    },
   };
   profiles[email] = profile;
   localStorage.setItem(SPACE_STORAGE_KEY, JSON.stringify(profiles));
@@ -1221,12 +1248,13 @@ async function handleSpaceCreate(event) {
   event.preventDefault();
   const form = event.currentTarget;
   const data = {
-    fullName: form.fullName.value,
-    displayName: form.displayName.value,
-    email: form.email.value,
-    phone: form.phone?.value || "",
-    password: form.password.value,
-    confirmPassword: form.confirmPassword.value,
+    fullName:         form.fullName.value,
+    displayName:      form.displayName.value,
+    email:            form.email.value,
+    phone:            form.phone?.value || "",
+    password:         form.password.value,
+    confirmPassword:  form.confirmPassword.value,
+    marketingConsent: form.marketingConsent?.checked || false,  /* §38 */
   };
   clearSpaceError("spaceCreateError");
   if (data.password.length < 6) {
@@ -3198,6 +3226,11 @@ function init() {
     const found = PRODUCTS.find((p) => p.id === deepProduct);
     if (found) requestAnimationFrame(() => openProduct(found.id));
   }
+  /* ── §38 Trust Architecture + Sensory System ──────────────────────── */
+  initFloatingInputs();
+  initNPSSystem();
+  initAdminIntelligence();
+
   /* ── §35 Perception Architecture ──────────────────────────────────────
      Time-of-day atmosphere + session pacing activated before page-ready
      so CSS variables are resolved on the first rendered frame.            */
@@ -3209,6 +3242,143 @@ function init() {
 
   /* ── Page entrance: fade body in after full hydration ──────────────── */
   requestAnimationFrame(() => document.body.classList.add("page-ready"));
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   §38 — TRUST ARCHITECTURE + SENSORY LUXURY INTERACTION SYSTEM
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Floating input active-state system ─────────────────────────────────
+   Adds .has-value to .space-field when its input contains content.
+   CSS uses this class to render the soft label-float state.
+   Validation also runs on blur — calm, supportive, never aggressive.    */
+function initFloatingInputs() {
+  document.querySelectorAll(".space-field input, .space-field textarea").forEach((input) => {
+    const field = () => input.closest(".space-field");
+
+    const syncValue = () => field()?.classList.toggle("has-value", input.value.trim().length > 0);
+    input.addEventListener("input",  syncValue);
+    input.addEventListener("change", syncValue);
+    syncValue();
+
+    /* Focus: reveal the field as active */
+    input.addEventListener("focus", () => {
+      field()?.classList.add("is-active");
+      field()?.classList.remove("is-invalid");   /* clear error on re-engage */
+    });
+    input.addEventListener("blur", () => {
+      field()?.classList.remove("is-active");
+      if (input.required && !input.value.trim()) {
+        field()?.classList.add("is-invalid");
+      } else if (input.value.trim() && input.checkValidity()) {
+        field()?.classList.add("is-valid");
+        field()?.classList.remove("is-invalid");
+      }
+    });
+  });
+}
+
+/* ── NPS — Restrained Emotional Feedback System ──────────────────────────
+   Luxury brand rules applied strictly:
+   ✗ Never on login or logout.  ✗ Never more than once per 14 days.
+   ✗ Never during entry sequence.
+   ✓ Only after 5 min engagement + 3+ product interactions.
+   ✓ Soft prompt, fully optional, auto-dismisses in 10 s.               */
+function initNPSSystem() {
+  const KEY_LAST = "abdan-nps-last";
+  const KEY_DATA = "abdan-nps-data";
+
+  /* 14-day cooldown */
+  const last      = parseInt(localStorage.getItem(KEY_LAST) || "0", 10);
+  const daysSince = (Date.now() - last) / 86_400_000;
+  if (daysSince < 14) return;
+
+  let interactions = 0;
+  document.addEventListener("abdan:productOpened", () => interactions++);
+
+  const ENGAGE_MS = 5 * 60 * 1000;   /* 5 minutes */
+  const MIN_VIEWS = 3;
+
+  setTimeout(() => {
+    if (interactions < MIN_VIEWS) return;
+    const panel = document.getElementById("npsPanel");
+    if (!panel) return;
+    panel.removeAttribute("hidden");
+    requestAnimationFrame(() => panel.classList.add("nps-panel--visible"));
+
+    const autoDismissId = setTimeout(() => dismissNPS(null), 10_000);
+
+    function dismissNPS(response) {
+      clearTimeout(autoDismissId);
+      panel.classList.remove("nps-panel--visible");
+      setTimeout(() => panel.setAttribute("hidden", ""), 420);
+      localStorage.setItem(KEY_LAST, String(Date.now()));
+      if (response) {
+        const data = JSON.parse(localStorage.getItem(KEY_DATA) || "[]");
+        data.push({
+          response,
+          timestamp:   new Date().toISOString(),
+          sessionTime: Math.floor(performance.now() / 1000),
+        });
+        try { localStorage.setItem(KEY_DATA, JSON.stringify(data)); } catch { /* quota */ }
+        showToast("Thank you. Your experience matters. 💛");
+      }
+    }
+
+    panel.querySelectorAll("[data-nps]").forEach((btn) =>
+      btn.addEventListener("click", () => dismissNPS(btn.dataset.nps), { once: true })
+    );
+    document.getElementById("npsDismiss")?.addEventListener("click",
+      () => dismissNPS(null), { once: true }
+    );
+  }, ENGAGE_MS);
+}
+
+/* ── Admin Experience Intelligence ──────────────────────────────────────
+   Populates the admin intelligence panel with feedback and consent data
+   drawn from localStorage. Shown only when admin is authenticated.      */
+function initAdminIntelligence() {
+  const panel = document.getElementById("adminIntelligencePanel");
+  if (!panel) return;
+
+  const npsData      = JSON.parse(localStorage.getItem("abdan-nps-data")  || "[]");
+  const profiles     = getSpaceProfiles();
+  const profileList  = Object.values(profiles);
+  const consented    = profileList.filter((p) => p.consent?.agreement).length;
+  const marketing    = profileList.filter((p) => p.consent?.marketing).length;
+
+  const counts = { lovely: 0, needed: 0, off: 0 };
+  npsData.forEach((d) => { if (d.response in counts) counts[d.response]++; });
+  const total  = npsData.length;
+  const recent = npsData.slice(-3).reverse();
+
+  const sentimentLabel = (r) =>
+    r === "lovely"  ? "Quietly lovely" :
+    r === "needed"  ? "Exactly what I needed" :
+                      "Something felt off";
+
+  panel.innerHTML = `
+    <p class="section-kicker">Experience Intelligence</p>
+    <h3>Emotional Signals</h3>
+    <div class="admin-intel-grid">
+      <div class="admin-intel-card">
+        <p class="micro-label">Spaces</p>
+        <strong>${profileList.length}</strong>
+        <p>${consented} consented · ${marketing} welcome updates</p>
+      </div>
+      <div class="admin-intel-card">
+        <p class="micro-label">Feedback</p>
+        <strong>${total}</strong>
+        <p>${counts.lovely} lovely · ${counts.needed} needed · ${counts.off} friction</p>
+      </div>
+      ${recent.map((d) => `
+      <div class="admin-intel-card admin-intel-card--response">
+        <p class="micro-label">${new Date(d.timestamp).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</p>
+        <strong>${sentimentLabel(d.response)}</strong>
+        <p>After ${d.sessionTime}s on platform</p>
+      </div>`).join("")}
+    </div>
+  `;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════

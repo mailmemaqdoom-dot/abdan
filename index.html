@@ -722,6 +722,28 @@
                       </button>
                     </div>
                   </label>
+                  <!-- §38 — Trust & consent confirmation (required + optional) -->
+                  <fieldset class="space-consent" aria-label="Trust agreement">
+                    <legend class="space-consent__legend">Before you begin</legend>
+                    <label class="space-consent__row">
+                      <input type="checkbox" name="consent" id="consentAgreement" required />
+                      <span class="space-consent__text">
+                        I understand ABDAN stores my details privately and
+                        with care, and I agree to the
+                        <a href="#" class="text-link" tabindex="-1">Trust &amp; Experience Agreement</a>.
+                        <em class="space-consent__required">Required</em>
+                      </span>
+                    </label>
+                    <label class="space-consent__row space-consent__row--optional">
+                      <input type="checkbox" name="marketingConsent" id="consentMarketing" />
+                      <span class="space-consent__text">
+                        I'd welcome gentle updates about new pieces and
+                        ABDAN moments.
+                        <em class="space-consent__optional">Optional</em>
+                      </span>
+                    </label>
+                  </fieldset>
+
                   <p class="space-form__error" id="spaceCreateError" role="alert" hidden></p>
                   <button type="submit" class="primary-button space-form__submit">Create Your Space</button>
                 </form>
@@ -888,6 +910,11 @@
         </section>
 
         <section class="admin-panel" id="adminPanel" hidden>
+          <!-- §38 — Experience Intelligence panel (populated by initAdminIntelligence()) -->
+          <section class="editorial-panel admin-intelligence" id="adminIntelligencePanel" aria-label="Experience Intelligence">
+            <!-- Populated by JS -->
+          </section>
+
           <div class="admin-kpi-grid">
             <article class="feature-card admin-kpi">
               <p class="micro-label">Live pieces</p>
@@ -1244,6 +1271,29 @@
 
     <script src="https://unpkg.com/lucide@latest" defer></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
+    <!-- §38 — NPS Emotional Feedback Panel
+         Triggered by initNPSSystem() after 5 min + 3 product interactions.
+         Never shown on login/logout. Auto-dismisses after 10 s.
+         aria-live="polite" so screen readers receive it calmly.           -->
+    <aside id="npsPanel" class="nps-panel" hidden
+           role="region" aria-label="Experience feedback" aria-live="polite">
+      <p class="nps-panel__question">How did the experience feel today?</p>
+      <div class="nps-panel__choices" role="group" aria-label="Choose a response">
+        <button class="nps-panel__choice" data-nps="needed" type="button">
+          Exactly what I needed
+        </button>
+        <button class="nps-panel__choice nps-panel__choice--warm" data-nps="lovely" type="button">
+          Quietly lovely
+        </button>
+        <button class="nps-panel__choice nps-panel__choice--soft" data-nps="off" type="button">
+          Something felt off
+        </button>
+      </div>
+      <button class="nps-panel__dismiss" id="npsDismiss" type="button" aria-label="Dismiss feedback request">
+        Not now
+      </button>
+    </aside>
+
     <script src="./js/main.js" defer></script>
     <!-- DEPLOYMENT STATUS: VERIFIED ✔
          Logo: real brand icon integrated (assets/abdan-icon.jpg)
