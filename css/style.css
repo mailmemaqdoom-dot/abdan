@@ -8399,3 +8399,365 @@ html[data-theme="dark"] .trust-rail__inner span {
     }
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SECTION 34 — EDITORIAL EMOTIONAL LUXURY STORYTELLING
+   Evolves ABDAN from premium ecommerce toward immersive editorial luxury.
+   Borrows cinematic storytelling rhythm without altering the DNA:
+   emerald · gold · ivory · Libre Baskerville · calmness · restraint.
+   Philosophy: curated and emotionally directed, never aggressively designed.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── 34a. Section breathing — editorial vertical rhythm ──────────────────
+   Current clamp(3.5rem, 6vh, 5.5rem) paces like structured ecommerce.
+   Editorial luxury gives sections more generous air between chapters.    */
+.section-frame {
+  padding-top: clamp(5rem, 9vh, 8rem);
+}
+
+.trust-rail  { padding-top: clamp(1rem, 1.8vh, 1.8rem); }
+.promise-band { padding-top: clamp(1rem, 1.8vh, 1.8rem); }
+
+/* The editorial-campaign is a chapter break — extra breath before it.   */
+.editorial-campaign.section-frame {
+  padding-top: clamp(5.5rem, 10vh, 9rem);
+}
+
+/* ── 34b. Hero — cinematic editorial presence ────────────────────────────
+   Increased letter-spacing tightness on h1 reads as more magazine-craft. */
+.hero-copy h1 {
+  letter-spacing: -0.03em;
+  margin-bottom: 1.75rem;
+}
+
+/* Hero visual: portrait editorial ratio (3:4 ≈ 0.75) instead of 0.84.
+   Portrait framing reads as editorial fashion, not catalogue product.    */
+.hero-visual .visual-card--image img {
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  object-position: center top;
+}
+
+/* ── 34c. Trust rail — editorial strip ───────────────────────────────────
+   Heavy 4-col grid with border+background → quiet typographic rail.
+   Function preserved; container heaviness removed.                       */
+.trust-rail__inner {
+  background:    transparent;
+  border-radius: 0;
+  border:        none;
+  border-top:    1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  gap:           0;
+}
+
+.trust-rail__inner span {
+  background:   transparent;
+  font-size:    0.67rem;
+  letter-spacing: 0.20em;
+  color:        var(--text-soft);
+  padding:      1.1rem 1rem;
+  border-right: 1px solid var(--line);
+}
+
+.trust-rail__inner span:last-child { border-right: none; }
+
+html[data-theme="dark"] .trust-rail__inner span { border-right-color: var(--line); }
+
+/* ── 34d. Promise band — cinematic editorial statement ───────────────────
+   The central brand belief becomes a cinematic typographic moment.
+   Subtle radial warmth from gold — felt as atmosphere, not decoration.   */
+.promise-band__inner {
+  padding:       clamp(3rem, 7vw, 5.5rem);
+  border-radius: var(--radius-xl);
+  position:      relative;
+  overflow:      hidden;
+}
+
+.promise-band__inner::before {
+  content:         "";
+  position:        absolute;
+  inset:           0;
+  background:      radial-gradient(
+    ellipse at 25% 65%,
+    rgba(197, 161, 59, 0.09) 0%,
+    transparent 60%
+  );
+  pointer-events:  none;
+}
+
+.promise-band__inner blockquote {
+  /* 400 weight reads correctly for Baskerville — the letterforms are already
+     strong enough without a bolder weight that can feel heavy on emerald.   */
+  font-weight:    400;
+  font-size:      clamp(2rem, 5.5vw, 3.6rem);
+  line-height:    1.2;
+  letter-spacing: -0.025em;
+  position:       relative; /* floats above ::before gradient */
+}
+
+.promise-band__inner p {
+  margin-top:     1.6rem;
+  font-size:      0.84rem;
+  letter-spacing: 0.06em;
+  opacity:        0.60;
+}
+
+/* ── 34e. Story cards — editorial strip (all breakpoints) ────────────────
+   Removing the box across all screen sizes. The 3-column grid gap provides
+   visual separation on desktop. On mobile, hairline top replaces border.
+   Emotional: the story breathes freely without container confinement.     */
+.story-card {
+  background:             transparent !important;
+  border:                 none !important;
+  box-shadow:             none !important;
+  backdrop-filter:        none !important;
+  -webkit-backdrop-filter: none !important;
+  border-radius:          0 !important;
+  padding:                1.6rem 0 !important;
+}
+
+.story-grid {
+  gap: 2.5rem; /* column breathing on desktop; overridden to 0 on mobile */
+}
+
+.story-card h3 {
+  font-size:      clamp(1.1rem, 2.5vw, 1.4rem);
+  letter-spacing: -0.015em;
+  margin:         0 0 0.65rem;
+}
+
+.story-card p {
+  color:        var(--text-soft);
+  line-height:  var(--leading-relaxed);
+  max-width:    36ch;
+}
+
+/* ── 34f. Testimonials — voice-forward editorial ─────────────────────────
+   Non-featured: ghost treatment — the spoken word becomes the visual.
+   Featured (emerald): keeps its presence as a visual editorial accent.    */
+.testimonial-card:not(.testimonial-card--featured) {
+  background:             transparent !important;
+  border:                 none !important;
+  box-shadow:             none !important;
+  backdrop-filter:        none !important;
+  -webkit-backdrop-filter: none !important;
+  border-radius:          0 !important;
+  padding:                1.6rem 0 !important;
+}
+
+.testimonial-grid {
+  gap: 2rem;
+  align-items: start; /* align tops across 3 columns */
+}
+
+/* Featured: refine proportions — keep the emerald soul */
+.testimonial-card--featured {
+  border-radius: var(--radius-lg) !important;
+  padding:       clamp(1.6rem, 3vh, 2.2rem) clamp(1.4rem, 3vw, 2rem) !important;
+}
+
+/* Make the spoken word typographically larger — quote IS the design */
+.testimonial-card:not(.testimonial-card--featured) p {
+  font-family:  var(--font-editorial);
+  font-style:   italic;
+  font-size:    clamp(1.05rem, 2.5vw, 1.3rem) !important;
+  line-height:  1.65;
+  color:        var(--text-main);
+  margin-bottom: 1rem;
+}
+
+.testimonial-card--featured p {
+  font-size: clamp(1.05rem, 2.8vw, 1.4rem);
+}
+
+/* ── 34g. Feature cards — editorial hierarchy, Your Space ────────────────
+   Lighter on desktop; editorial strip on mobile.                         */
+.feature-card {
+  box-shadow:  none !important;
+  background:  var(--surface-soft) !important;
+  border-color: var(--line) !important;
+}
+
+.feature-card h3 {
+  font-size:      clamp(1rem, 2vw, 1.12rem);
+  letter-spacing: -0.01em;
+}
+
+.feature-card p { color: var(--text-soft); }
+
+/* ── 34h. Disclaimer card — lighter framing ─────────────────────────────
+   Trust signal preserved; container weight reduced.                      */
+.disclaimer-card {
+  background:  var(--surface-soft) !important;
+  border-color: var(--line) !important;
+  box-shadow:  none !important;
+}
+
+/* ── 34i. Mood editorial — de-boxed, more editorial ─────────────────────
+   Remove the card-within-card nesting above the filter row.              */
+.mood-editorial {
+  background:    transparent;
+  border-color:  transparent;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  padding-left:  0;
+  padding-right: 0;
+  padding-top:   0.5rem;
+}
+
+.mood-editorial::before { display: none; }
+
+html[data-theme="dark"] .mood-editorial {
+  background:    transparent;
+  border-color:  transparent;
+  border-bottom-color: var(--line);
+}
+
+/* ── 34j. Product cards — quieter hover lift ─────────────────────────────
+   Current -5px lift reads as active ecommerce. Editorial luxury is -3px:
+   present but composed.                                                  */
+.product-card:hover {
+  transform:  translateY(-3px);
+  box-shadow: var(--shadow-soft);
+}
+
+/* ── 34k. Section headings — editorial breathing room ───────────────────  */
+.section-heading {
+  margin-bottom: clamp(2.8rem, 5vh, 4.2rem);
+}
+
+.section-heading h2 {
+  margin:         0.9rem 0 1.3rem;
+  letter-spacing: -0.025em;
+}
+
+/* ── 34l. Reveal animation — cinematic editorial pacing ─────────────────
+   720ms reads as standard web-app interaction.
+   940ms feels editorial: content arrives like a page turning, not a widget
+   appearing. Deeper initial offset (16px) makes the entrance feel grounded. */
+.reveal {
+  transform: translateY(16px);
+  transition:
+    opacity   940ms var(--ease-out)  var(--reveal-delay, 0ms),
+    transform 940ms var(--ease-snap) var(--reveal-delay, 0ms);
+}
+
+.section-heading.reveal {
+  transform: translateY(24px);
+  transition-duration: 1080ms, 1080ms;
+}
+
+/* ── 34m. Mobile cinematic flow ───────────────────────────────────────── */
+@media (max-width: 767px) {
+
+  /* Hero: full-screen emotional presence on mobile */
+  .hero-section {
+    min-height: 100svh;
+    padding-top: 7rem;
+  }
+
+  /* Section breathing on mobile */
+  .section-frame { padding-top: clamp(4rem, 7.5vh, 6.5rem); }
+
+  /* Trust rail: horizontally scrollable — all signals visible */
+  .trust-rail__inner {
+    grid-template-columns: repeat(4, minmax(9.5rem, 1fr));
+    overflow-x:                 auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x:      contain;
+    scrollbar-width:            none;
+  }
+  .trust-rail__inner::-webkit-scrollbar { display: none; }
+
+  /* Promise band: edge-to-edge emotional weight on mobile */
+  .promise-band { padding-left: 0; padding-right: 0; }
+  .promise-band__inner {
+    border-radius: 0;
+    padding: clamp(2.8rem, 7vw, 4rem) clamp(1.25rem, 5vw, 2rem);
+  }
+
+  /* Editorial campaign: image leads on mobile — visual before text */
+  .editorial-campaign__visual { order: -1; }
+
+  /* Story grid: vertical editorial list on mobile */
+  .story-grid {
+    gap:           0;
+    border-bottom: 1px solid var(--line);
+  }
+  .story-card {
+    border-top: 1px solid var(--line) !important;
+    padding:    clamp(1.6rem, 3vh, 2.4rem) 0 !important;
+  }
+  .story-card:first-child { border-top: none !important; }
+
+  .story-card p { max-width: none; }
+
+  /* Testimonial grid: vertical editorial list on mobile */
+  .testimonial-grid {
+    grid-template-columns: 1fr;
+    gap:           0;
+    border-bottom: 1px solid var(--line);
+  }
+  .testimonial-card:not(.testimonial-card--featured) {
+    border-top: 1px solid var(--line) !important;
+    padding:    clamp(1.6rem, 3vh, 2.4rem) 0 !important;
+  }
+  .testimonial-card:not(.testimonial-card--featured):first-child {
+    border-top: none !important;
+  }
+  .testimonial-card--featured {
+    margin: 0.5rem 0;
+  }
+
+  /* Feature cards: editorial strip on mobile */
+  .feature-card {
+    background:             transparent !important;
+    border:                 none !important;
+    border-top:             1px solid var(--line) !important;
+    border-radius:          0 !important;
+    padding:                clamp(1.3rem, 2.5vh, 1.9rem) 0 !important;
+  }
+  .feature-card:first-child { border-top: none !important; }
+  .account-features {
+    grid-template-columns: 1fr;
+    gap:           0;
+    border-bottom: 1px solid var(--line);
+  }
+}
+
+/* ── 34n. Dark mode — quiet evening luxury atmosphere ───────────────────
+   Deepen ambient warmth without dramatic contrast. No neon, no glow.    */
+html[data-theme="dark"] .promise-band__inner {
+  background: linear-gradient(135deg,
+    #012f2c 0%,
+    #01302e 55%,
+    #023d3a 100%
+  );
+}
+
+html[data-theme="dark"] .trust-rail__inner {
+  border-top-color:    var(--line);
+  border-bottom-color: var(--line);
+}
+
+html[data-theme="dark"] .disclaimer-card {
+  background:  var(--surface-soft) !important;
+  border-color: var(--line) !important;
+}
+
+html[data-theme="dark"] .feature-card {
+  background:   var(--surface-soft) !important;
+  border-color: var(--line) !important;
+}
+
+/* ── 34o. Reduced motion guard ───────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .section-heading.reveal {
+    transition-duration: 1ms, 1ms !important;
+    transform:           none !important;
+  }
+  .promise-band__inner::before { display: none; }
+}
+
+/* ═══ END SECTION 34 ════════════════════════════════════════════════════ */
