@@ -169,7 +169,12 @@
         </span>
         <span>
           <strong class="brand-pill__name" aria-label="ABDAN">
-            <img class="brand-pill__wordmark" src="./assets/logo/abdan-wordmark.svg" alt="" width="72" height="19" draggable="false" />
+            <!-- Official Abdan Calligraph JPEG — light mode.
+                 mix-blend-mode: multiply drops the white JPEG background
+                 against the warm pill surface; only the emerald calligraphy
+                 remains. Dark mode: JPEG hidden, CSS text span takes over. -->
+            <img class="brand-pill__wordmark" src="./assets/logo/abdan-wordmark-full.jpeg" alt="" draggable="false" />
+            <span class="brand-pill__wordmark-text abdan-calligraph" aria-hidden="true">ABDAN</span>
           </strong>
           <small>Your Devotion Meets Style</small>
         </span>
@@ -781,7 +786,13 @@
         <header class="editorial-panel admin-hero">
           <div>
             <p class="section-kicker">Operational visibility with restraint</p>
-            <h1>ABDAN Admin</h1>
+            <h1>
+              <!-- Official calligraphy for brand identity moment in admin -->
+              <span class="admin-wordmark" aria-label="ABDAN">
+                <img class="admin-wordmark__img" src="./assets/logo/abdan-wordmark-full.jpeg" alt="" draggable="false" />
+                <span class="admin-wordmark__text abdan-calligraph" aria-hidden="true">ABDAN</span>
+              </span><span class="admin-wordmark__suffix"> Admin</span>
+            </h1>
             <p>
               A calm, minimal control view for admin access, collection visibility, and daily routing.
             </p>
@@ -1126,6 +1137,12 @@
         <section class="footer-column footer-brand">
           <div class="footer-mark" aria-hidden="true">
             <img src="./assets/logo/abdan-seal-dark.jpeg" alt="" width="45" height="45" />
+          </div>
+          <!-- Official calligraphy wordmark — brand signature moment in footer.
+               Light: JPEG with multiply blend. Dark: CSS text in warm cream. -->
+          <div class="footer-wordmark" aria-label="ABDAN">
+            <img class="footer-wordmark__img" src="./assets/logo/abdan-wordmark-full.jpeg" alt="ABDAN" draggable="false" />
+            <span class="footer-wordmark__text abdan-calligraph" aria-hidden="true">ABDAN</span>
           </div>
           <p class="footer-tagline">Your Devotion Meets Style</p>
           <p>

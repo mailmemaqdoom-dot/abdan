@@ -1490,3 +1490,71 @@ html[data-theme="dark"] .s-product-card:hover {
 html[data-theme="dark"] .s-btn--primary:hover {
   box-shadow: 0 10px 28px rgba(2, 61, 58, 0.5);
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   STUDIO BRAND IDENTITY — Official Abdan Calligraph wordmark system
+   ─────────────────────────────────────────────────────────────────
+   Mirrors the pattern used in index.html / style.css Section 29:
+   Light: JPEG + mix-blend-mode: multiply on the warm sidebar surface
+          (#f8f7f3) — white pixels dissolve, emerald calligraphy shows.
+   Dark:  JPEG hidden; text span in var(--s-gold) for brand warmth.
+          Switches to real Abdan Calligraph font automatically when
+          AbdanCalligraph.woff2 is placed at assets/fonts/.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Override: strong in .s-brand__copy becomes a flex row so the
+   wordmark image and " Studio" suffix sit on one baseline.          */
+.s-brand__copy strong {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.s-brand__wordmark {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.s-brand__wordmark-img {
+  display: block;
+  height: 18px;         /* matches sidebar type scale for optical rhythm */
+  width: auto;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+.s-brand__wordmark-text {
+  display: none;        /* light mode: JPEG is the official identity */
+  font-family: "Abdan Calligraph", "Cormorant Garamond", Georgia, serif;
+  font-weight: normal;
+  font-size: 1rem;
+  letter-spacing: 0.15em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.s-brand__wordmark-suffix {
+  font-family: var(--s-font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Dark mode: hide JPEG (multiply blacks out on dark bg), show text */
+html[data-theme="dark"] .s-brand__wordmark-img {
+  display: none;
+}
+
+html[data-theme="dark"] .s-brand__wordmark-text {
+  display: inline-block;
+  color: var(--s-gold);   /* gold on dark — warm, premium, recognisable */
+}
+

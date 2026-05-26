@@ -392,10 +392,15 @@ html[data-theme="dark"] .footer-mark {
   display: block;
 }
 
-/* ── Brand pill name — SVG wordmark ──────────────────────────
-   Replaced CSS text with SVG img — the exact calligraphic
-   letterforms from the Abdan brand identity, at any resolution.
-   Dark mode: CSS filter shifts emerald fill to warm cream.     */
+/* ── Brand pill name — official Abdan Calligraph wordmark ────────────
+   Light mode: the official JPEG with mix-blend-mode: multiply. White
+   JPEG pixels multiply against the warm pill surface (rgba 255,252,245)
+   and become the same warm ivory — leaving only the emerald calligraphy
+   perfectly visible. No geometric approximation, no font substitution.
+   Dark mode: JPEG hidden (multiply produces black on dark bg); the
+   .abdan-calligraph text span shows in warm cream. Switches to the
+   real Abdan Calligraph font automatically when AbdanCalligraph.woff2
+   is placed at assets/fonts/.                                          */
 .brand-pill__name {
   display: flex;
   align-items: center;
@@ -404,14 +409,26 @@ html[data-theme="dark"] .footer-mark {
 
 .brand-pill__wordmark {
   display: block;
-  height: 16px;
+  height: 22px;          /* slightly taller than SVG for JPEG fidelity */
   width: auto;
+  mix-blend-mode: multiply;
   pointer-events: none;
 }
 
+.brand-pill__wordmark-text {
+  display: none;         /* light mode: JPEG is the definitive identity */
+}
+
 html[data-theme="dark"] .brand-pill__wordmark {
-  /* Dark emerald → warm cream: zero brightness then invert to white, sepia warms it */
-  filter: brightness(0) invert(1) sepia(0.18) saturate(0.9);
+  display: none;         /* multiply fails on dark surfaces             */
+}
+
+html[data-theme="dark"] .brand-pill__wordmark-text {
+  display: block;
+  font-size: 1rem;
+  letter-spacing: 0.2em;
+  color: var(--cream);
+  line-height: 1;
 }
 
 .brand-pill small {
@@ -1126,6 +1143,10 @@ html[data-theme="dark"] .trust-rail__inner span {
 
 .admin-hero h1 {
   font-size: var(--type-heading-xl);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.3em;
 }
 
 .admin-hero p,
@@ -2745,7 +2766,7 @@ html[data-theme="dark"] .testimonial-card--featured {
   }
 
   .brand-pill__wordmark {
-    height: 14px; /* slightly smaller on mobile */
+    height: 18px; /* proportionally scaled for mobile */
   }
 
   .brand-pill small {
@@ -7008,4 +7029,139 @@ html[data-theme="dark"] .cart-count {
    All Section 28 rules are structural. No new animations introduced.
    The dock-link and section-heading reduced-motion rules above cover
    all motion-adjacent changes in this section.                         */
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SECTION 29 — BRAND IDENTITY CONSISTENCY SYSTEM
+   ─────────────────────────────────────────────────────────────────────
+   Official Abdan Calligraph implementation across every brand-identity
+   surface. Single source of truth: abdan-wordmark-full.jpeg (the actual
+   name board letterforms — NOT a font recreation, NOT an SVG trace).
+
+   PATTERN applied consistently:
+   · Light mode → JPEG + mix-blend-mode: multiply (drops white bg,
+     exposes emerald calligraphy on any warm surface)
+   · Dark mode  → JPEG hidden; .abdan-calligraph / equivalent text span
+     in var(--cream) activates when AbdanCalligraph.woff2 is present;
+     Cormorant Garamond serves as the interim optical fallback until
+     the font file is placed at assets/fonts/.
+
+   SURFACES COVERED: header brand pill (Section update above) · footer
+   wordmark · admin hero heading · Studio sidebar (studio.css)
+
+   LUXURY RESTRAINT: calligraphy is used ONLY at brand-identity moments.
+   Never in product names, navigation labels, buttons, or body copy.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+
+/* ── 29a. Footer calligraphy wordmark ────────────────────────────────
+   Positioned between the circular seal mark and the tagline line.
+   Creates a deliberate brand signature hierarchy:
+     [seal icon] → [calligraphy name] → [tagline] → [body copy]
+   This is the premium footer identity pattern used by luxury houses. */
+.footer-wordmark {
+  margin: 0.55rem 0 0.6rem;
+}
+
+.footer-wordmark__img {
+  display: block;
+  height: 32px;
+  width: auto;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.footer-wordmark__text {
+  display: none; /* light mode: JPEG is the identity */
+}
+
+html[data-theme="dark"] .footer-wordmark__img {
+  display: none; /* multiply produces black on dark bg */
+}
+
+html[data-theme="dark"] .footer-wordmark__text {
+  display: block;
+  font-size: 1.35rem;
+  letter-spacing: 0.22em;
+  color: var(--cream);
+  line-height: 1;
+}
+
+
+/* ── 29b. Admin hero calligraphy wordmark ────────────────────────────
+   The admin panel is an internal brand-identity moment. "ABDAN Admin"
+   heading uses the official wordmark image for "ABDAN" + inherits the
+   existing Libre Baskerville heading style for the " Admin" suffix.
+   flex align-items: center set directly on .admin-hero h1 (above).  */
+.admin-wordmark {
+  display: inline-flex;
+  align-items: center;
+}
+
+.admin-wordmark__img {
+  display: block;
+  height: 36px;         /* slightly larger than footer — command presence */
+  width: auto;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.admin-wordmark__text {
+  display: none;
+}
+
+.admin-wordmark__suffix {
+  /* inherits .admin-hero h1 font-size / family / weight — no override */
+}
+
+html[data-theme="dark"] .admin-wordmark__img {
+  display: none;
+}
+
+html[data-theme="dark"] .admin-wordmark__text {
+  display: block;
+  font-family: "Abdan Calligraph", "Cormorant Garamond", Georgia, serif;
+  font-weight: normal;
+  font-size: var(--type-heading-xl);
+  letter-spacing: 0.18em;
+  color: var(--cream);
+  line-height: 1;
+}
+
+
+/* ── 29c. OG / social preview — metadata is text-only by spec ────────
+   Open Graph and Twitter Card `content` attributes cannot carry images
+   inline — they reference external URLs. The og:image already points
+   to an editorial photograph per the ABDAN brand brief. The og:title
+   and og:site_name carry the ABDAN name as plain text: this is correct
+   and unavoidable. No change needed or possible at this layer.         */
+
+
+/* ── 29d. Brand identity audit — exclusion guard ─────────────────────
+   These selectors are explicitly NOT given the calligraphy treatment.
+   Listed here to document the decision and prevent accidental future
+   application of the .abdan-calligraph class to non-identity text.    */
+/* Operational text — correct as-is:
+   .dock-link span        nav labels
+   .product-title         product names
+   .section-heading       section titles
+   button, .cta-*         call-to-action
+   .drawer-*              checkout/order UI
+   .space-trust-block     auth copy
+   .section-kicker        all kicker labels
+   .footer-tagline        tagline text (editorial, not identity mark)
+   .footer-bottom p       legal / copyright text                      */
+
+
+/* ── 29e. Performance: wordmark image rendering quality ──────────────
+   Ensure the JPEG calligraphy renders crisply at all sizes.
+   image-rendering: -webkit-optimize-contrast helps on retina Chrome.
+   The JPEG is never scaled up — always used at <= natural size.       */
+.brand-pill__wordmark,
+.footer-wordmark__img,
+.admin-wordmark__img,
+.lx-entry__wordmark-img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
 
