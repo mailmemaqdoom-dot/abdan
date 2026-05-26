@@ -10625,3 +10625,919 @@ html[data-theme="dark"] .brand-mark {
 }
 
 /* ═══ END SECTION 42 ════════════════════════════════════════════════════ */
+
+/* ╔══════════════════════════════════════════════════════════════════════╗
+   ║  SECTION 43 — Cinematic Luxury Commerce Overhaul                      ║
+   ║  Apple restraint · Samsung visual confidence · Amazon usability       ║
+   ║  Reinterpreted through ABDAN's warm editorial luxury DNA             ║
+   ╚══════════════════════════════════════════════════════════════════════╝
+
+   The interface must disappear. The feeling must remain.
+
+   Three world-class references — applied as principles, not aesthetics:
+   APPLE    → spatial discipline · optical alignment · generous air
+              invisible hierarchy · precision typography · calm confidence
+   SAMSUNG  → cinematic visual presence · immersive photography · authority
+              edge-to-edge moments · strong section identity
+   AMAZON   → invisible usability · intuitive flow · shopping comfort
+              discoverability · ergonomic clarity · accessible hierarchy
+   ABDAN    → human warmth · editorial luxury · emotional curation
+              timeless calm · devotional authenticity · immersive softness
+
+   Every rule here serves the single goal:
+   ABDAN should feel quietly iconic, emotionally immersive, globally premium.
+   ──────────────────────────────────────────────────────────────────── */
+
+/* ── 43a. Cinematic type scale — world-class presence ────────────────────
+   §41 hero display caps at 4.5rem on 1160px container — reserved for a
+   luxury brand aiming at world-class cinematic presence. Samsung-level
+   visual confidence requires the hero headline to command the viewport.
+   New max: 6rem (96px) creates the kind of typographic authority that
+   stops the scroll and signals premium brand quality immediately.
+   Body size lifts from 15px to 16px — minimum for premium digital luxury.
+   (Apple, Samsung, Monocle, Vogue all read at 16px+.)                    */
+:root {
+  --type-display:  clamp(2.4rem, 7.5vw, 6rem);  /* hero: 38px → 96px */
+  --type-body:     1rem;                          /* body: 15px → 16px */
+  /* Deeper editorial line heights throughout — luxury breath */
+  --leading-normal:  1.90;
+  --leading-relaxed: 2.00;
+  --leading-loose:   2.22;
+}
+
+body {
+  font-size: var(--type-body); /* 16px — premium editorial legibility */
+}
+
+/* ── 43b. Hero section — cinematic emotional entry (Apple dissolution) ────
+   The hero copy lives inside an .editorial-panel card with visible
+   background, border, and shadow — a UI-card pattern that reads as
+   "app" rather than "luxury editorial world."
+   Apple's hero copy lives directly against the page surface, not boxed.
+   Samsung's editorial frames are photographic, not UI-structural.
+   Dissolve the copy card: near-transparent background, invisible border,
+   no shadow. The words breathe freely in the cinematic space.             */
+.hero-section .editorial-panel {
+  background:      rgba(255, 252, 246, 0.04) !important;
+  border-color:    transparent !important;
+  box-shadow:      none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-theme="dark"] .hero-section .editorial-panel {
+  background:      rgba(8, 14, 13, 0.04) !important;
+  border-color:    transparent !important;
+  box-shadow:      none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Hero grid — visual column slightly dominant (image leads emotion) */
+.hero-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.14fr);
+  gap:                   clamp(2.5rem, 6vw, 6.5rem);
+  align-items:           start;   /* editorial alignment — tops, not middle */
+  padding-top:           1.5rem;
+}
+
+/* Hero headline — cinematic typographic authority (Samsung confidence) */
+.hero-copy h1 {
+  font-size:      var(--type-display);
+  letter-spacing: -0.03em;
+  line-height:    1.04;
+  max-width:      11ch;
+  margin-bottom:  0;
+}
+
+/* Hero body — generous editorial breathing room */
+.hero-body {
+  max-width:   36rem;
+  line-height: var(--leading-relaxed);
+  margin-top:  2.8rem;
+}
+
+/* Hero actions — more vertical space before CTA */
+.hero-actions {
+  margin-top: 2.8rem;
+}
+
+/* Hero section — slight viewport crop (invites scroll) */
+.hero-section {
+  min-height: 95vh;
+}
+
+/* ── 43c. Hero visual — cinematic photography (Samsung framing) ───────────
+   The hero image card also has visible border + shadow — UI architecture
+   around photography breaks immersion. For cinematic luxury, photography
+   lives freely in the layout. The border-radius is kept for softness.    */
+.hero-section .visual-card--image {
+  background:  transparent !important;
+  border:      none !important;
+  box-shadow:  none !important;
+}
+
+/* Deep editorial fashion portrait — 2:3 is the luxury magazine ratio */
+.hero-visual .visual-card--image img {
+  aspect-ratio: 2 / 3 !important;
+  border-radius: var(--radius-xl);
+}
+
+/* Note card — dissolve into near-transparency, editorial whisper */
+.hero-section .visual-card--note {
+  background:   rgba(255, 252, 246, 0.18) !important;
+  border-color: rgba(2, 61, 58, 0.03) !important;
+  box-shadow:   none !important;
+}
+
+html[data-theme="dark"] .hero-section .visual-card--note {
+  background:   rgba(14, 22, 20, 0.14) !important;
+  border-color: rgba(197, 161, 59, 0.03) !important;
+}
+
+/* ── 43d. Section rhythm — luxury editorial pacing (Apple spatial discipline)
+   §41 established clamp(5.5rem, 10vw, 8rem). Apple, Samsung, and luxury
+   editorial publishing use significantly more vertical space. The eye
+   needs to pause between chapters — air is not empty space, it is voice.
+   Pushing to clamp(7rem, 12vw, 10rem) creates true editorial chapter
+   separation that signals: this section matters on its own.               */
+.section-frame {
+  padding-top:    clamp(7rem, 12vw, 10rem);
+  padding-bottom: clamp(7rem, 12vw, 10rem);
+}
+
+/* Editorial campaign: chapter break — extra breath before and after */
+.editorial-campaign.section-frame {
+  padding-top: clamp(7.5rem, 13vw, 11rem);
+}
+
+/* Trust rail and promise band: proportional to their weight */
+.trust-rail   { padding-top: clamp(0.5rem, 1vw, 1rem); }
+.promise-band { padding-top: clamp(1rem, 2vw, 2rem); }
+
+/* ── 43e. Section headings — editorial composition authority ─────────────
+   Headings are chapter titles in ABDAN's editorial narrative. They need
+   more optical space between the kicker line, the h2, and the body.
+   Tighter letter-spacing on h2 is the luxury print typographer's signal:
+   the heading has been set with care, not generated by a template.        */
+.section-heading {
+  max-width:     52rem;
+  margin-bottom: clamp(3.5rem, 6.5vh, 5.5rem);
+}
+
+.section-heading h2 {
+  font-size:      var(--type-heading-xl);
+  letter-spacing: -0.03em;
+  margin:         1.1rem 0 2rem;
+  line-height:    1.20;
+}
+
+.section-heading > p {
+  font-size:   1rem;
+  line-height: var(--leading-relaxed);
+  max-width:   46ch;
+  opacity:     0.60;
+}
+
+/* ── 43f. Product cards — editorial luxury curation (all three references) ─
+   Apple:   clean hierarchy, confident composition, generous internal space
+   Samsung: photography dominates — portrait imagery as editorial identity
+   Amazon:  clear price/CTA, product is immediately discoverable, inviting
+   ABDAN:   curated editorial framing, warmth, personal recommendation feel
+
+   Key changes:
+   1. Portrait image ratio (0.74 ≈ 3:4) on desktop — fashion photography
+      is shot portrait; this is how luxury retailers display garments.
+   2. Remove min-height on description — natural rhythm replaces forced grid
+   3. Title warms to gold on hover — Amazon-style usability discoverability
+   4. Card border near-invisible at rest, reveals slightly on hover         */
+
+/* Portrait product photography on desktop — editorial fashion framing */
+.product-card__media {
+  aspect-ratio: 0.74; /* ≈ 3:4 portrait — luxury fashion editorial ratio */
+}
+
+/* Remove forced description height — natural editorial pacing */
+.product-card__description {
+  min-height: auto; /* was 4.9rem — forced awkward whitespace in grid */
+}
+
+/* Product card border — near-invisible at rest, subtly present on hover */
+.product-card {
+  border-color: rgba(2, 61, 58, 0.05);
+}
+
+.product-card:hover {
+  border-color: rgba(2, 61, 58, 0.12);
+}
+
+/* Title warms toward gold on hover — Amazon usability: signals interactivity */
+.product-card:hover .product-card__title {
+  color: color-mix(in srgb, var(--text-main) 74%, var(--gold) 26%);
+  transition: color 400ms var(--ease-out);
+}
+
+/* Card footer divider — barely visible hairline, less mechanical */
+.product-card__footer {
+  border-top-color: rgba(2, 61, 58, 0.05);
+  padding-top:      1.4rem;
+}
+
+html[data-theme="dark"] .product-card__footer {
+  border-top-color: rgba(197, 161, 59, 0.05);
+}
+
+/* More generous content breathing inside cards */
+.product-card__content {
+  padding: 1.9rem 1.7rem 2rem;
+}
+
+/* Products grid — more editorial gap rhythm */
+.products-grid {
+  gap: clamp(2.2rem, 3vw, 3rem);
+}
+
+/* Collection section heading — extra breath before the grid */
+.collection-section .section-heading {
+  margin-bottom: clamp(3.5rem, 6vh, 5.5rem);
+}
+
+/* ── 43g. Navigation — editorial invisibility (Apple restraint) ───────────
+   Apple's navigation is the quietest element on the page — it never
+   competes with content. The brand pill, orb buttons, and dock should
+   feel ambient: present when needed, invisible when focused on content.
+
+   brand-pill:  more transparent, quieter shadow, tighter padding.
+   orb-buttons: barely-there surface, quieter border.
+   bottom-dock: reduced background opacity, lighter border.               */
+
+/* Brand pill — quieter editorial presence at rest */
+.brand-pill {
+  padding:         0.72rem 0.92rem;
+  gap:             0.82rem;
+  background:      rgba(255, 252, 246, 0.76);
+  border-color:    rgba(2, 61, 58, 0.06);
+  box-shadow:      0 2px 14px rgba(18, 31, 29, 0.04);
+  backdrop-filter: saturate(104%) blur(18px);
+  -webkit-backdrop-filter: saturate(104%) blur(18px);
+}
+
+html[data-theme="dark"] .brand-pill {
+  background:   rgba(10, 18, 17, 0.82);
+  border-color: rgba(197, 161, 59, 0.07);
+}
+
+/* Brand mark — slightly refined proportion */
+.brand-mark {
+  width:  2.55rem;
+  height: 2.55rem;
+}
+
+/* Orb buttons — ambient presence, not chrome */
+.orb-button {
+  background:      rgba(255, 252, 246, 0.70);
+  border-color:    rgba(2, 61, 58, 0.06);
+  box-shadow:      0 1px 8px rgba(18, 31, 29, 0.03);
+  backdrop-filter: saturate(104%) blur(16px);
+  -webkit-backdrop-filter: saturate(104%) blur(16px);
+}
+
+/* Desktop navigation dock — quieter backdrop */
+.bottom-dock {
+  background:      rgba(255, 252, 246, 0.76);
+  border-color:    rgba(2, 61, 58, 0.06);
+  box-shadow:      0 4px 20px rgba(18, 31, 29, 0.05);
+  backdrop-filter: saturate(104%) blur(20px);
+  -webkit-backdrop-filter: saturate(104%) blur(20px);
+}
+
+html[data-theme="dark"] .bottom-dock {
+  background:   rgba(10, 18, 17, 0.88);
+  border-color: rgba(197, 161, 59, 0.06);
+}
+
+/* ── 43h. Promise band — cinematic anchor statement ──────────────────────
+   This is the emotional centre of ABDAN. Samsung visual confidence means
+   it commands the viewport: larger text, more generous padding, text that
+   fills the eye completely. The promise should feel like an editorial
+   manifesto, not a website banner.                                        */
+.promise-band__inner {
+  padding: clamp(4.5rem, 9vw, 8rem) clamp(2rem, 6vw, 5rem);
+}
+
+.promise-band__inner blockquote {
+  font-size:      clamp(2.2rem, 6vw, 4.4rem);
+  letter-spacing: -0.028em;
+  line-height:    1.16;
+}
+
+.promise-band__inner p {
+  font-size:   0.88rem;
+  margin-top:  2.2rem;
+  letter-spacing: 0.08em;
+  opacity:     0.54;
+}
+
+/* ── 43i. Editorial campaign section — cinematic visual hierarchy ─────────
+   The campaign headline and body deserve more editorial presence. The
+   frame image (Ken Burns animated) is a Samsung-style cinematic moment. */
+.editorial-campaign__headline {
+  font-size:      clamp(1.7rem, 4vw, 3rem);
+  letter-spacing: -0.025em;
+  line-height:    1.18;
+  margin:         1.2rem 0 1.6rem;
+  font-family:    var(--font-display);
+  font-weight:    400;
+  color:          var(--text-main);
+}
+
+.editorial-campaign__body {
+  font-size:   1rem;
+  line-height: var(--leading-relaxed);
+  opacity:     0.70;
+  max-width:   38ch;
+}
+
+/* ── 43j. Filter chips — quieter, more editorial ─────────────────────────
+   Heavy filter chips in a catalogue layout feel like a search interface.
+   For luxury editorial, filters are soft whispers — available but restrained. */
+.filter-chip {
+  min-height:     2.4rem;
+  padding:        0.62rem 0.86rem;
+  font-size:      0.67rem;
+  font-weight:    500;
+  letter-spacing: 0.12em;
+  border-color:   rgba(2, 61, 58, 0.07);
+  background:     rgba(255, 252, 246, 0.50);
+}
+
+html[data-theme="dark"] .filter-chip {
+  border-color: rgba(197, 161, 59, 0.07);
+  background:   rgba(14, 24, 22, 0.36);
+  color:        var(--text-soft);
+}
+
+/* ── 43k. Dark mode — luxury evening ambience ────────────────────────────
+   Dark mode must feel like a luxury boutique after sunset:
+   deep emerald ambience, warm gold accents, atmospheric warmth —
+   not warm-brown wood tones, not cold digital grey.
+   ABDAN's brand DNA is emerald + gold — dark mode deepens this palette
+   toward velvet-night depth rather than warm-brown warmth.
+
+   Overrides §39/40 warm-brown dark palette.                              */
+html[data-theme="dark"] {
+  /* Background: deep warm-emerald (not warm-brown) */
+  --bg:             linear-gradient(180deg, #09100f 0%, #0c1511 40%, #07100e 100%);
+
+  /* Surfaces: dark emerald with atmospheric depth */
+  --surface:        rgba(12, 22, 20, 0.94);
+  --surface-strong: rgba(8, 16, 15, 0.98);
+  --surface-soft:   rgba(197, 161, 59, 0.05);
+  --paper:          rgba(12, 22, 20, 0.88);
+  --paper-strong:   rgba(9, 17, 16, 0.96);
+  --card-bg:        rgba(14, 24, 22, 0.88);
+  --card-border:    rgba(197, 161, 59, 0.08);
+  --chip-bg:        rgba(197, 161, 59, 0.04);
+
+  /* Text: warm cream hierarchy */
+  --text-main: #F0E9D6;
+  --text-soft: #A49272;
+  --text-dim:  #6A5A3E;
+
+  /* Borders: gold at whisper opacity */
+  --line:        rgba(197, 161, 59, 0.08);
+  --line-strong: rgba(197, 161, 59, 0.16);
+
+  /* Overlay: atmospheric deep */
+  --overlay: rgba(0, 0, 0, 0.62);
+
+  /* Shadows: deep emerald-tinted */
+  --shadow-xs:   0 2px  10px rgba(0, 0, 0, 0.24);
+  --shadow-sm:   0 8px  24px rgba(0, 0, 0, 0.28);
+  --shadow-soft: 0 18px 44px rgba(0, 0, 0, 0.34);
+  --shadow-lift: 0 28px 72px rgba(0, 0, 0, 0.44);
+  --shadow-deep: 0 48px 120px rgba(0, 0, 0, 0.58);
+}
+
+/* Dark mode body — deep emerald ground */
+html[data-theme="dark"] body {
+  background-color: #09100f;
+}
+
+/* Dark mode product card — warm-emerald surface */
+html[data-theme="dark"] .product-card {
+  background: linear-gradient(
+    180deg,
+    rgba(16, 28, 26, 0.90) 0%,
+    rgba(11, 20, 18, 0.95) 100%
+  ) !important;
+  border-color: rgba(197, 161, 59, 0.06) !important;
+}
+
+html[data-theme="dark"] .product-card:hover {
+  box-shadow:   0 14px 44px rgba(0, 0, 0, 0.38) !important;
+  border-color: rgba(197, 161, 59, 0.12) !important;
+}
+
+/* Dark mode product card media — deep emerald placeholder */
+html[data-theme="dark"] .product-card__media {
+  background: linear-gradient(135deg, #0d1e1b 0%, #091511 100%) !important;
+}
+
+/* Dark mode title warm on hover */
+html[data-theme="dark"] .product-card:hover .product-card__title {
+  color: color-mix(in srgb, #F0E9D6 72%, var(--gold) 28%);
+}
+
+/* Dark mode editorial panel */
+html[data-theme="dark"] .editorial-panel {
+  background:   rgba(14, 24, 22, 0.68);
+  border-color: rgba(197, 161, 59, 0.05);
+}
+
+/* Dark mode promise band — deep atmospheric emerald evening */
+html[data-theme="dark"] .promise-band__inner {
+  background: linear-gradient(
+    145deg,
+    #011f1d 0%,
+    #012c2a 50%,
+    #011e1c 100%
+  );
+}
+
+/* Dark mode nav surfaces — warm-emerald tint */
+html[data-theme="dark"] .brand-pill {
+  background:   rgba(10, 18, 17, 0.86);
+  border-color: rgba(197, 161, 59, 0.07);
+}
+
+html[data-theme="dark"] .orb-button {
+  background:   rgba(10, 18, 17, 0.55);
+  border-color: rgba(197, 161, 59, 0.07);
+  color:        #A49272;
+}
+
+html[data-theme="dark"] .orb-button:hover {
+  background:   rgba(18, 32, 29, 0.78);
+  border-color: rgba(197, 161, 59, 0.18);
+  color:        #F0E9D6;
+}
+
+/* Dark mode theme toggle */
+html[data-theme="dark"] .orb-button#themeToggle {
+  color: rgba(197, 161, 59, 0.65);
+}
+
+html[data-theme="dark"] .orb-button#themeToggle:hover {
+  background: rgba(197, 161, 59, 0.06);
+  box-shadow: 0 0 0 1px rgba(197, 161, 59, 0.14);
+  color: var(--gold);
+}
+
+/* Dark mode site footer */
+html[data-theme="dark"] .site-footer {
+  background:   #09100f;
+  border-color: rgba(197, 161, 59, 0.07);
+}
+
+/* Dark mode scrollbar — warm-gold hairline */
+html[data-theme="dark"]::-webkit-scrollbar       { width: 2px; }
+html[data-theme="dark"]::-webkit-scrollbar-track { background: #09100f; }
+html[data-theme="dark"]::-webkit-scrollbar-thumb {
+  background:    rgba(197, 161, 59, 0.18);
+  border-radius: 1px;
+}
+html[data-theme="dark"]::-webkit-scrollbar-thumb:hover {
+  background: rgba(197, 161, 59, 0.32);
+}
+html[data-theme="dark"] {
+  scrollbar-color: rgba(197, 161, 59, 0.18) #09100f;
+  scrollbar-width: thin;
+}
+
+/* Dark mode section atmospheric backgrounds — warm-emerald tones */
+html[data-theme="dark"] .editorial-campaign.section-frame {
+  background-image: radial-gradient(
+    ellipse 70% 55% at 50% 85%,
+    rgba(2, 61, 58, 0.18) 0%,
+    transparent 70%
+  );
+}
+
+html[data-theme="dark"] .collection-section .section-frame {
+  background-image: radial-gradient(
+    ellipse 65% 48% at 50% 90%,
+    rgba(2, 61, 58, 0.12) 0%,
+    transparent 68%
+  );
+}
+
+html[data-theme="dark"] .hero-section {
+  background-image: radial-gradient(
+    ellipse 90% 60% at 50% 100%,
+    rgba(2, 61, 58, 0.22) 0%,
+    transparent 65%
+  );
+}
+
+/* Dark mode trust rail */
+html[data-theme="dark"] .trust-rail__inner {
+  border-top-color:    rgba(197, 161, 59, 0.08);
+  border-bottom-color: rgba(197, 161, 59, 0.08);
+}
+
+html[data-theme="dark"] .trust-rail__inner span {
+  color: rgba(240, 233, 214, 0.56);
+}
+
+/* Dark mode section headings */
+html[data-theme="dark"] .section-heading h2 {
+  color: #F0E9D6;
+}
+
+/* Dark mode NPS panel */
+html[data-theme="dark"] .nps-panel {
+  background:      rgba(12, 22, 20, 0.96);
+  border-color:    rgba(197, 161, 59, 0.09);
+  box-shadow:      0 20px 52px rgba(0, 0, 0, 0.40);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* Dark mode form fields — warm-emerald glass */
+html[data-theme="dark"] .space-field input,
+html[data-theme="dark"] .space-field textarea,
+html[data-theme="dark"] .space-field select {
+  background:   rgba(12, 22, 20, 0.80);
+  border-color: rgba(197, 161, 59, 0.14);
+  color:        #F0E9D6;
+}
+
+html[data-theme="dark"] .space-field.is-active input,
+html[data-theme="dark"] .space-field.is-active textarea {
+  border-color: rgba(197, 161, 59, 0.32);
+  box-shadow:   0 0 0 2px rgba(197, 161, 59, 0.05);
+  background:   rgba(16, 28, 26, 0.90);
+}
+
+/* Dark mode admin surfaces */
+html[data-theme="dark"] .admin-panel,
+html[data-theme="dark"] .admin-section {
+  background:   rgba(10, 18, 17, 0.92);
+  border-color: rgba(197, 161, 59, 0.07);
+}
+
+html[data-theme="dark"] .admin-intel-card {
+  background:   rgba(14, 24, 22, 0.55);
+  border-color: rgba(197, 161, 59, 0.07);
+  box-shadow:   none;
+}
+
+/* Dark mode cart drawer */
+html[data-theme="dark"] .cart-drawer__panel {
+  background: rgba(10, 18, 17, 0.98);
+}
+
+/* Dark mode story and testimonial cards */
+html[data-theme="dark"] .story-card h3,
+html[data-theme="dark"] .testimonial-card strong {
+  color: #F0E9D6;
+}
+
+/* Dark mode brand mark gold ring */
+html[data-theme="dark"] .brand-mark {
+  box-shadow: 0 0 0 1px rgba(197, 161, 59, 0.22);
+}
+
+html[data-theme="dark"] .footer-mark {
+  box-shadow: 0 0 0 1.5px rgba(197, 161, 59, 0.32);
+}
+
+/* ── 43l. Support pill — editorial whisper presence ──────────────────────
+   The floating WhatsApp support pill should feel like a quiet invitation —
+   ambient and available, never intrusive or app-chrome.                   */
+.support-pill {
+  background:   rgba(255, 252, 246, 0.80);
+  border-color: rgba(2, 61, 58, 0.06);
+  box-shadow:   0 6px 28px rgba(18, 31, 29, 0.07);
+}
+
+html[data-theme="dark"] .support-pill {
+  background:   rgba(10, 18, 17, 0.90);
+  border-color: rgba(197, 161, 59, 0.07);
+}
+
+/* ── 43m. Mobile — world-class luxury immersion ──────────────────────────
+   On mobile ABDAN should feel:
+   · Cinematic (Samsung-style immersive scrolling)
+   · Ergonomic (Apple-level thumb-friendliness)
+   · Intuitive (Amazon-level shopping comfort)
+   · Editorial (ABDAN warmth and calm)
+
+   The mobile experience is THE primary experience — most ABDAN users
+   will discover and shop on mobile. Every mobile choice here matters.   */
+@media (max-width: 1040px) {
+  /* Section rhythm on tablet — balanced */
+  .section-frame {
+    padding-top:    clamp(5.5rem, 10vw, 8rem);
+    padding-bottom: clamp(5.5rem, 10vw, 8rem);
+  }
+
+  /* Hero grid: single column on tablet/mobile */
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap:             2rem;
+    padding-top:     0;
+  }
+
+  /* Visual appears FIRST — emotion before words (Samsung: image leads) */
+  .hero-visual {
+    order: -1;
+  }
+
+  /* Hero copy panel: completely transparent on mobile */
+  .hero-section .editorial-panel {
+    background:    transparent !important;
+    padding-left:  0 !important;
+    padding-right: 0 !important;
+    border-radius: 0 !important;
+    padding-top:   0.5rem !important;
+  }
+
+  /* Hero image on tablet — editorial portrait */
+  .hero-visual .visual-card--image img {
+    aspect-ratio:  4 / 5 !important;
+    border-radius: var(--radius-xl);
+  }
+
+  /* Hide note card on tablet/mobile — visual + copy is sufficient */
+  .hero-section .visual-card--note {
+    display: none;
+  }
+
+  /* Promise band — full-bleed emotional weight */
+  .promise-band {
+    padding-left:  0;
+    padding-right: 0;
+  }
+
+  .promise-band__inner {
+    border-radius: 0;
+    padding: clamp(3.5rem, 9vw, 6rem) clamp(1.5rem, 5.5vw, 2.8rem);
+  }
+}
+
+@media (max-width: 767px) {
+  /* Section rhythm on mobile */
+  .section-frame {
+    padding-top:    clamp(4.5rem, 10vw, 6.5rem);
+    padding-bottom: clamp(4.5rem, 10vw, 6.5rem);
+  }
+
+  /* Hero headline on mobile — commanding, never crushing */
+  .hero-copy h1 {
+    font-size:      clamp(2.6rem, 10vw, 3.8rem);
+    max-width:      none;
+    letter-spacing: -0.025em;
+    line-height:    1.06;
+  }
+
+  /* Hero body on mobile */
+  .hero-body {
+    max-width: none;
+    font-size: 1rem;
+    margin-top: 1.8rem;
+  }
+
+  .hero-actions {
+    margin-top: 2rem;
+    gap: 0.75rem;
+  }
+
+  /* Section heading on mobile */
+  .section-heading {
+    max-width:     none;
+    margin-bottom: clamp(2.8rem, 7vw, 4rem);
+  }
+
+  .section-heading h2 {
+    font-size:  clamp(1.7rem, 7vw, 2.6rem);
+    margin:     0.8rem 0 1.3rem;
+    line-height: 1.18;
+  }
+
+  .section-heading > p {
+    font-size: 0.9375rem;
+    opacity:   0.60;
+  }
+
+  /* Collection section heading — tighter on mobile */
+  .collection-section .section-heading {
+    margin-bottom: clamp(2.2rem, 5vw, 3.2rem);
+  }
+
+  /* Mobile product card carousel — wider cards for luxury browsing feel */
+  .product-card {
+    flex: 0 0 80vw !important;
+    max-width: 25rem;
+  }
+
+  /* Mobile card content — comfortable padding */
+  .product-card__content {
+    padding: 1.4rem 1.3rem 1.6rem;
+  }
+
+  /* Promise band blockquote on mobile */
+  .promise-band__inner blockquote {
+    font-size:   clamp(1.8rem, 8vw, 2.8rem);
+    line-height: 1.20;
+  }
+
+  .promise-band__inner p {
+    margin-top: 1.6rem;
+  }
+
+  /* Story card headings on mobile */
+  .story-card h3 {
+    font-size: clamp(1.05rem, 4vw, 1.2rem);
+  }
+
+  /* Trust rail — horizontal scroll on mobile */
+  .trust-rail__inner {
+    flex-wrap:   nowrap;
+    overflow-x:  auto;
+    justify-content: flex-start;
+    padding-left:  1rem;
+    padding-right: 1rem;
+    scrollbar-width: none;
+  }
+
+  .trust-rail__inner::-webkit-scrollbar { display: none; }
+
+  /* Testimonials on mobile — generous spacing */
+  .testimonial-card--featured p {
+    font-size: clamp(1rem, 4.5vw, 1.2rem);
+  }
+
+  /* Mobile dock padding refinement */
+  .bottom-dock {
+    padding-bottom: max(0.7rem, calc(env(safe-area-inset-bottom) + 0.25rem));
+  }
+}
+
+/* ── 43n. Eyebrow / kicker labels — refined presence ────────────────────
+   Tracking and size calibrated for editorial luxury: visible but never
+   shouting. Kickers frame but don't dominate.                            */
+.eyebrow-row,
+.section-kicker,
+.micro-label {
+  letter-spacing: 0.14em;
+  font-size:      0.66rem;
+}
+
+.eyebrow-row {
+  margin-bottom: 2.2rem;
+}
+
+/* ── 43o. Collection curation text — editorial introduction ──────────────
+   The seven-moods list introduces the collection. Give it editorial rhythm. */
+.collection-curation {
+  margin-top:    1.8rem;
+  margin-bottom: 2.4rem;
+  padding-top:   1.6rem;
+}
+
+.collection-curation__lead {
+  font-size:      1.2rem;
+  letter-spacing: -0.018em;
+  line-height:    1.3;
+}
+
+.collection-curation__list {
+  font-size:   0.9375rem;
+  line-height: var(--leading-relaxed);
+  margin-top:  0.5rem;
+}
+
+/* ── 43p. Scroll padding — fixed header/dock awareness ───────────────────
+   The fixed header (~4.5rem) + fixed dock (~3.5rem) totals ~8rem of
+   chrome on desktop. scroll-padding-top ensures anchor links (#products,
+   #wsy, etc.) don't hide content behind the fixed navigation.
+   Amazon-level usability: every anchor lands correctly.                  */
+html {
+  scroll-padding-top: 10rem;
+}
+
+@media (max-width: 720px) {
+  html {
+    scroll-padding-top: 7rem; /* mobile: bottom dock, smaller header */
+  }
+}
+
+/* ── 43q. Footer — editorial brand signature ─────────────────────────────
+   The footer is the final brand impression. More breathing room, calmer
+   structure, dignified presence.                                          */
+.site-footer {
+  padding-top:    clamp(5.5rem, 8vw, 8rem);
+  padding-bottom: clamp(3.5rem, 5vw, 6rem);
+}
+
+.footer-mark {
+  width:  2.8rem;
+  height: 2.8rem;
+}
+
+/* ── 43r. Large desktop — cinematic expansion ────────────────────────────
+   At 1400px+ (large desktop, external displays), ABDAN should feel like
+   a luxury editorial magazine spread — maximum spatial discipline.        */
+@media (min-width: 1400px) {
+  .hero-copy h1 {
+    font-size: clamp(4rem, 6.5vw, 6.4rem);
+  }
+
+  .section-frame {
+    padding-top:    10rem;
+    padding-bottom: 10rem;
+  }
+
+  .products-grid {
+    gap: 3rem;
+  }
+
+  .promise-band__inner blockquote {
+    font-size: clamp(3rem, 4.5vw, 4.8rem);
+  }
+
+  .section-heading > p {
+    font-size: 1.0625rem;
+  }
+
+  .hero-grid {
+    gap: 8rem;
+  }
+}
+
+/* ── 43s. Refined press states — luxury editorial calm ───────────────────
+   Final tuning of press interactions for editorial luxury feel.
+   The existing §40 overrides are good; these ensure all surfaces
+   behave consistently at the refined scale.                              */
+.product-card.is-pressing {
+  transform:  scale(0.994) !important;
+  box-shadow: var(--shadow-xs) !important;
+  transition: transform 100ms linear !important;
+}
+
+.product-card.is-releasing {
+  transform:  scale(1.0) !important;
+  transition: transform 380ms var(--ease-out) !important;
+}
+
+/* ── 43t. Mood editorial — quieter presence ──────────────────────────────
+   The mood editorial text above the filter row introduces each collection
+   mood. Quieter, more editorial, less promotional.                       */
+.mood-editorial__headline {
+  font-family:  var(--font-display);
+  font-style:   italic;
+  font-size:    clamp(1.1rem, 2.8vw, 1.5rem);
+  font-weight:  400;
+  letter-spacing: -0.015em;
+  color:        var(--text-main);
+  line-height:  1.4;
+  margin:       0 0 0.7rem;
+}
+
+.mood-editorial__body {
+  font-size:   0.9375rem;
+  line-height: var(--leading-relaxed);
+  color:       var(--text-soft);
+  max-width:   48ch;
+}
+
+/* ── 43u. Global reduced motion guard ────────────────────────────────────
+   All §43 transitions and scale transforms respect OS preference.        */
+@media (prefers-reduced-motion: reduce) {
+  .hero-copy h1,
+  .hero-section .editorial-panel,
+  .hero-section .visual-card--image,
+  .product-card,
+  .product-card__title,
+  .promise-band__inner,
+  .section-heading,
+  .reveal {
+    transition-duration: 1ms !important;
+    animation-duration:  1ms !important;
+  }
+
+  .product-card.is-pressing,
+  .product-card.is-releasing {
+    transform:  none !important;
+    transition: none !important;
+  }
+
+  /* No scale change at all under reduced motion */
+  .hero-section {
+    min-height: auto;
+  }
+}
+
+/* ══ END SECTION 43 ═══════════════════════════════════════════════════════ */
