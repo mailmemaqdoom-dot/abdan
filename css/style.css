@@ -9956,3 +9956,228 @@ html[data-theme="dark"] .admin-intel-card strong {
 }
 
 /* ═══ END SECTION 39 ════════════════════════════════════════════════════ */
+
+/* ╔══════════════════════════════════════════════════════════════════════╗
+   ║  SECTION 40 — Editorial Warmth Restoration                           ║
+   ║  Keep: warm palette · invisible quality · smooth scrolling           ║
+   ║  Remove: fintech depth · spring mechanics · app-like engineering     ║
+   ║  Restore: cinematic calmness · editorial softness · human warmth     ║
+   ╚══════════════════════════════════════════════════════════════════════╝
+
+   §39 introduced excellent warm colour work but also imported too much
+   CRED interaction engineering: spring-overshoot presses, floating-card
+   glow systems, animated shimmer, sharp shadow hierarchies, and heavy
+   orb-button chrome. All of that reads "fintech premium app."
+
+   §40 overrides only those visible engineering behaviours.
+   The warm dark palette, editorial breathing room, soft radial depth
+   accents, and smooth scroll infrastructure from §39 are all kept.
+
+   The principle: motion supports emotion. It should not announce itself.
+   ──────────────────────────────────────────────────────────────────── */
+
+/* ── 40a. Press states — near-invisible yield, not mechanical spring ─────
+   §39 press: scale(0.965) at 90ms + spring overshoot — felt like a button
+   in a banking app. §40: scale(0.992) at 140ms ease-out — barely felt,
+   like fabric yielding under a fingertip. No spring. No bounce.          */
+.product-card.is-pressing,
+.orb-button.is-pressing,
+.primary-button.is-pressing,
+.secondary-button.is-pressing,
+.space-form__submit.is-pressing,
+.nps-panel__choice.is-pressing,
+[data-tactile].is-pressing {
+  transform:  scale(0.992) !important;
+  transition: transform 140ms var(--ease-out) !important;
+}
+
+.product-card.is-releasing,
+.orb-button.is-releasing,
+.primary-button.is-releasing,
+.secondary-button.is-releasing,
+.space-form__submit.is-releasing,
+.nps-panel__choice.is-releasing,
+[data-tactile].is-releasing {
+  transform:  scale(1.0) !important;
+  transition: transform 300ms var(--ease-out) !important; /* simple ease — no spring */
+}
+
+/* Product cards: compose press with existing hover lift — softly */
+.product-card:hover.is-pressing  { transform: translateY(-2px) scale(0.993) !important; }
+.product-card:hover.is-releasing { transform: translateY(-4px) scale(1.000) !important; }
+
+/* Touch devices: even softer — luxury fingers, not gaming thumbs */
+@media (hover: none) and (pointer: coarse) {
+  .product-card.is-pressing,
+  .orb-button.is-pressing,
+  .primary-button.is-pressing,
+  [data-tactile].is-pressing {
+    transform: scale(0.995) !important; /* 0.5% — felt but not seen */
+  }
+}
+
+/* ── 40b. Product card shadows — editorial softness, not floating panels ─
+   §39 card hover used --glow-warm with ambient radial spread (80px glow)
+   and a border ring. That reads as app-floating-card architecture.
+   §40: a single warm shadow with no ring, calmer depth, slower timing.  */
+html[data-theme="dark"] .product-card {
+  box-shadow:  0 4px 16px rgba(12, 6, 2, 0.18); /* barely lifted off ground */
+  transition:
+    box-shadow   480ms var(--ease-out),  /* slower = calmer */
+    transform    480ms var(--ease-out),
+    border-color 360ms var(--ease-out);
+}
+html[data-theme="dark"] .product-card:hover {
+  box-shadow:   0 14px 40px rgba(12, 6, 2, 0.28); /* warm depth, no glow ring */
+  border-color: rgba(183, 155, 114, 0.12);         /* barely visible warm line */
+}
+html[data-theme="dark"] .product-card.is-pressing {
+  box-shadow: 0 2px 8px rgba(12, 6, 2, 0.14) !important; /* recedes, not floats */
+}
+
+/* ── 40c. Modal / panel shadows — cinematic depth, not fintech chrome ────
+   Single warm shadow; no multi-layer glow stack.                        */
+html[data-theme="dark"] .space-modal,
+html[data-theme="dark"] .admin-panel,
+html[data-theme="dark"] .filter-drawer {
+  box-shadow:   0 32px 80px rgba(12, 6, 2, 0.40); /* deep but singular */
+  border-color: rgba(183, 155, 114, 0.08);          /* very quiet line */
+}
+
+/* ── 40d. Skeleton shimmer — editorial stillness, not app loading bar ────
+   §39 animated a moving shimmer (app-like scanning effect).
+   §40: static warm placeholder — simply warm, calm, no movement.        */
+.skeleton-shimmer {
+  background:   rgba(183, 155, 114, 0.05); /* warm presence, no movement */
+  animation:    none !important;            /* remove the moving sweep   */
+}
+/* Override the keyframe to ensure nothing fires if it somehow triggers */
+@keyframes abdan-shimmer { from { background-position: 0% center; } to { background-position: 0% center; } }
+
+/* ── 40e. Nav orb buttons — transparent fabric, not chrome pill ──────────
+   §39 orb buttons had background rgba(59,48,39,0.60) — visible brown pill.
+   §40: more transparent, borders barely there — they dissolve into space. */
+html[data-theme="dark"] .orb-button {
+  background:   rgba(18, 16, 15, 0.30); /* near-transparent */
+  border-color: rgba(183, 155, 114, 0.08);
+  color:        #B79B72;
+}
+html[data-theme="dark"] .orb-button:hover {
+  background:   rgba(59, 48, 39, 0.44); /* warmer but still airy */
+  border-color: rgba(183, 155, 114, 0.16);
+  color:        #F4EDE2;
+}
+html[data-theme="dark"] .orb-button#themeToggle {
+  color: rgba(183, 155, 114, 0.72); /* softer moon icon */
+}
+html[data-theme="dark"] .orb-button#themeToggle:hover {
+  background:  rgba(183, 155, 114, 0.07);
+  box-shadow:  0 0 0 1px rgba(183, 155, 114, 0.16); /* only 1 layer */
+  color:       var(--gold);
+}
+
+/* ── 40f. Header chrome — barely there surface ───────────────────────────
+   §39 gave the header rgba(18,16,15,0.90). That's a heavy dark bar.
+   §40: more transparent — the page breathes behind it.                  */
+html[data-theme="dark"] .site-header {
+  background:   rgba(18, 16, 15, 0.72); /* airy, backdrop-blur does the work */
+  border-color: rgba(183, 155, 114, 0.07);
+}
+
+/* ── 40g. Form focus states — soft attention, not clinical rings ─────────
+   §39 active field had box-shadow 0 0 0 3px rgba(183,155,114,0.07) — fine.
+   §40 refines: smaller spread, lower opacity — just a warm breath.      */
+html[data-theme="dark"] .space-field.is-active input,
+html[data-theme="dark"] .space-field.is-active textarea {
+  border-color: rgba(183, 155, 114, 0.32);
+  box-shadow:   0 0 0 2px rgba(183, 155, 114, 0.05); /* barely there ring */
+  background:   rgba(31, 27, 24, 0.94);
+}
+
+/* ── 40h. Admin intelligence — editorial tone, not dashboard chrome ───────
+   Admin cards soften — more like printed editorial blocks.              */
+html[data-theme="dark"] .admin-intel-card {
+  background:   rgba(31, 27, 24, 0.60); /* more transparent */
+  border-color: rgba(183, 155, 114, 0.08);
+  box-shadow:   none; /* no depth engineering */
+}
+
+/* ── 40i. Scrollbar — discreet and warm ─────────────────────────────────
+   §39 scrollbar was 6px. §40: 3px — a hairline, barely there.         */
+html[data-theme="dark"]::-webkit-scrollbar        { width: 3px; }
+html[data-theme="dark"]::-webkit-scrollbar-thumb  {
+  background:    rgba(138, 107, 79, 0.18); /* quieter presence */
+  border-radius: 2px;
+}
+html[data-theme="dark"]::-webkit-scrollbar-thumb:hover {
+  background:    rgba(183, 155, 114, 0.30);
+}
+
+/* ── 40j. Dark mode shadow tokens — warmer but softer overall ───────────
+   Override §39 shadow tokens: less aggressive warm-black tint.         */
+html[data-theme="dark"] {
+  --shadow-xs:   0 1px  6px  rgba(8, 4, 2, 0.16);
+  --shadow-sm:   0 6px  18px rgba(8, 4, 2, 0.20);
+  --shadow-soft: 0 14px 36px rgba(8, 4, 2, 0.26);
+  --shadow-lift: 0 22px 58px rgba(8, 4, 2, 0.34);
+  --shadow-deep: 0 38px 92px rgba(8, 4, 2, 0.46);
+  /* Remove the --glow-warm multi-layer token — it was too engineered */
+  --glow-warm:   0 14px 40px rgba(8, 4, 2, 0.28); /* simplified to single shadow */
+}
+
+/* ── 40k. Editorial section breathing — quiet and spacious ──────────────
+   §39 added +8% padding to dark mode sections. §40 extends this approach
+   but also ensures the light mode sections breathe, not just dark.     */
+.section-frame {
+  padding-top:    clamp(4rem, 8vw, 6.5rem);
+  padding-bottom: clamp(4rem, 8vw, 6.5rem);
+}
+.section-heading {
+  margin-bottom: clamp(2rem, 3.5vw, 3rem);
+}
+
+/* ── 40l. NPS panel — quieter presence in warm dark mode ─────────────────
+   The NPS should feel like a quiet whisper, not a floating card.       */
+html[data-theme="dark"] .nps-panel {
+  background:    rgba(25, 21, 18, 0.92); /* dark warm glass */
+  border-color:  rgba(183, 155, 114, 0.10);
+  box-shadow:    0 20px 52px rgba(8, 4, 2, 0.36);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ── 40m. Warm surface blooms — softer than §39 ─────────────────────────
+   §39 bloom opacities were 0.055 / 0.040 / 0.25.
+   §40 brings these down — barely visible warm ground warmth.           */
+html[data-theme="dark"] .collection-section .section-frame {
+  background-image: radial-gradient(
+    ellipse 65% 48% at 50% 90%,
+    rgba(138, 107, 79, 0.035) 0%,
+    transparent 68%
+  );
+}
+html[data-theme="dark"] .editorial-campaign.section-frame {
+  background-image: radial-gradient(
+    ellipse 70% 55% at 48% 85%,
+    rgba(183, 155, 114, 0.025) 0%,
+    transparent 72%
+  );
+}
+html[data-theme="dark"] .hero-section {
+  background-image: radial-gradient(
+    ellipse 90% 60% at 50% 100%,
+    rgba(59, 48, 39, 0.16) 0%,
+    transparent 65%
+  );
+}
+
+/* ── 40n. Reduced motion — covers all §40 additions ─────────────────────  */
+@media (prefers-reduced-motion: reduce) {
+  .is-pressing,
+  .is-releasing {
+    transform:  none   !important;
+    transition: none   !important;
+  }
+}
+
+/* ═══ END SECTION 40 ════════════════════════════════════════════════════ */

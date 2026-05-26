@@ -3427,20 +3427,21 @@ function initSessionPacing() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   SECTION 39 — CRED-Inspired Interaction & Motion Philosophy
-   Tactile press depth system. Reinterprets CRED's physical interaction
-   intelligence through ABDAN's warm emotional luxury DNA.
+   SECTION 39/40 — Editorial Tactile Responsiveness
+   Refined from the original CRED-inspired spring mechanics.
 
-   Philosophy: every interactive surface must feel like touched fabric —
-   it yields gently under a finger (90 ms ease-in press), then springs
-   back with a micro-overshoot (380 ms spring) that reads as material
-   memory. The surface "remembers" it was touched.
+   Philosophy (§40 revision): interactions should feel like fabric —
+   a barely-perceptible yield (0.992 scale / 140ms ease-out) when pressed,
+   a calm return (300ms ease-out, no spring overshoot) on release.
+   The user should FEEL quality without consciously noticing mechanics.
+   Motion supports emotion. It does not announce itself.
    ══════════════════════════════════════════════════════════════════════════ */
 
 function initTactileSystem() {
-  /* Targets that receive press-depth feedback.
-     .product-card has its own hover-transform; we compose with scale.
-     orb-buttons, action buttons, NPS choices all get the full spring.   */
+  /* Interactive surfaces that receive the subtle press-yield feedback.
+     All visible mechanics are handled by CSS §40 (scale 0.992, ease-out).
+     This JS only manages the class state machine — attach once, observe
+     for dynamically injected elements, clean up after each transition.   */
   const TACTILE_SELECTOR = [
     ".product-card",
     ".orb-button",
@@ -3459,7 +3460,7 @@ function initTactileSystem() {
     let pressing = false;
 
     el.addEventListener("pointerdown", (e) => {
-      /* Only primary pointer (left click / first finger) */
+      /* Primary pointer only: left click or first finger */
       if (e.button !== undefined && e.button !== 0) return;
       pressing = true;
       el.classList.remove("is-releasing");
@@ -3477,7 +3478,7 @@ function initTactileSystem() {
     el.addEventListener("pointercancel", release, { passive: true });
     el.addEventListener("pointerleave",  release, { passive: true });
 
-    /* Clean up .is-releasing after the spring finishes */
+    /* Remove .is-releasing cleanly after the CSS transition ends */
     el.addEventListener("transitionend", (e) => {
       if (e.propertyName === "transform" && e.target === el) {
         el.classList.remove("is-releasing");
@@ -3488,12 +3489,12 @@ function initTactileSystem() {
   /* Attach to all elements present at init time */
   document.querySelectorAll(TACTILE_SELECTOR).forEach(attachTactile);
 
-  /* MutationObserver: attach to elements injected dynamically later
-     (product cards rendered by JS after search/filter, NPS panel, etc.) */
+  /* MutationObserver: extend to dynamically injected elements
+     (filtered product cards, async-rendered NPS panel, etc.)            */
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
-        if (node.nodeType !== 1) continue; /* elements only */
+        if (node.nodeType !== 1) continue;
         if (node.matches?.(TACTILE_SELECTOR)) attachTactile(node);
         node.querySelectorAll?.(TACTILE_SELECTOR).forEach(attachTactile);
       }
