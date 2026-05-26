@@ -8200,3 +8200,202 @@ html[data-theme="dark"] .trust-rail__inner span {
 @media (prefers-reduced-motion: reduce) {
   .trust-mini { transition: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   SECTION 33 — MOBILE-NATIVE LUXURY EXPERIENCE
+   ───────────────────────────────────────────────────────────────────
+   Goal: ABDAN should feel physically natural on a phone — like a
+   luxury print editorial that responds to touch, not like an app
+   that has been squeezed into a viewport. Each change here removes
+   a desktop pattern and replaces it with a gesture-native one.
+
+   Philosophy:
+   • Bottom sheets, not floating dialogs — content rises from the hand
+   • Scroll-aware navigation — dock hides when reading, reappears on intent
+   • Portrait product media — clothes are tall, cards should be too
+   • Touch targets at minimum 44 × 44px — finger confidence, not precision
+   • No theatrical reveals — entrance should feel like lifting a cloth
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── 33a. Cart drawer → true bottom sheet on mobile ─────────────────
+   On desktop the cart panel slides in from the right (translateX).
+   On mobile that pattern requires users to reach across the screen
+   and provides no natural dismiss gesture. Converting to a bottom
+   sheet lets the user swipe down with the same thumb that opened it.
+   Height 88svh: tall enough to show most items, leaves a sliver of
+   the page visible (psychological grounding — user knows where they
+   are). Top corners rounded; drag handle via ::before pseudo.        */
+@media (max-width: 767px) {
+  .cart-drawer__panel {
+    inset: auto 0 0 0;        /* anchor to bottom edge, full width    */
+    width: 100%;
+    height: 88svh;
+    max-height: 88svh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    transform: translateY(100%);
+    transition: transform 420ms var(--ease-snap);
+    will-change: transform;
+  }
+
+  .cart-drawer.is-open .cart-drawer__panel {
+    transform: translateY(0);
+  }
+
+  /* Drag handle — 36×4 pill, centred at top of panel */
+  .cart-drawer__panel::before {
+    content: "";
+    display: block;
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line);
+    margin: 0.55rem auto 0;
+    flex-shrink: 0;
+  }
+}
+
+/* ── 33b. Teaser modal → bottom sheet on mobile ──────────────────────
+   The teaser ("We'll be opening soon") currently enters as a centred
+   overlay with scale/translateY. On mobile, centred overlays feel
+   imposed. A bottom sheet entrance (rises from below) feels chosen —
+   the user encounters it naturally rather than having it dropped on
+   them. Desktop behaviour unchanged.                                  */
+@media (max-width: 767px) {
+  .teaser-modal {
+    align-items: flex-end;       /* panel sticks to bottom of viewport */
+  }
+
+  .teaser-modal__panel {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 1.5rem 1.35rem max(1.5rem, env(safe-area-inset-bottom));
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    transform: translateY(100%);  /* enter from below, not from scale  */
+    opacity: 1;                   /* no fade needed — motion does it   */
+    transition: transform 400ms var(--ease-snap);
+  }
+
+  .teaser-modal.is-open .teaser-modal__panel {
+    transform: translateY(0);
+  }
+
+  /* Drag handle for teaser sheet */
+  .teaser-modal__panel::before {
+    content: "";
+    display: block;
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line);
+    margin: 0 auto 1.1rem;
+  }
+}
+
+/* ── 33c. Scroll-aware bottom dock ───────────────────────────────────
+   When reading product descriptions the dock occupies 56px of screen
+   height — real estate on a 390px viewport. Hiding it on downward
+   scroll (JS adds .is-dock-hidden) and restoring on upward intent
+   gives the content full breathing room without removing navigation.
+   Transition: quick hide (180ms ease-in), slower reveal (300ms snap)
+   so appearance feels deliberate rather than jarring.
+   safe-area-inset-bottom: dock clears iPhone home indicator always.  */
+@media (max-width: 767px) {
+  .bottom-dock {
+    transition:
+      background 240ms var(--ease-out),
+      transform 300ms var(--ease-snap);
+    will-change: transform;
+  }
+
+  .bottom-dock.is-dock-hidden {
+    transform: translateY(calc(100% + env(safe-area-inset-bottom)));
+    transition: transform 180ms ease-in;
+  }
+}
+
+/* ── 33d. Product card media — true portrait ratio on mobile ─────────
+   Current aspect-ratio 0.82 (≈ 5:6) is a compromise between portrait
+   and square. Fashion photography is naturally 3:4 (0.75). On mobile
+   where one card fills 76vw, the extra height reads as generous space
+   for the garment rather than a cropped thumbnail. Desktop unchanged. */
+@media (max-width: 767px) {
+  .product-card__media {
+    aspect-ratio: 0.75;  /* true 3:4 portrait — garment has room       */
+  }
+}
+
+/* ── 33e. Touch target sizing — 44px minimum ─────────────────────────
+   Apple HIG and WCAG 2.5.5 both specify 44×44px minimum. Several
+   interactive elements fall below this on the current design:
+   • Dock links: currently ~40px tap height → pad to reach 44px
+   • Filter chips: currently ~32px → increase to 40px minimum (kept
+     slightly below 44 as they appear in a horizontal scroll group
+     where adjacent targets reduce accidental activation risk)
+   • Wishlist heart: 36px → ensure 44px via min dimensions            */
+@media (max-width: 767px) {
+  /* Dock links: safe-area aware, already has padding — lift minimum */
+  .dock-link {
+    min-height: 44px;
+  }
+
+  /* Filter chips: generous enough to tap confidently */
+  .filter-chip {
+    min-height: 40px;
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
+  }
+
+  /* Wishlist and share orbs on product sheet */
+  .orb-button {
+    min-width:  44px;
+    min-height: 44px;
+  }
+
+  /* Option chips (size, colour selectors) */
+  .option-chip {
+    min-height: 40px;
+    padding: 0.5rem 0.85rem;
+  }
+}
+
+/* ── 33f. Visual framing reduction on mobile ─────────────────────────
+   Story cards and testimonials currently carry border + box-shadow on
+   all breakpoints. On mobile at narrow widths the card border creates
+   a nested-box feel: page edge → card border → content. Removing the
+   box on mobile lets content breathe against the page surface.
+   Top hairlines replace borders to maintain visual rhythm.           */
+@media (max-width: 767px) {
+  .story-card,
+  .testimonial-card {
+    border: none;
+    box-shadow: none;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+    background: transparent;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  /* First card: no top hairline — section heading already separates */
+  .story-card:first-child,
+  .testimonial-card:first-child {
+    border-top: none;
+  }
+}
+
+/* ── 33g. Reduced motion guard ───────────────────────────────────────*/
+@media (prefers-reduced-motion: reduce) {
+  .bottom-dock,
+  .bottom-dock.is-dock-hidden {
+    transition: none;
+    transform: none;
+  }
+
+  @media (max-width: 767px) {
+    .cart-drawer__panel,
+    .teaser-modal__panel {
+      transition: none;
+    }
+  }
+}

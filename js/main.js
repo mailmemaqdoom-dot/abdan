@@ -2042,14 +2042,19 @@ function initHeroParallax() {
 function initSwipeGestures() {
   if (LX_MOTION.reduced()) return;
 
-  /* Cart drawer — swipe right to dismiss */
+  /* Cart drawer — swipe to dismiss
+     Desktop: slides from right  → swipe rightward (axis "x", closeDir 1)
+     Mobile:  rises from bottom  → swipe downward  (axis "y", closeDir 1)
+     The bottom sheet conversion (CSS §33a) changes the visual direction;
+     the swipe axis must match so the gesture feels physically correct.   */
   const cartPanel = dom.cartDrawer?.querySelector(".cart-drawer__panel");
   if (dom.cartDrawer && cartPanel) {
+    const isMobileCart = () => window.innerWidth <= 767;
     attachSwipe(dom.cartDrawer, cartPanel, {
-      axis:        "x",
-      closeDir:    1,       /* positive x = rightward */
-      threshold:   88,      /* px distance for confident swipe  */
-      velocityMin: 0.38,    /* px/ms for a quick flick          */
+      axis:        isMobileCart() ? "y" : "x",
+      closeDir:    1,       /* downward on mobile, rightward on desktop */
+      threshold:   isMobileCart() ? 110 : 88,
+      velocityMin: 0.38,
       onClose:     closeCart,
     });
   }
@@ -2645,6 +2650,45 @@ function initScrollChrome() {
   window.addEventListener("scroll", updateChrome, { passive: true });
 }
 
+/* ── §33 Scroll-aware dock hiding (mobile only) ──────────────────────
+   The bottom dock occupies ~56px of viewport. On a 390px phone that is
+   ~14% of visible height — meaningful space when reading. This function
+   hides the dock on downward scroll (user is consuming content) and
+   restores it on upward intent (user is navigating). Three guards:
+   1. Only active on mobile (≤ 767px) — desktop dock is a pill at top
+   2. Ignores near-bottom position — dock reappears at page end so user
+      can navigate after reading (nearBottom threshold: 200px from end)
+   3. Ignores trivial scroll (y < 140) — prevent flicker on page load
+   Uses rAF batching so the listener never blocks paint.               */
+function initScrollAwareDock() {
+  const dock = dom.bottomDock;
+  if (!dock) return;
+
+  let lastY   = window.scrollY;
+  let ticking = false;
+
+  window.addEventListener("scroll", () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const y          = window.scrollY;
+      const onMobile   = window.innerWidth <= 767;
+      const scrolledFar = y > 140;
+      const goingDown  = y > lastY;
+      const nearBottom = (window.innerHeight + y) >= document.documentElement.scrollHeight - 200;
+
+      if (onMobile && scrolledFar && goingDown && !nearBottom) {
+        dock.classList.add("is-dock-hidden");
+      } else {
+        dock.classList.remove("is-dock-hidden");
+      }
+
+      lastY   = y;
+      ticking = false;
+    });
+  }, { passive: true });
+}
+
 function attachEvents() {
   dom.themeToggle.addEventListener("click", () => setTheme(state.theme === "dark" ? "light" : "dark"));
   if (dom.adminLoginForm) {
@@ -3095,6 +3139,7 @@ function init() {
   revealElements();
   initDockObserver();
   initScrollChrome();
+  initScrollAwareDock();  /* §33 — hides dock on downward scroll, mobile only */
   initHeroParallax();
   initSwipeGestures();
   renderAdminRoute();
