@@ -10181,3 +10181,285 @@ html[data-theme="dark"] .hero-section {
 }
 
 /* ═══ END SECTION 40 ════════════════════════════════════════════════════ */
+
+/* ╔══════════════════════════════════════════════════════════════════════╗
+   ║  SECTION 41 — Editorial First Corrective Pass                        ║
+   ║  CSS-only · No JS · No HTML · No system changes                      ║
+   ║  Scope: typography · spacing · card softness · motion easing         ║
+   ╚══════════════════════════════════════════════════════════════════════╝
+
+   This pass removes the residual "CRED-effect" from ABDAN's visual rhythm
+   through targeted CSS overrides only. Nothing architectural changes.
+   Every rule here is purely presentational.
+
+   Principle: luxury space is felt, not measured.
+              Luxury motion is remembered, not noticed.
+   ──────────────────────────────────────────────────────────────────── */
+
+/* ── 41a. Line height tokens — more editorial breath ─────────────────────
+   Body copy reads too compressed for luxury editorial pacing.
+   Increasing line-height by ~5% across the scale gives each line room
+   to breathe without widening column widths.                             */
+:root {
+  --leading-normal:  1.78;  /* body copy: from 1.70 → more open */
+  --leading-relaxed: 1.88;  /* editorial descriptions: from 1.75 */
+  --leading-loose:   2.08;  /* emotional/tagline copy: from 1.95 */
+}
+
+/* ── 41b. Section breathing room — generous editorial pacing ─────────────
+   §40 increased section padding to clamp(4rem, 8vw, 6.5rem).
+   §41 pushes further — luxury editorial layouts need more vertical silence.
+   Scroll-margin-top preserved so anchor links still land correctly.     */
+.section-frame {
+  padding-top:    clamp(5.5rem, 10vw, 8rem);
+  padding-bottom: clamp(5.5rem, 10vw, 8rem);
+}
+
+/* ── 41c. Section heading — wider, more vertical air ─────────────────────
+   Heading descends more slowly toward content — creating editorial pacing
+   between the label/kicker and the body text that follows.              */
+.section-heading {
+  max-width:     44rem;                          /* was 39rem — more editorial width */
+  margin-bottom: clamp(2.6rem, 4.5vh, 4rem);    /* was clamp(1.8rem, 3.5vh, 2.8rem) */
+}
+.section-heading h2 {
+  margin:        0.8rem 0 1.4rem;               /* was 0.5rem 0 1rem */
+  letter-spacing: -0.023em;                      /* slightly tighter — luxury precision */
+}
+.section-heading p {
+  line-height:   var(--leading-relaxed);
+  max-width:     38rem;                          /* constrain for editorial readability */
+}
+
+/* ── 41d. Eyebrow / section kicker labels — quieter presence ─────────────
+   0.22em tracking is stamped and aggressive — reads as product interface.
+   0.16em is editorial: still structured, now refined.                   */
+.eyebrow-row,
+.section-kicker,
+.micro-label,
+.option-head small {
+  letter-spacing: 0.16em;  /* was 0.22em */
+  font-size:      0.68rem; /* was 0.70rem — barely smaller, meaningfully quieter */
+}
+.eyebrow-row {
+  margin-bottom: 2rem;     /* was 1.4rem — more vertical separation before heading */
+}
+
+/* ── 41e. Hero copy — more generous vertical rhythm ─────────────────────
+   The gap between h1 and body copy, and body copy to actions,
+   is what creates the cinematic pause. Expanding it.                    */
+.hero-body {
+  margin-top:  2.6rem;                 /* was 1.9rem */
+  line-height: var(--leading-relaxed);
+  max-width:   34rem;                  /* slightly tighter for editorial focus */
+}
+.hero-actions {
+  margin-top: 2.4rem; /* was 1.8rem */
+}
+
+/* ── 41f. Product cards — editorial flatness, softer transitions ─────────
+   Resting shadow: shadow-sm (barely there, not floating).
+   Hover: shadow-soft and a 3px lift — calm, not dramatic.
+   Transition: ease-out replaces ease-spring (no bounce — editorial calm).
+   Content padding: more generous — image and text need separation.      */
+.product-card {
+  box-shadow:  var(--shadow-sm);                      /* was --shadow-soft */
+  transition:
+    transform    480ms var(--ease-out),               /* was 340ms ease-spring */
+    border-color 320ms var(--ease-out),
+    box-shadow   400ms var(--ease-out);
+}
+.product-card:hover {
+  transform:  translateY(-3px);                       /* was -5px */
+  box-shadow: var(--shadow-soft);                     /* was --shadow-lift */
+}
+.product-card:hover .product-card__media img {
+  transform: scale(1.02);                             /* was 1.03 */
+}
+.product-card__content {
+  padding: 1.6rem 1.5rem 1.7rem;                      /* was 1.3rem 1.3rem 1.4rem */
+}
+
+/* Product card active: softer press (less mechanical than the default) */
+.product-card:active {
+  transform:  scale(0.988) translateY(1px);           /* was scale(0.978) */
+  transition: transform 80ms linear;
+}
+@media (hover: none) {
+  .product-card:active {
+    transform:  scale(0.988) translateY(1px);
+    box-shadow: var(--shadow-sm);
+    transition: transform 80ms linear;
+  }
+}
+
+/* ── 41g. Product grid — more editorial gap ──────────────────────────────
+   More space between cards reduces the sense of inventory and increases
+   the sense of curation.                                                 */
+.products-grid {
+  gap: clamp(1.6rem, 2.5vw, 2.2rem);  /* was 1.45rem */
+}
+.story-grid,
+.testimonial-grid {
+  gap: clamp(1.4rem, 2vw, 1.9rem);    /* was 1.2rem */
+}
+
+/* ── 41h. Dark mode card media — warm placeholder ────────────────────────
+   The cold emerald gradient on dark mode card media reads as tech-fintech.
+   Replaced with warm brown — image-loading state now feels luxurious.   */
+html[data-theme="dark"] .product-card__media {
+  background: linear-gradient(135deg, #2A2319 0%, #1F1B16 100%);
+}
+
+/* ── 41i. Visual card image — softer hover scale ────────────────────────
+   1.02 → 1.015: editorial float, not zoom.                              */
+.visual-card--image:hover img {
+  transform: scale(1.015);
+}
+/* More padding inside visual card description blocks */
+.visual-card__meta,
+.visual-card--note {
+  padding: 1.65rem 1.7rem 1.85rem; /* was 1.35rem 1.45rem 1.5rem */
+}
+
+/* ── 41j. Editorial panel — more generous interior ──────────────────────
+   Editorial panels should feel like pages, not UI cards.                */
+.editorial-panel {
+  padding: clamp(2.4rem, 6.5vw, 5.5rem); /* was clamp(1.8rem, 5vw, 4rem) */
+}
+
+/* ── 41k. Promise band — more ceremonial space ───────────────────────────
+   The promise band is the emotional anchor of ABDAN. It needs to breathe. */
+.promise-band__inner {
+  padding: clamp(3rem, 6.5vw, 4.8rem); /* was clamp(2rem, 5vw, 3.6rem) */
+}
+
+/* ── 41l. Navigation — quieter, lighter chrome ───────────────────────────
+   Saturation at 128% is a productivity-app signal. 108% is editorial —
+   you notice the warmth but not the processing.
+   Orb button shadow: sm → xs (barely lifted off the surface).
+   Orb button active: 0.91 → 0.94 (less dramatic depress).              */
+.brand-pill,
+.bottom-dock,
+.support-pill {
+  backdrop-filter:         saturate(108%) blur(14px);
+  -webkit-backdrop-filter: saturate(108%) blur(14px);
+}
+.orb-button {
+  box-shadow: var(--shadow-xs); /* was --shadow-sm */
+}
+.orb-button:active {
+  transform:  scale(0.94);      /* was 0.91 — much less mechanical */
+  transition: transform 80ms linear;
+}
+
+/* ── 41m. Navigation dock labels — lighter weight ───────────────────────
+   font-weight 700 on 0.63rem text is very heavy — reads as app chrome.
+   600 is still strong but editorial.                                     */
+.dock-link span {
+  font-weight:    600;           /* was 700 */
+  letter-spacing: 0.05em;        /* was 0.06em */
+}
+/* Dock link transition: remove the spring — editorial ease-out only */
+.dock-link {
+  transition:
+    background 380ms var(--ease-out),
+    color      280ms var(--ease-out),
+    box-shadow 380ms var(--ease-out),
+    transform  300ms var(--ease-out);  /* was ease-spring */
+}
+
+/* ── 41n. Button transitions — ease-out replaces spring ─────────────────
+   Spring easing bounces. That reads as playful/tech. Editorial luxury
+   motion settles — it approaches and arrives, it does not overshoot.   */
+.primary-button,
+.secondary-button,
+.text-link,
+.inline-copy,
+.ghost-button,
+.qty-button,
+.remove-button {
+  transition:
+    transform    340ms var(--ease-out),   /* was 280ms ease-spring */
+    background   200ms var(--ease-out),
+    color        200ms var(--ease-out),
+    border-color 200ms var(--ease-out),
+    box-shadow   260ms var(--ease-out),
+    opacity      180ms var(--ease-out);
+}
+.primary-button:active,
+.secondary-button:active {
+  transform:  scale(0.977);       /* was 0.96 — softer depress */
+  transition: transform 80ms linear;
+}
+
+/* ── 41o. Support pill — softer hover float ─────────────────────────────
+   translateY(-2px) reads as app-hover. 1px is quieter.                 */
+.support-pill:hover {
+  transform:  translateY(-1px);
+  box-shadow: 0 10px 28px rgba(18, 31, 29, 0.09);
+}
+.support-pill {
+  transition:
+    transform    300ms var(--ease-out),  /* was ease-spring */
+    border-color 180ms var(--ease-out),
+    background   180ms var(--ease-out),
+    box-shadow   280ms var(--ease-out),
+    opacity      280ms var(--ease-out);
+}
+
+/* ── 41p. Trust rail — softer label presence ────────────────────────────
+   0.18em tracking on tiny labels is too stamped. 0.13em is still clear.  */
+.trust-rail__inner span {
+  letter-spacing: 0.13em;  /* was 0.18em */
+  font-size:      0.69rem; /* was 0.72rem */
+  padding:        1.1rem 1rem; /* slightly more vertical padding */
+}
+
+/* ── 41q. Mobile editorial refinements ──────────────────────────────────
+   Touch devices need even more breathing room — fingers need space.     */
+@media (max-width: 767px) {
+  .section-frame {
+    padding-top:    clamp(4rem, 12vw, 6rem);
+    padding-bottom: clamp(4rem, 12vw, 6rem);
+  }
+  .section-heading {
+    margin-bottom: clamp(2rem, 5vw, 2.8rem);
+  }
+  .hero-body {
+    margin-top:  2rem;
+    font-size:   var(--type-body-lg);
+  }
+  .hero-actions {
+    margin-top: 2rem;
+  }
+  .product-card__content {
+    padding: 1.35rem 1.25rem 1.5rem;
+  }
+  .products-grid {
+    gap: 1.2rem;
+  }
+  .eyebrow-row {
+    margin-bottom: 1.5rem;
+  }
+  .promise-band__inner {
+    padding: clamp(2rem, 8vw, 3rem);
+  }
+}
+
+/* ── 41r. Reduced motion guard ───────────────────────────────────────────
+   All new transition overrides must also respect prefers-reduced-motion. */
+@media (prefers-reduced-motion: reduce) {
+  .product-card,
+  .primary-button,
+  .secondary-button,
+  .text-link,
+  .ghost-button,
+  .dock-link,
+  .orb-button,
+  .support-pill {
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ═══ END SECTION 41 ════════════════════════════════════════════════════ */
