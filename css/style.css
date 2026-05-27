@@ -16332,3 +16332,288 @@ html[data-theme="dark"] .testimonial-card:not(.testimonial-card--featured) {
 @media (prefers-reduced-motion: reduce) {
   .product-card__media::after { transition: none !important; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   §60 — NAVIGATION PRECISION · DARK MODE COMPLETENESS · FLOATING SYSTEM
+   Mobile navbar overflow · Support pill icon-only · Dark mode audit
+   Z-index harmony · Safe-area refinement · Scroll sync tuning
+   ─────────────────────────────────────────────────────────────────────── */
+
+/* ── 60a. MOBILE NAVBAR OVERFLOW FIX ─────────────────────────────────────────
+   At very narrow viewports (≤400px) the brand-pill + header-actions block
+   can exceed the available header width. Progressive compression recovers
+   space in two stages — no layout change, just size reduction.
+   Step 1 (≤400px): shrink mark, tighten pill padding, cap wordmark.
+   Step 2 (≤360px): hide tagline — just mark + name, nothing else.           */
+@media (max-width: 400px) {
+  .brand-mark {
+    width:  2.2rem !important;
+    height: 2.2rem !important;
+  }
+
+  .brand-pill {
+    padding: 0.62rem 0.75rem !important;
+    gap:     0.6rem          !important;
+  }
+
+  .brand-pill__wordmark {
+    max-width: 88px !important;
+    height:    19px !important;
+  }
+
+  .brand-pill__name {
+    max-width: 108px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  /* Hide tagline — the wordmark alone carries the identity */
+  .brand-pill small {
+    display: none !important;
+  }
+
+  .brand-mark {
+    width:  2rem !important;
+    height: 2rem !important;
+  }
+
+  .brand-pill {
+    padding: 0.55rem 0.65rem !important;
+    gap:     0.5rem          !important;
+  }
+
+  .brand-pill__wordmark {
+    max-width: 76px !important;
+    height:    17px !important;
+  }
+
+  .brand-pill__name {
+    max-width: 94px !important;
+  }
+}
+
+/* ── 60b. SUPPORT PILL — ICON-ONLY DEFAULT · HOVER EXPAND ────────────────────
+   Default: compact pill showing only the WhatsApp icon. Ambient, non-intrusive.
+   Hover (desktop with fine pointer): pill expands to the right, revealing
+   "Speak with ABDAN" with a smooth max-width + opacity transition.
+   Mobile / coarse pointer: always compact — touch devices don't hover.        */
+
+/* Compact icon-only base — overrides all previous padding / gap / overflow */
+.support-pill {
+  padding:   0.44rem !important;
+  gap:       0       !important;
+  max-width: calc(2.45rem + 0.88rem) !important; /* icon (2.45rem) + symmetric padding */
+  overflow:  hidden  !important;
+}
+
+/* Label hidden in compact state */
+.support-pill__text {
+  white-space:    nowrap;
+  opacity:        0;
+  font-size:      0.82rem;
+  font-weight:    400;
+  letter-spacing: 0.01em;
+  color:          var(--text-main, #162f2d);
+  transition:     opacity 220ms var(--ease-out, ease);
+  flex-shrink:    0;
+  pointer-events: none;
+}
+
+/* Desktop hover-capable devices only */
+@media (hover: hover) and (pointer: fine) {
+  .support-pill {
+    transition:
+      max-width  360ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+      gap        360ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+      padding    360ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+      opacity    280ms var(--ease-out, ease),
+      transform  300ms var(--ease-out, ease),
+      box-shadow 300ms var(--ease-out, ease) !important;
+  }
+
+  .support-pill:hover {
+    max-width: 12.5rem                          !important;
+    gap:       0.75rem                          !important;
+    padding:   0.44rem 0.9rem 0.44rem 0.5rem   !important;
+    transform: translateY(-1px)                 !important;
+  }
+
+  .support-pill:hover .support-pill__text {
+    opacity:          1;
+    pointer-events:   auto;
+    transition-delay: 140ms;
+  }
+}
+
+/* Keyboard / focus: always show text for accessibility */
+.support-pill:focus-visible .support-pill__text {
+  opacity:        1 !important;
+  pointer-events: auto;
+}
+
+.support-pill:focus-visible {
+  max-width: 12.5rem                        !important;
+  gap:       0.75rem                        !important;
+  padding:   0.44rem 0.9rem 0.44rem 0.5rem !important;
+}
+
+/* ── 60c. SITE-HEADER SCROLL TRANSITION — cinematic slide ────────────────────
+   Smooth the header hide/show with a cinematic spring curve.
+   The existing initScrollChrome() JS handles the .is-nav-hidden class toggle.
+   We only refine the easing here.                                             */
+.site-header {
+  transition:
+    transform  340ms cubic-bezier(0.32, 0, 0.15, 1),
+    opacity    340ms cubic-bezier(0.32, 0, 0.15, 1),
+    box-shadow 280ms ease !important;
+}
+
+/* ── 60d. Z-INDEX HIERARCHY ───────────────────────────────────────────────────
+   Support pill must stay above the bottom dock on mobile and never overlap
+   incorrectly with the site header. Explicitly enforce the z-index from the
+   CSS custom property defined earlier (--z-support should already be set,
+   but this guarantees it at §60 priority).                                   */
+.support-pill {
+  z-index: var(--z-support, 96) !important;
+}
+
+/* ── 60e. SAFE-AREA REFINEMENT ───────────────────────────────────────────────
+   iPhone home bar and Android gesture bar: ensure both the dock and support
+   pill have correct clearance. The dock already handles its own position;
+   the support pill needs to float above the dock + safe area.               */
+@media (max-width: 767px) {
+  /* Support pill clears above the bottom dock */
+  .support-pill {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 5.4rem) !important;
+    right:  1rem !important;
+  }
+
+  /* When dock is hidden on scroll, support pill drops to normal clearance */
+  .bottom-dock.is-dock-hidden ~ .support-pill,
+  body.is-dock-hidden .support-pill {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 1.25rem) !important;
+  }
+
+  /* Bottom dock: safe-area bottom padding */
+  .bottom-dock {
+    padding-bottom: max(0px, env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ── 60f. DARK MODE COMPLETENESS AUDIT ───────────────────────────────────────
+   All sections reviewed. Fixes applied where light-mode remnants were found.
+   Uses the existing brand palette CSS custom properties throughout.          */
+
+/* Bottom dock nav items */
+html[data-theme="dark"] .dock-link {
+  color: rgba(230, 223, 203, 0.62);
+}
+
+html[data-theme="dark"] .dock-link.is-active {
+  color:      var(--gold)              !important;
+  background: rgba(197, 161, 59, 0.09) !important;
+}
+
+html[data-theme="dark"] .dock-link:hover {
+  color:      rgba(197, 161, 59, 0.88);
+  background: rgba(197, 161, 59, 0.06);
+}
+
+/* orb-button focus ring */
+html[data-theme="dark"] .orb-button:focus-visible {
+  outline:        2px solid rgba(197, 161, 59, 0.50);
+  outline-offset: 2px;
+}
+
+/* Cart count badge — gold-on-emerald in dark mode */
+html[data-theme="dark"] .cart-count {
+  background: var(--gold, #c5a13b) !important;
+  color:      var(--emerald, #023d3a) !important;
+}
+
+/* Footer + newsletter form inputs */
+html[data-theme="dark"] .footer-form__input,
+html[data-theme="dark"] .nl-form__input {
+  background:   rgba(2, 61, 58, 0.30)     !important;
+  border-color: rgba(197, 161, 59, 0.14)  !important;
+  color:        rgba(248, 245, 236, 0.90) !important;
+}
+
+html[data-theme="dark"] .footer-form__input::placeholder,
+html[data-theme="dark"] .nl-form__input::placeholder {
+  color: rgba(230, 223, 203, 0.36);
+}
+
+/* Feature / trust icon circles */
+html[data-theme="dark"] .feature-card__icon,
+html[data-theme="dark"] .trust-item__icon {
+  background:   rgba(197, 161, 59, 0.09) !important;
+  border-color: rgba(197, 161, 59, 0.16) !important;
+}
+
+/* Hero slide dot indicators */
+html[data-theme="dark"] .hero-dot {
+  background: rgba(230, 223, 203, 0.28);
+}
+
+html[data-theme="dark"] .hero-dot.is-active {
+  background: var(--gold);
+}
+
+/* Product filter chips */
+html[data-theme="dark"] .filter-chip {
+  background:   rgba(2, 61, 58, 0.20);
+  border-color: rgba(197, 161, 59, 0.12);
+  color:        rgba(230, 223, 203, 0.75);
+}
+
+html[data-theme="dark"] .filter-chip.is-active {
+  background:   rgba(197, 161, 59, 0.14)  !important;
+  border-color: rgba(197, 161, 59, 0.38)  !important;
+  color:        var(--gold)               !important;
+}
+
+/* ── 60g. DARK MODE ATMOSPHERIC NIGHT REFINEMENT ─────────────────────────────
+   Replaces the §58 warm-gold top glow with a cool emerald night variant —
+   the brand's emerald palette working in dark mode's favour.                 */
+html[data-theme="dark"] body::before {
+  background: radial-gradient(
+    ellipse 110% 50% at 50% -10%,
+    rgba(2, 61, 58, 0.22) 0%,
+    transparent 60%
+  ) !important;
+}
+
+/* ── 60h. SUPPORT PILL DARK MODE — TEXT + ICON ───────────────────────────────
+   Text label inherits warm ivory in dark mode; icon stays gold-on-emerald.   */
+html[data-theme="dark"] .support-pill__text {
+  color: rgba(230, 223, 203, 0.90);
+}
+
+html[data-theme="dark"] .support-pill__icon {
+  background: var(--gold, #c5a13b)    !important;
+  color:      var(--emerald, #023d3a) !important;
+}
+
+/* ── 60i. REDUCED MOTION GUARD ───────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .support-pill,
+  .support-pill__text,
+  .site-header {
+    transition:       none !important;
+    transition-delay: 0ms  !important;
+  }
+
+  /* On focus/hover still reveal text — no animation, just instant show */
+  .support-pill:focus-visible .support-pill__text,
+  .support-pill:hover         .support-pill__text {
+    opacity: 1 !important;
+  }
+
+  .support-pill:focus-visible,
+  .support-pill:hover {
+    max-width: 12.5rem                        !important;
+    gap:       0.75rem                        !important;
+    padding:   0.44rem 0.9rem 0.44rem 0.5rem !important;
+  }
+}
