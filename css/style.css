@@ -16617,3 +16617,615 @@ html[data-theme="dark"] .support-pill__icon {
     padding:   0.44rem 0.9rem 0.44rem 0.5rem !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   §61 — TRUE ADAPTIVE DEVICE ARCHITECTURE
+   Five device classes: mobile · tablet · laptop · desktop · ultrawide
+   Each class receives distinct spacing, typography, layout, and interaction
+   philosophy — not merely resized responsive CSS.
+   ─────────────────────────────────────────────────────────────────────── */
+
+/* ── 61a. DEVICE-CLASS CUSTOM PROPERTY OVERRIDES ─────────────────────────────
+   Override :root tokens per device class so ALL components that reference
+   --container, --type-display, etc. adapt automatically.                     */
+
+/* Mobile (≤480px) — native iOS luxury app density */
+@media (max-width: 480px) {
+  :root {
+    --type-display:    clamp(1.75rem, 8.5vw, 2.5rem);
+    --type-heading-xl: clamp(1.2rem, 5.5vw, 1.75rem);
+    --type-heading-lg: clamp(1.125rem, 4vw, 1.5rem);
+  }
+
+  /* Reduce information density — luxury is spacious even on small screens */
+  .section-frame {
+    padding-left:  1rem !important;
+    padding-right: 1rem !important;
+  }
+}
+
+/* Ultrawide (≥1920px) — premium spacious showcase */
+@media (min-width: 1920px) {
+  :root {
+    --container:    1440px;
+    --type-display: clamp(3.5rem, 5vw, 5.5rem);
+    --type-body-lg: 1.125rem;
+    --type-body:    1rem;
+  }
+
+  /* 4-column product grid on ultrawide */
+  .products-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  /* Wider product sheet panel */
+  .product-sheet__panel {
+    width: min(calc(100% - 2rem), 88rem) !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; /* 50/50 */
+  }
+
+  /* More vertical breathing on ultrawide — sections feel like galleries */
+  .section-frame {
+    padding-top:    clamp(6rem, 10vh, 9rem)  !important;
+    padding-bottom: clamp(6rem, 10vh, 9rem)  !important;
+  }
+}
+
+/* ── 61b. MOBILE iOS LUXURY APP FEEL ─────────────────────────────────────────
+   The entire mobile experience should feel like a native luxury application.
+   Touch-first ergonomics, momentum physics, elastic boundaries, iOS fluidity. */
+
+/* Smooth momentum scrolling on the page */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (max-width: 767px) {
+  /* Prevent accidental horizontal scroll — common luxury-app mistake */
+  body {
+    overflow-x: hidden;
+  }
+
+  /* Touch-manipulation: removes 300ms delay — feels instant and native */
+  a, button, [role="button"], label, .product-card, .nav-item, .dock-link,
+  .option-chip, .filter-chip, .wishlist-btn, .dock-link, .orb-button {
+    touch-action: manipulation;
+  }
+
+  /* iOS-style overscroll containment on the main body */
+  body {
+    overscroll-behavior-y: none; /* prevents chrome URL bar collapse bounce at top */
+  }
+
+  /* Larger, more ergonomic primary CTA on mobile */
+  .primary-button {
+    min-height:     48px         !important;
+    padding-top:    0.9rem       !important;
+    padding-bottom: 0.9rem       !important;
+    border-radius:  var(--radius-pill) !important;
+    font-size:      0.9375rem    !important;
+  }
+
+  .secondary-button {
+    min-height:     48px         !important;
+    padding-top:    0.9rem       !important;
+    padding-bottom: 0.9rem       !important;
+    border-radius:  var(--radius-pill) !important;
+  }
+
+  /* Product cards: slightly more vertical rhythm on mobile */
+  .product-card {
+    border-radius: var(--radius-lg) !important;
+  }
+
+  /* Filter chips: ergonomic touch height */
+  .filter-chip {
+    min-height: 42px !important;
+  }
+
+  /* Hero section: tighter proportions for portrait mobile */
+  .hero-copy {
+    padding-top:    calc(var(--header-height, 4.5rem) + 1.5rem) !important;
+  }
+}
+
+/* ── 61c. TABLET EDITORIAL MAGAZINE ──────────────────────────────────────────
+   Tablet portrait/landscape should feel like a premium editorial magazine.
+   Richer image areas, more elegant typographic rhythm, editorial hierarchy. */
+
+@media (min-width: 768px) and (max-width: 1040px) {
+  /* Product sheet on tablet: taller image area for editorial impact */
+  .product-sheet__media {
+    min-height: 28rem !important;
+  }
+
+  /* Products: stay 2-column on tablet but with more generous gap */
+  .products-grid {
+    gap: clamp(1.25rem, 2.5vw, 1.875rem) !important;
+  }
+
+  /* Story cards: 2-column on tablet (not single column) */
+  .story-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  /* Account features: 2-column */
+  .account-features {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  /* Testimonials: 2 column on tablet (3 is too tight) */
+  .testimonial-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* ── 61d. TALL MOBILE SCREENS — portrait adjustment ─────────────────────────
+   Modern tall phones (19.5:9 and beyond) have extra vertical space.
+   Use it for breathing, not more content density.                           */
+
+@media (max-width: 767px) and (min-height: 800px) {
+  /* Slightly more generous vertical section padding on tall screens */
+  .lx-breath {
+    padding-top:    clamp(3.5rem, 7vh, 5rem) !important;
+    padding-bottom: clamp(3.5rem, 7vh, 5rem) !important;
+  }
+
+  /* Hero: a bit more height on tall screens */
+  .hero-slide {
+    min-height: 62svh !important;
+  }
+}
+
+/* Landscape on small phones — compact everything */
+@media (max-width: 767px) and (max-height: 450px) {
+  /* Product sheet fills width but much shorter in landscape */
+  .product-sheet__panel {
+    border-radius: 0 !important;
+    height: 100dvh  !important;
+    max-height: 100dvh !important;
+  }
+
+  .product-sheet__media {
+    height: 55vw !important;
+    max-height: 240px !important;
+  }
+}
+
+/* ── 61e. REDUCED MOTION GUARD ───────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   §62 — PRODUCT SHEET TRANSFORMATION
+   Mobile: native-scroll architecture (image scrolls away, CTA stays grounded)
+   Desktop: cinematic wider proportions, richer editorial storytelling
+   Apple-style content hierarchy: emotional, unhurried, immersive
+   ─────────────────────────────────────────────────────────────────────── */
+
+/* ── 62a. MOBILE — NATIVE SCROLL ARCHITECTURE ────────────────────────────────
+   Transform the constrained grid-row panel into a natural-scroll native-app
+   experience. The image is in the normal document flow — it scrolls away as
+   the user reads deeper into the story. The CTA is sticky-to-viewport.
+   Net effect: feels like an iOS product page, not a modal dialog.            */
+@media (max-width: 767px) {
+  /* Panel: flex column scroll container — the single scroll root */
+  .product-sheet__panel {
+    display:            flex           !important;
+    flex-direction:     column         !important;
+    overflow-y:         auto           !important;
+    overflow-x:         hidden         !important;
+    -webkit-overflow-scrolling: touch  !important;
+    overscroll-behavior-y: contain     !important;
+    /* Grid constraints become irrelevant with display:flex */
+    grid-template-rows: initial        !important;
+    /* Height unchanged: full-height bottom sheet */
+    height:             96svh          !important;
+    max-height:         96svh          !important;
+  }
+
+  /* Image: in-flow element that scrolls away with content */
+  .product-sheet__media {
+    flex:       0 0 min(60vw, 300px) !important;
+    height:     min(60vw, 300px)     !important;
+    min-height: unset                !important;
+    position:   relative             !important; /* for expand-btn positioning */
+    cursor:     zoom-in              !important;
+  }
+
+  /* Body: grows to fill remaining panel space, never shrinks */
+  .product-sheet__body {
+    flex:        1 0 auto                              !important;
+    /* min-height forces body to always fill at least the visible remainder */
+    min-height:  calc(96svh - min(60vw, 300px))       !important;
+    display:     flex                                  !important;
+    flex-direction: column                             !important;
+    overflow:    visible                               !important;
+  }
+
+  /* Content: natural height — not a scroll container */
+  .product-sheet__content {
+    flex:        1                   !important;
+    overflow:    visible             !important;
+    overflow-y:  visible             !important;
+    min-height:  0                   !important;
+    /* Bottom padding clears the sticky CTA bar */
+    padding:     1.25rem 1.25rem 5.5rem !important;
+    -webkit-overflow-scrolling: unset !important;
+    overscroll-behavior: unset       !important;
+  }
+
+  /* CTA bar: sticky to the panel viewport — always reachable */
+  .product-sheet__actions {
+    position:    sticky              !important;
+    bottom:      0                   !important;
+    z-index:     5                   !important;
+    flex:        0 0 auto            !important;
+    flex-direction: row              !important;
+    gap:         0.6rem              !important;
+    padding:     0.85rem 1.15rem     !important;
+    padding-bottom: max(0.9rem, env(safe-area-inset-bottom, 0px)) !important;
+    background:  var(--surface-strong)                !important;
+    backdrop-filter: saturate(150%) blur(20px)        !important;
+    -webkit-backdrop-filter: saturate(150%) blur(20px) !important;
+    border-top:  1px solid var(--line)               !important;
+    box-shadow:  0 -10px 30px rgba(2, 8, 8, 0.07)   !important;
+    margin-top:  auto                                !important;
+  }
+}
+
+/* ── 62b. DESKTOP PRODUCT SHEET — CINEMATIC PROPORTIONS ─────────────────────
+   On desktop, give the image column more real estate for visual impact.
+   The content column breathes with editorial luxury spacing.                 */
+@media (min-width: 1041px) {
+  /* Slightly wider panel for more immersive desktop experience */
+  .product-sheet__panel {
+    width: min(calc(100% - 2rem), 76rem) !important;
+    /* Shift image column to be slightly wider: 52% image, 48% content */
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr) !important;
+  }
+
+  /* Image: cinematic cover fill */
+  .product-sheet__media {
+    min-height: 30rem !important;
+  }
+
+  /* Content: generous editorial padding */
+  .product-sheet__content {
+    padding: 2rem 2rem 1.25rem !important;
+  }
+}
+
+/* ── 62c. PRODUCT IMAGE — TAP-TO-FULLSCREEN AFFORDANCE ──────────────────────
+   A soft frosted expand button sits in the image's bottom-right corner.
+   Appears on load, subtly inviting the user to explore the image fully.     */
+.lx-imgview__expand-btn {
+  position:   absolute;
+  bottom:     0.75rem;
+  right:      0.75rem;
+  z-index:    2;
+  width:      2.25rem;
+  height:     2.25rem;
+  border-radius: 50%;
+  background: rgba(248, 245, 236, 0.76);
+  border:     1px solid rgba(2, 61, 58, 0.10);
+  display:    flex;
+  align-items: center;
+  justify-content: center;
+  color:      var(--emerald);
+  cursor:     pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: opacity 200ms ease, transform 220ms var(--ease-spring, ease);
+  opacity:    0; /* shown only after image loads */
+}
+
+/* Show expand button after image has loaded */
+.product-sheet__media.img-loaded .lx-imgview__expand-btn {
+  opacity: 0.82;
+}
+
+.lx-imgview__expand-btn:hover {
+  opacity:   1 !important;
+  transform: scale(1.1);
+}
+
+.lx-imgview__expand-btn [data-lucide] {
+  width:  0.9375rem !important;
+  height: 0.9375rem !important;
+}
+
+html[data-theme="dark"] .lx-imgview__expand-btn {
+  background: rgba(8, 28, 27, 0.78);
+  border-color: rgba(197, 161, 59, 0.18);
+  color: var(--ivory);
+}
+
+/* ── 62d. APPLE-STYLE PRODUCT EDITORIAL SECTIONS ─────────────────────────────
+   Transform the section styling from "form-like" to "editorial-cinematic."
+   Generous spacing, larger text, atmospheric separators, luxury restraint.   */
+
+/* Editorial story sections: space-based separation (not border lines) */
+.editorial-story {
+  margin-top:  clamp(2rem, 4vw, 3rem) !important;
+  padding-top: 0                      !important;
+  border-top:  none                   !important;
+  position:    relative;
+}
+
+/* Gold em-dash before each section label — editorial typographic signal */
+.editorial-story__label {
+  font-size:      0.6875rem                   !important; /* 11px */
+  letter-spacing: 0.22em                      !important;
+  text-transform: uppercase                   !important;
+  font-family:    var(--font-body)            !important;
+  font-weight:    600                         !important;
+  color:          var(--gold)                 !important;
+  margin-bottom:  0.65rem                     !important;
+  display:        flex;
+  align-items:    center;
+  gap:            0.45rem;
+}
+
+.editorial-story__label::before {
+  content: '—';
+  opacity: 0.55;
+  font-weight: 400;
+  flex-shrink: 0;
+}
+
+/* Story text: more generous and editorial */
+.editorial-story__text {
+  font-size:   clamp(0.9375rem, 1.4vw, 1rem) !important;
+  line-height: 1.82                           !important;
+  color:       var(--text-soft)               !important;
+  margin: 0                                   !important;
+}
+
+/* Soul block: luxury editorial statement */
+.product-soul-block {
+  margin-top:  clamp(2rem, 4vw, 3rem)                   !important;
+  padding:     clamp(1.5rem, 3.5vw, 2.25rem)            !important;
+  border-radius: var(--radius-lg)                        !important;
+  background:  linear-gradient(
+    135deg,
+    var(--cream) 0%,
+    var(--ivory-deep) 100%
+  )                                                      !important;
+  border-left: 2px solid var(--gold)                     !important;
+  border-top:  1px solid rgba(197, 161, 59, 0.12)        !important;
+}
+
+.product-soul-block p {
+  font-family:    var(--font-editorial)                  !important;
+  font-style:     italic                                 !important;
+  font-size:      clamp(1rem, 1.8vw, 1.1875rem)         !important;
+  line-height:    1.78                                   !important;
+  color:          rgba(22, 47, 45, 0.82)                 !important;
+  margin: 0                                              !important;
+}
+
+/* Product intro hook: more generous, editorial */
+.product-intro {
+  font-size:      clamp(0.9375rem, 1.5vw, 1.0625rem)    !important;
+  line-height:    1.88                                   !important;
+  margin:         0.5rem 0 1.5rem                        !important;
+  color:          rgba(22, 47, 45, 0.65)                 !important;
+}
+
+/* Product price in sheet: refined size */
+.product-sheet__content .product-price {
+  font-size:      clamp(1.5rem, 2.8vw, 2rem)             !important;
+  letter-spacing: -0.03em                                !important;
+  margin:         0.28rem 0 0.1rem                       !important;
+}
+
+/* Option chips: more refined, less "form" */
+.option-chip {
+  border-radius: var(--radius-xs) !important;
+  font-weight:   500              !important;
+  letter-spacing: 0.02em         !important;
+  font-size:     0.875rem         !important;
+}
+
+/* Soft moments list: more editorial, less "list" */
+.editorial-moments li {
+  border-radius: var(--radius-sm)   !important;
+  font-size:     0.9375rem          !important;
+  line-height:   1.7                !important;
+  padding:       0.85rem 1rem 0.85rem 2.25rem !important;
+}
+
+/* Product facts: cleaner horizontal rhythm */
+.product-fact {
+  font-size:   0.875rem  !important;
+  padding:     0.85rem 0 !important;
+}
+
+.product-fact strong {
+  font-weight:   600       !important;
+  color:         var(--text-main) !important;
+  font-size:     0.8125rem !important;
+  letter-spacing: 0.04em  !important;
+  text-transform: uppercase !important;
+  flex-shrink:   0         !important;
+}
+
+.product-fact span {
+  color:     var(--text-soft) !important;
+  text-align: right          !important;
+}
+
+/* Emotional recs label */
+.emotional-recs__label {
+  font-family:    var(--font-editorial) !important;
+  font-style:     italic               !important;
+  font-size:      clamp(1rem, 1.5vw, 1.125rem) !important;
+  line-height:    1.55                 !important;
+  color:          var(--text-main)     !important;
+  margin-bottom:  1rem                 !important;
+}
+
+/* ── 62e. CINEMATIC PRODUCT SHEET ENTRY ANIMATION ────────────────────────────
+   Key content elements stagger into view when the product sheet opens.
+   Uses CSS animation-fill-mode: both — starts at from-state immediately,
+   holds to-state after completion. Resets cleanly when .is-open is removed. */
+@keyframes lx-psheet-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+.product-sheet.is-open #productTag {
+  animation: lx-psheet-rise 360ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
+}
+.product-sheet.is-open #productName {
+  animation: lx-psheet-rise 420ms cubic-bezier(0.16, 1, 0.3, 1) 190ms both;
+}
+.product-sheet.is-open #productPrice {
+  animation: lx-psheet-rise 400ms cubic-bezier(0.16, 1, 0.3, 1) 260ms both;
+}
+.product-sheet.is-open .product-intro {
+  animation: lx-psheet-rise 400ms cubic-bezier(0.16, 1, 0.3, 1) 330ms both;
+}
+.product-sheet.is-open .option-group:nth-of-type(1) {
+  animation: lx-psheet-rise 380ms cubic-bezier(0.16, 1, 0.3, 1) 400ms both;
+}
+.product-sheet.is-open .option-group:nth-of-type(2) {
+  animation: lx-psheet-rise 380ms cubic-bezier(0.16, 1, 0.3, 1) 470ms both;
+}
+
+/* ── 62f. DARK MODE — PRODUCT SHEET ──────────────────────────────────────────*/
+html[data-theme="dark"] .product-soul-block {
+  background: linear-gradient(
+    135deg,
+    rgba(2, 61, 58, 0.22) 0%,
+    rgba(2, 61, 58, 0.12) 100%
+  ) !important;
+  border-left-color: var(--gold)           !important;
+  border-top-color:  rgba(197, 161, 59, 0.10) !important;
+}
+
+html[data-theme="dark"] .product-soul-block p {
+  color: rgba(230, 223, 203, 0.82) !important;
+}
+
+html[data-theme="dark"] .product-intro {
+  color: rgba(230, 223, 203, 0.60) !important;
+}
+
+html[data-theme="dark"] .editorial-story__text {
+  color: rgba(230, 223, 203, 0.68) !important;
+}
+
+/* ── 62g. REDUCED MOTION GUARD ─────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .product-sheet.is-open #productTag,
+  .product-sheet.is-open #productName,
+  .product-sheet.is-open #productPrice,
+  .product-sheet.is-open .product-intro,
+  .product-sheet.is-open .option-group {
+    animation: none !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   §63 — FULLSCREEN IMAGE VIEWER
+   Cinematic fullscreen image immersion — tap image to enter, swipe/tap to exit.
+   Native-app quality: atmospheric dimming, spring entrance, gesture dismiss.
+   ─────────────────────────────────────────────────────────────────────── */
+
+/* ── 63a. VIEWER OVERLAY ─────────────────────────────────────────────────── */
+.lx-imgview {
+  position:       fixed;
+  inset:          0;
+  z-index:        9900;
+  display:        flex;
+  align-items:    center;
+  justify-content: center;
+  background:     rgba(1, 10, 9, 0);
+  opacity:        0;
+  pointer-events: none;
+  transition:     background 380ms ease, opacity 380ms ease;
+}
+
+.lx-imgview.is-open {
+  background:     rgba(1, 10, 9, 0.93);
+  opacity:        1;
+  pointer-events: auto;
+}
+
+/* ── 63b. VIEWER IMAGE ───────────────────────────────────────────────────── */
+.lx-imgview__img {
+  max-width:    min(92vw, 900px);
+  max-height:   88dvh;
+  object-fit:   contain;
+  border-radius: var(--radius-md);
+  transform:    scale(0.86) translateY(22px);
+  transition:   transform 460ms cubic-bezier(0.16, 1, 0.3, 1);
+  cursor:       zoom-out;
+  user-select:  none;
+  -webkit-user-select: none;
+  touch-action: pinch-zoom;
+  will-change:  transform;
+}
+
+.lx-imgview.is-open .lx-imgview__img {
+  transform: scale(1) translateY(0);
+}
+
+/* ── 63c. CLOSE BUTTON ───────────────────────────────────────────────────── */
+.lx-imgview__close-btn {
+  position:   absolute;
+  top:        max(1.25rem, env(safe-area-inset-top, 1.25rem));
+  right:      max(1.25rem, env(safe-area-inset-right, 1.25rem));
+  width:      2.75rem;
+  height:     2.75rem;
+  border-radius: 50%;
+  background: rgba(248, 245, 236, 0.10);
+  border:     1px solid rgba(248, 245, 236, 0.18);
+  display:    flex;
+  align-items: center;
+  justify-content: center;
+  color:      rgba(248, 245, 236, 0.85);
+  cursor:     pointer;
+  transition: background 200ms ease, transform 200ms var(--ease-spring, ease);
+  flex-shrink: 0;
+}
+
+.lx-imgview__close-btn:hover {
+  background: rgba(248, 245, 236, 0.20);
+  transform:  scale(1.08);
+}
+
+.lx-imgview__close-btn [data-lucide] {
+  width:  1.125rem !important;
+  height: 1.125rem !important;
+  stroke-width: 2 !important;
+}
+
+/* ── 63d. DISMISS HINT ───────────────────────────────────────────────────── */
+.lx-imgview__dismiss-hint {
+  position:    absolute;
+  bottom:      max(1.75rem, env(safe-area-inset-bottom, 1.75rem));
+  left:        50%;
+  transform:   translateX(-50%);
+  font-size:   0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color:       rgba(248, 245, 236, 0.30);
+  font-family: var(--font-body);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ── 63e. REDUCED MOTION GUARD ────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .lx-imgview,
+  .lx-imgview__img {
+    transition: none !important;
+  }
+  .lx-imgview.is-open .lx-imgview__img {
+    transform: none !important;
+  }
+}

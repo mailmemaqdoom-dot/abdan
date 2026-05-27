@@ -3989,3 +3989,134 @@ function lxFormRipple(btn) {
 }
 
 window.addEventListener("DOMContentLoaded", init);
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   §61-63 — ADAPTIVE EXPERIENCE SYSTEMS
+   Fullscreen image viewer · Mobile product scroll patch
+   ─────────────────────────────────────────────────────────────────────── */
+
+/* ── §63 — Fullscreen Image Viewer ──────────────────────────────────────────
+   Tap the product image to enter a cinematic fullscreen view.
+   Swipe down (touch) or press Escape (keyboard) to exit.
+   Pinch-to-zoom uses native touch-action: pinch-zoom on the image itself.   */
+function initProductImageViewer() {
+  /* Build the viewer element once and append to body */
+  const viewer = document.createElement("div");
+  viewer.className = "lx-imgview";
+  viewer.setAttribute("aria-hidden", "true");
+  viewer.setAttribute("role", "dialog");
+  viewer.setAttribute("aria-label", "Full image — swipe down or tap to close");
+  viewer.innerHTML = [
+    '<button type="button" class="lx-imgview__close-btn" aria-label="Close image">',
+    '  <i data-lucide="x"></i>',
+    '</button>',
+    '<img class="lx-imgview__img" src="" alt="" draggable="false" loading="eager" />',
+    '<p class="lx-imgview__dismiss-hint" aria-hidden="true">Tap image · Swipe down · Esc</p>',
+  ].join("");
+  document.body.appendChild(viewer);
+
+  const viewerImg = viewer.querySelector(".lx-imgview__img");
+  const closeBtn  = viewer.querySelector(".lx-imgview__close-btn");
+
+  /* ── Open/close helpers ──────────────────────────────────────────────── */
+  function openViewer(src, alt) {
+    viewerImg.src = src;
+    viewerImg.alt = alt || "Product image";
+    viewer.classList.add("is-open");
+    viewer.setAttribute("aria-hidden", "false");
+    closeBtn.focus(); /* move focus into viewer for keyboard users */
+    safeCreateIcons();
+  }
+
+  function closeViewer() {
+    viewer.classList.remove("is-open");
+    viewer.setAttribute("aria-hidden", "true");
+    /* Return focus to the expand button if it exists */
+    const expandBtn = document.querySelector(".lx-imgview__expand-btn");
+    if (expandBtn) requestAnimationFrame(() => expandBtn.focus());
+  }
+
+  /* ── Trigger: click on the product sheet media area ─────────────────── */
+  document.addEventListener("click", (e) => {
+    /* Allow click on media area (but not the expand btn — that handles itself) */
+    const media = e.target.closest(".product-sheet__media");
+    if (!media || e.target.closest(".lx-imgview__expand-btn")) return;
+    const img = document.getElementById("productImage");
+    if (img && img.classList.contains("img-loaded")) {
+      openViewer(img.src, img.alt);
+    }
+  });
+
+  /* ── Dismiss: backdrop click, image click, close button ─────────────── */
+  viewer.addEventListener("click", (e) => {
+    if (e.target === viewer || e.target === viewerImg) closeViewer();
+  });
+  closeBtn.addEventListener("click", closeViewer);
+
+  /* ── Dismiss: Escape key ─────────────────────────────────────────────── */
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && viewer.classList.contains("is-open")) {
+      e.preventDefault();
+      closeViewer();
+    }
+  });
+
+  /* ── Dismiss: swipe down gesture (touch) ────────────────────────────── */
+  let lxTouchStartY = 0;
+  viewer.addEventListener("touchstart", (e) => {
+    lxTouchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  viewer.addEventListener("touchend", (e) => {
+    const dy = e.changedTouches[0].clientY - lxTouchStartY;
+    if (dy > 80 && viewer.classList.contains("is-open")) closeViewer();
+  }, { passive: true });
+
+  /* ── Add expand button to product sheet media area ───────────────────── */
+  const mediaEl = document.querySelector(".product-sheet__media");
+  if (mediaEl) {
+    const expandBtn = document.createElement("button");
+    expandBtn.type = "button";
+    expandBtn.className = "lx-imgview__expand-btn";
+    expandBtn.setAttribute("aria-label", "View full image");
+    expandBtn.setAttribute("tabindex", "-1"); /* image is decorative; real action is click on media */
+    expandBtn.innerHTML = '<i data-lucide="maximize-2"></i>';
+    expandBtn.addEventListener("click", (e) => {
+      e.stopPropagation(); /* prevent media click handler from double-firing */
+      const img = document.getElementById("productImage");
+      if (img && img.classList.contains("img-loaded")) {
+        openViewer(img.src, img.alt);
+      }
+    });
+    mediaEl.appendChild(expandBtn);
+    safeCreateIcons();
+  }
+}
+
+/* ── §62 — Mobile product scroll reset patch ─────────────────────────────────
+   When the §62 CSS changes .product-sheet__panel to a flex scroll container
+   (on mobile), the existing JS resets .product-sheet__content scroll — which
+   no longer has overflow-y: auto. This observer resets the PANEL scroll
+   on every product open, ensuring the new native-scroll experience starts
+   at the top (image visible) every time.                                     */
+function initMobileProductScroll() {
+  const sheet = dom.productSheet;
+  if (!sheet) return;
+
+  const observer = new MutationObserver(() => {
+    if (sheet.classList.contains("is-open")) {
+      const panel = sheet.querySelector(".product-sheet__panel");
+      /* rAF: wait one paint cycle so the panel is fully visible first */
+      if (panel) requestAnimationFrame(() => {
+        panel.scrollTop = 0;
+      });
+    }
+  });
+
+  observer.observe(sheet, { attributes: true, attributeFilter: ["class"] });
+}
+
+/* ── Boot adaptive systems after init() has set up dom.* references ─────── */
+window.addEventListener("DOMContentLoaded", () => {
+  initProductImageViewer();
+  initMobileProductScroll();
+});
