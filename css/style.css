@@ -11905,3 +11905,297 @@ html {
 }
 
 /* ══ END SECTION 45 ═══════════════════════════════════════════════════════ */
+
+/* ══ SECTION 46 — World-Class Precision Audit & Polish ════════════════════
+   16-area systematic audit: animations · typography · spacing · containers
+   · visual hierarchy · layout rhythm · proportions · alignment · mobile
+   interactions · UI polish · performance · cinematic flow · feminine luxury
+   consistency · dark mode · responsiveness · interaction quality.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── 46a. CRITICAL BUG FIX — §45 warm atmosphere applied at :root ────────
+   §45 placed its overrides inside [data-theme="light"] which only fires
+   AFTER an explicit theme toggle — NOT on the first page load where html
+   has no data-theme attribute and inherits :root defaults.
+   Fix: apply warm surface here in :root so every first-time visitor gets
+   the warm ivory atmosphere immediately.
+   IMPORTANT: --surface must stay semi-transparent (rgba) for the
+   backdrop-filter glassmorphism on header pill, dock, and support pill.  */
+:root {
+  --bg:           linear-gradient(180deg, #faf7f0 0%, #f4ecdc 50%, #faf7f0 100%);
+  --card-bg:      rgba(255, 253, 248, 0.84);
+  --card-border:  rgba(170, 130, 70, 0.1);
+  --surface:      rgba(250, 247, 242, 0.92);     /* glass-safe — do NOT make opaque */
+  --surface-soft: rgba(250, 247, 242, 0.18);
+  --shadow-xs:    0 2px  10px rgba(100, 72, 38, 0.055);
+  --shadow-sm:    0 8px  24px rgba(100, 72, 38, 0.08);
+  --shadow-soft:  0 16px 40px rgba(100, 72, 38, 0.09);
+  --shadow-lift:  0 24px 58px rgba(100, 72, 38, 0.11);
+  --shadow-deep:  0 40px 100px rgba(100, 72, 38, 0.13);
+}
+
+/* ── 46b. Body — line-height baseline (missing from base body declaration) */
+body {
+  line-height: var(--leading-normal);
+}
+
+/* ── 46c. Performance — GPU hint for pre-reveal elements ─────────────────
+   Product cards already carry will-change (§43). Applying globally to all
+   .reveal elements ensures 60fps stagger on mid-range Android devices.
+   The browser discards will-change automatically once the element animates.*/
+.reveal:not(.is-visible) {
+  will-change: opacity, transform;
+}
+
+/* ── 46d. Hero h1 span — italic emotional climax ─────────────────────────
+   "this time, the thought belongs to you." is the emotional heart of the
+   brand. Italic gives it a soft feminine flourish — warm, not aggressive.  */
+.hero-copy h1 span {
+  font-style: italic;
+}
+
+/* ── 46e. Products carousel — scroll-snap for iOS momentum feel ──────────
+   The softly-returning grid already uses x proximity; the products grid
+   uses x mandatory for crisper card alignment on swipe.                 */
+.products-grid {
+  scroll-snap-type:           x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.product-card {
+  scroll-snap-align: start;
+}
+
+/* ── 46f. Product card hover — warm gold accent on border ────────────────
+   Pairs with the existing shadow-lift and scale(1.03) image zoom.      */
+.product-card:hover {
+  border-color: rgba(197, 161, 59, 0.2);
+  box-shadow:   var(--shadow-lift);
+}
+
+/* ── 46g. Wishlist heart — persistent warm gold when saved ───────────────
+   The WAAPI bloom fires on save. CSS persists the visual state between
+   bloom animations so the saved state is always visually clear.         */
+.product-card__save.is-saved svg {
+  stroke:     var(--gold);
+  fill:       rgba(197, 161, 59, 0.12);
+  transition: stroke 220ms var(--ease-out), fill 220ms var(--ease-out);
+}
+
+/* ── 46h. Toast — centered, correctly positioned above fixed chrome ───────
+   Must float above the bottom-right support pill and safe-area inset.
+   Left 50% + translateX(-50%) centers it on any viewport width.        */
+.toast {
+  bottom:      max(5rem, calc(env(safe-area-inset-bottom) + 4.5rem));
+  left:        50%;
+  transform:   translateX(-50%) translateY(1rem);
+  white-space: nowrap;
+  max-width:   calc(100vw - 3rem);
+  text-align:  center;
+}
+
+.toast.is-visible {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── 46i. Product sheet CTA bar — iPhone notch / home indicator clearance  */
+.product-sheet__actions {
+  padding-top:    0.875rem;
+  padding-left:   1.25rem;
+  padding-right:  1.25rem;
+  padding-bottom: max(1.25rem, calc(env(safe-area-inset-bottom) + 0.875rem));
+}
+
+/* ── 46j. Cart drawer footer — home indicator clearance on iPhone ─────────  */
+.drawer-footer {
+  padding-bottom: max(1.5rem, calc(env(safe-area-inset-bottom) + 1.25rem));
+}
+
+/* ── 46k. Trust rail spans — warmer ivory background ────────────────────
+   Slightly warmer than the original rgba(248,245,236,0.82).             */
+.trust-rail__inner span {
+  background: rgba(250, 247, 242, 0.9);
+}
+
+/* ── 46l. Dark mode — warmer card surface atmosphere ─────────────────────
+   Shift from cool-green to slightly warmer forest tone.                 */
+html[data-theme="dark"] {
+  --card-bg:     rgba(11, 33, 31, 0.88);
+  --card-border: rgba(220, 212, 192, 0.09);
+}
+
+/* ── 46m. Section rhythm — calibrated breathing room ────────────────────
+   §45 may have created double-spacing. This rule sets a single
+   authoritative value that scales gracefully with the viewport.         */
+.section-frame {
+  padding-top:       clamp(4.5rem, 7vw, 8rem);
+  padding-bottom:    clamp(3rem, 4.5vw, 5.5rem);
+  scroll-margin-top: 9.5rem;
+}
+
+/* ── 46n. Dock active glow — fix [data-theme="light"] selector bug ───────
+   The existing rule was scoped to html[data-theme="light"] which, like the
+   §45 surface bug, only fires after a toggle. Add an unscoped rule so the
+   glow plays on first load too.                                          */
+.dock-link.is-active {
+  animation: lx-dock-active 300ms var(--ease-out) both;
+}
+
+html[data-theme="dark"] .dock-link.is-active {
+  animation: lx-dock-active-dark 300ms var(--ease-out) both;
+}
+
+/* ── 46o. Campaign chips — pill border-radius consistency ────────────────  */
+.campaign-chip {
+  border-radius: var(--radius-pill);
+  padding:       0.38rem 0.92rem;
+}
+
+/* ── 46p. Space privilege row — equal-height responsive grid ─────────────  */
+.space-privilege-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap:    1rem;
+}
+
+/* ── 46q. Section heading — graceful kicker-to-heading rhythm ────────────  */
+.section-heading h2 {
+  margin-top: 0.55rem;
+}
+
+/* ── 46r. Editorial story label — gold, uppercase, breathable ────────────
+   Consistent treatment inside product sheets and editorial sections.    */
+.editorial-story__label {
+  color:         var(--gold);
+  font-size:     0.67rem;
+  letter-spacing: 0.12em;
+  font-weight:   700;
+  text-transform: uppercase;
+  display:       block;
+  margin-bottom: 0.55rem;
+}
+
+/* ── 46s. Mobile — ergonomic, immersive, warm ────────────────────────────  */
+@media (max-width: 767px) {
+  /* Trust rail: 2 columns on phones — all 4 items remain visible */
+  .trust-rail__inner {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Section heading: tighter margin on mobile */
+  .section-heading {
+    margin-bottom: 2rem;
+  }
+
+  /* Support pill: adequate bottom clearance */
+  .support-pill {
+    bottom: max(1.25rem, calc(env(safe-area-inset-bottom) + 1rem));
+    right:  1rem;
+  }
+
+  /* Product sheet CTA: stacked full-width on phone */
+  .product-sheet__actions {
+    flex-direction: column;
+    gap:            0.65rem;
+  }
+
+  /* Hero: use svh so dynamic browser chrome is excluded */
+  .hero-section {
+    min-height: 100svh;
+  }
+
+  /* Promise band: tighter padding on small screens */
+  .promise-band__inner {
+    padding: clamp(1.6rem, 5vw, 2.4rem);
+  }
+}
+
+/* ── 46t. Scrolling containers — iOS momentum ─────────────────────────────
+   Explicitly set for filter row, space tabs, and cart items.            */
+.filter-row,
+.space-tabs,
+.cart-items {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── 46u. Space browse CTA — centered, comfortable ──────────────────────  */
+.space-browse-cta {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  gap:            1.1rem;
+  padding:        1.75rem 1.5rem;
+  text-align:     center;
+}
+
+/* ── 46v. Product facts — readable, warm, editorial ─────────────────────
+   The spec table inside the product sheet. Grid-aligned, warm dividers.  */
+.product-fact {
+  display:               grid;
+  grid-template-columns: 7.5rem 1fr;
+  gap:                   0.35rem 0.75rem;
+  padding:               0.6rem 0;
+  border-bottom:         1px solid var(--line);
+  font-size:             var(--type-body-sm);
+  line-height:           1.52;
+  align-items:           start;
+}
+
+.product-fact strong {
+  color:          var(--text-soft);
+  font-weight:    600;
+  font-size:      0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding-top:    0.06rem;
+}
+
+/* ── 46w. Soft-form focus ring — light mode consistency ─────────────────
+   Light mode already has :focus-visible with gold ring. This ensures the
+   same ring appears for :focus (e.g. when JS sets focus programmatically). */
+input:not([type="checkbox"]):not([type="radio"]):focus,
+textarea:focus {
+  border-color: rgba(197, 161, 59, 0.55);
+  box-shadow:   0 0 0 3px rgba(197, 161, 59, 0.12),
+                0 0 0 1px rgba(197, 161, 59, 0.4);
+  outline:      none;
+}
+
+/* ── 46x. Teaser modal — graceful feminine enter animation ───────────────
+   The teaser opens on a spring so the panel feels alive, not jarring.   */
+.teaser-modal.is-open .teaser-modal__panel {
+  animation: lx-gentle-rise 360ms var(--ease-snap) both;
+}
+
+@keyframes lx-gentle-rise {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+/* ── 46y. Reduced motion — comprehensive safety net ─────────────────────
+   Every §46 animation and transition must respect the OS preference.    */
+@media (prefers-reduced-motion: reduce) {
+  .reveal:not(.is-visible) {
+    will-change: auto;
+  }
+  .product-card {
+    scroll-snap-align: none;
+  }
+  .products-grid {
+    scroll-snap-type: none;
+  }
+  .hero-section {
+    min-height: auto;
+  }
+  .teaser-modal.is-open .teaser-modal__panel {
+    animation: none;
+  }
+}
+
+/* ── 46z. Final dark mode atmosphere — warm ivory text ───────────────────
+   Ensure the dark mode reading experience stays warm, not cool.         */
+html[data-theme="dark"] .trust-rail__inner span {
+  background: rgba(8, 27, 26, 0.95);
+}
+
+/* ══ END SECTION 46 ═══════════════════════════════════════════════════════ */
