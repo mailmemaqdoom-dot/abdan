@@ -15728,4 +15728,360 @@ html[data-theme="dark"] #editorialCampaign .editorial-campaign__inner {
   }
 }
 
-/* ═══ END SECTION 55 ══════════════════════════════════════════════════════ */
+/* ═══ END SECTION 57 ══════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   §58 — CINEMATIC LUXURY EXPERIENTIAL REFINEMENT
+   Section continuity · Atmospheric lighting · Devotion signature moment
+   Editorial image framing · Luxury quietness · Scroll depth · Typography
+   Apple spatial discipline · Samsung atmospheric depth · ABDAN feminine warmth
+   ─────────────────────────────────────────────────────────────────────── */
+
+/* ── 58a. GLOBAL ATMOSPHERIC LIGHTING — subconscious ivory warmth ─────────
+   A fixed warm amber radial casts soft candle-light from the top of the
+   viewport. Not a UI element — a room. Transparent pointer-events, almost-
+   invisible opacity (2.6%). Scrolls with the viewport (fixed), so every
+   section feels bathed in the same quiet warmth.                           */
+body::before {
+  content:        "";
+  position:       fixed;
+  inset:          0;
+  background:     radial-gradient(
+    ellipse 110% 52% at 50% -8%,
+    rgba(197, 161, 59, 0.026) 0%,
+    transparent 58%
+  );
+  pointer-events: none;
+  z-index:        0;
+}
+
+html[data-theme="dark"] body::before {
+  background: radial-gradient(
+    ellipse 110% 52% at 50% -8%,
+    rgba(197, 161, 59, 0.014) 0%,
+    transparent 55%
+  );
+}
+
+/* ── 58b. CINEMATIC SECTION CONTINUITY ────────────────────────────────────
+   Background gradient overrides that bridge adjacent sections.
+   Eliminates hard colour cuts between sections — the page becomes ONE
+   flowing tonal journey rather than a stack of discrete blocks.           */
+
+/* Products (ivory-tinted) → Her Story (ivory-deep): gentle warm darkening */
+#products.section-frame,
+.products-section {
+  background: linear-gradient(
+    180deg,
+    var(--ivory)      0%,
+    color-mix(in srgb, var(--ivory) 95%, var(--emerald) 5%) 42%,
+    var(--ivory-deep) 100%
+  ) !important;
+}
+
+/* Her Story (ivory-deep) → Promise trust strip (ivory): return to light */
+#wsy.section-frame,
+.story-section {
+  background: linear-gradient(
+    180deg,
+    var(--ivory-deep)   0%,
+    var(--ivory-deep)   72%,
+    var(--ivory)       100%
+  ) !important;
+}
+
+/* Your Space (ivory) → Footer (deep emerald #011c1a): foreshadow the dark */
+#account.section-frame {
+  background: linear-gradient(
+    180deg,
+    var(--ivory)            0%,
+    var(--ivory)            78%,
+    rgba(1, 28, 26, 0.12)  94%,
+    rgba(1, 28, 26, 0.30)  100%
+  ) !important;
+}
+
+/* Teaser section → Your Space: ivory continuity, slight gold warmth */
+#teasers.section-frame {
+  background: linear-gradient(
+    180deg,
+    var(--ivory)                        0%,
+    color-mix(in srgb, var(--ivory) 97%, var(--gold) 3%) 100%
+  ) !important;
+}
+
+/* Dark mode: rebuild continuity with emerald tones */
+html[data-theme="dark"] #products.section-frame,
+html[data-theme="dark"] .products-section {
+  background: linear-gradient(
+    180deg,
+    var(--bg, #071d1c)  0%,
+    color-mix(in srgb, var(--bg, #071d1c) 90%, var(--emerald) 10%) 50%,
+    var(--bg, #071d1c)  100%
+  ) !important;
+}
+
+html[data-theme="dark"] #wsy.section-frame,
+html[data-theme="dark"] .story-section {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg, #071d1c) 90%, var(--emerald) 10%)   0%,
+    color-mix(in srgb, var(--bg, #071d1c) 92%, var(--emerald)  8%) 100%
+  ) !important;
+}
+
+html[data-theme="dark"] #account.section-frame {
+  background: linear-gradient(
+    180deg,
+    var(--bg, #071d1c) 0%,
+    var(--bg, #071d1c) 78%,
+    rgba(1, 10, 9, 0.6) 100%
+  ) !important;
+}
+
+/* ── 58c. SIGNATURE ABDAN MOMENT — The Devotion Light ────────────────────
+   Once per session, as the user reaches "Her Story," a warm amber glow
+   breathes into existence at the section's heart — like a devotion lamp
+   being quietly lit for her. 2 400ms, barely visible (opacity ≤ 0.11).
+   JS (.lx-devotion-glow) injects the element; CSS drives everything.      */
+@keyframes lx-devotion-breathe {
+  0%   { opacity: 0;    transform: translate(-50%, -50%) scale(0.45); }
+  28%  { opacity: 0.11; }
+  62%  { opacity: 0.07; }
+  100% { opacity: 0;    transform: translate(-50%, -50%) scale(1.55); }
+}
+
+#wsy.section-frame {
+  position: relative; /* stacking context for the devotion glow */
+}
+
+.lx-devotion-glow {
+  position:       absolute;
+  top:            46%;
+  left:           50%;
+  width:          min(640px, 90vw);
+  height:         min(380px, 48vh);
+  background:     radial-gradient(
+    ellipse 58% 52% at 50% 50%,
+    rgba(197, 161, 59, 0.38) 0%,
+    rgba(197, 161, 59, 0.18) 38%,
+    transparent   68%
+  );
+  pointer-events: none;
+  z-index:        2;
+  transform:      translate(-50%, -50%) scale(0.45);
+  animation:      lx-devotion-breathe 2400ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ── 58d. EDITORIAL IMAGE FOCAL FRAMING ──────────────────────────────────
+   Override generic `center center` object-position with cinematic crop
+   logic: portraits sit higher (faces above centre), landscapes use lower-
+   third depth. "Curated, not uploaded."                                   */
+
+/* Hero slides — slight upward shift: faces & draped fabric avoid the fold */
+.hero-slide img {
+  object-position: center 20% !important;
+}
+
+/* Promise band portrait: upper-body focus, graceful downward reveal */
+.promise-band__img {
+  object-fit:      cover   !important;
+  object-position: center 18% !important;
+}
+
+/* Editorial campaign: cinematic portrait crop */
+#editorialCampaign .editorial-campaign__frame img {
+  object-position: center 25% !important;
+}
+
+/* Footer cinematic band: lower-third atmospheric landscape */
+.footer-cinematic-band__img {
+  object-position: center 38% !important;
+}
+
+/* Space editorial image */
+.space-gift-visual img {
+  object-fit:      cover   !important;
+  object-position: center 22% !important;
+  border-radius:   var(--radius-lg);
+}
+
+/* ── 58e. PRODUCT CARD TYPOGRAPHY — editorial quiet luxury ───────────────
+   Product names switch from weight 500 to 400 for editorial restraint.
+   Prices become quieter — price is whispered, not shouted.               */
+.product-card__title {
+  font-weight:    400          !important;
+  letter-spacing: -0.01em      !important;
+  line-height:    1.35         !important;
+}
+
+.product-card__price {
+  font-size:      var(--type-body-sm, 0.875rem) !important;
+  font-weight:    400                           !important;
+  letter-spacing: 0.02em                        !important;
+  opacity:        0.82                          !important;
+}
+
+/* ── 58f. LUXURY QUIETNESS — editorial restraint on promotional signals ──
+   Section kickers become intimate whispers, not labels. CTA link text
+   uses the same quiet restraint. Less shouting = more luxury.           */
+.section-kicker {
+  font-size:   0.6875rem                !important; /* 11px */
+  color:       rgba(197, 161, 59, 0.72) !important;
+  font-weight: 400                      !important;
+}
+
+html[data-theme="dark"] .section-kicker {
+  color: rgba(197, 161, 59, 0.58) !important;
+}
+
+/* Product card section-kicker (tag) — even quieter */
+.product-card__header .section-kicker {
+  font-size:   0.625rem                 !important; /* 10px */
+  color:       rgba(197, 161, 59, 0.60) !important;
+}
+
+/* ── 58g. ICONOGRAPHY UNIFICATION — one visual language ─────────────────
+   Normalize Lucide stroke-width to 1.5 globally for premium consistency.
+   Slightly lighter than the Lucide default (2px) — feels more elegant.  */
+[data-lucide] {
+  stroke-width: 1.5 !important;
+}
+
+/* Nav bar icons — calibrated scale */
+.nav-item [data-lucide],
+.bottom-dock .nav-item [data-lucide] {
+  width:  1.2rem  !important;
+  height: 1.2rem  !important;
+}
+
+/* Feature cards icons — slightly larger for visual weight balance */
+.feature-card [data-lucide] {
+  width:  1.625rem !important;
+  height: 1.625rem !important;
+}
+
+/* Button icons — compact */
+.primary-button   [data-lucide],
+.secondary-button [data-lucide] {
+  width:  0.9375rem !important;
+  height: 0.9375rem !important;
+}
+
+/* ── 58h. SECTION HEADING REFINEMENT ────────────────────────────────────
+   Give section headings more generous space below before their content.
+   Editorial luxury breathes between heading and body — it does not rush. */
+.section-heading {
+  margin-bottom: clamp(2.75rem, 5.5vw, 4.25rem) !important;
+}
+
+.section-heading h2 {
+  letter-spacing: -0.018em !important;
+  line-height:     1.18     !important;
+}
+
+/* ── 58i. PROMISE BAND BLOCKQUOTE ────────────────────────────────────────
+   The brand promise quote deserves editorial serif weight and generous
+   line-height — it is the emotional heartbeat of the section.           */
+.promise-band__text blockquote {
+  font-family:   var(--font-editorial)              !important;
+  font-size:     clamp(1.125rem, 2.2vw, 1.5rem)    !important;
+  font-style:    italic                             !important;
+  font-weight:   400                                !important;
+  line-height:   1.68                               !important;
+  letter-spacing: 0.005em                           !important;
+  color:         var(--text-ink, #162f2d)           !important;
+}
+
+/* ── 58j. EDITORIAL CAMPAIGN HEADLINE ──────────────────────────────────
+   The campaign headline (h2) currently uses --font-editorial but may have
+   weight 700 from earlier rules. Restrain to 400 for editorial luxury.  */
+.editorial-campaign__headline {
+  font-weight:    400          !important;
+  letter-spacing: -0.015em    !important;
+  line-height:     1.2         !important;
+}
+
+/* ── 58k. SCROLL DEPTH ILLUSION ─────────────────────────────────────────
+   Very subtle foreground/background differentiation.
+   Promise band visual image has a barely-visible depth parallax via
+   CSS-only transform on the img (no JS). The parent clips it.           */
+.promise-band__visual {
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+}
+
+.promise-band__visual img {
+  transform:  scale(1.06);
+  transition: transform 1400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* When the section is near the viewport centre (no JS needed — CSS :hover
+   on the parent section creates the depth sensation on slow scroll)     */
+.promise-band:hover .promise-band__visual img,
+.promise-band:focus-within .promise-band__visual img {
+  transform: scale(1.02);
+}
+
+/* ── 58l. FOOTER NEWSLETTER EDITORIAL HEADING ─────────────────────────── */
+.footer-relation__heading {
+  font-family:   var(--font-editorial) !important;
+  font-weight:   400                   !important;
+  font-size:     clamp(1.125rem, 2.4vw, 1.5625rem) !important;
+  line-height:   1.35                  !important;
+  letter-spacing: 0.002em              !important;
+}
+
+/* ── 58m. TEASER MODAL — editorial refinement ───────────────────────────── */
+.teaser-modal__panel {
+  border-radius: var(--radius-xl) !important;
+}
+
+/* ── 58n. SPACE EDITORIAL — cinematic entry heading ────────────────────── */
+.space-heading {
+  font-weight: 400         !important;
+  line-height: 1.18        !important;
+  letter-spacing: -0.015em !important;
+}
+
+/* ── 58o. MOBILE — graceful adaptation ──────────────────────────────────── */
+@media (max-width: 767px) {
+  /* Remove account→footer bridge on mobile (shorter sections, harder to see) */
+  #account.section-frame {
+    background: var(--ivory) !important;
+  }
+
+  /* Tighten section heading bottom space on mobile */
+  .section-heading {
+    margin-bottom: clamp(2rem, 5vw, 3rem) !important;
+  }
+
+  /* Promise band blockquote — comfortable mobile reading */
+  .promise-band__text blockquote {
+    font-size: clamp(1rem, 3.5vw, 1.25rem) !important;
+  }
+
+  /* Scale atmospheric body glow for smaller screens */
+  body::before {
+    background: radial-gradient(
+      ellipse 140% 40% at 50% -10%,
+      rgba(197, 161, 59, 0.022) 0%,
+      transparent 55%
+    );
+  }
+}
+
+/* ── 58p. REDUCED MOTION GUARD ───────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .lx-devotion-glow {
+    animation: none !important;
+    opacity:   0   !important;
+  }
+
+  .promise-band__visual img {
+    transform:  none !important;
+    transition: none !important;
+  }
+
+  body::before { display: none; }
+}

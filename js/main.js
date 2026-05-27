@@ -3399,6 +3399,7 @@ function init() {
      DOM is settled (after §38 systems) so dynamic elements are available.
      MutationObserver inside the function handles any later injections.   */
   initTactileSystem();
+  initDevotionMoment(); /* §58 — The Devotion Light: once-per-session warmth */
 
   /* ── §35 Perception Architecture ──────────────────────────────────────
      Time-of-day atmosphere + session pacing activated before page-ready
@@ -3930,6 +3931,41 @@ function lxOrderStory() {
     const el = document.querySelector(".cart-success");
     if (el) el.classList.add("lx-story");
   });
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   §58 — SIGNATURE ABDAN MOMENT: The Devotion Light
+   Once per session, when "Her Story" enters the viewport at 35% threshold,
+   a warm amber radial glow breathes into the section and fades (2 400ms).
+   It is subconscious — more felt than seen. A lamp lit only for her.
+   ─────────────────────────────────────────────────────────────────────── */
+function initDevotionMoment() {
+  const section = document.getElementById("wsy");
+  if (!section || LX_MOTION.reduced()) return;
+
+  /* Fire only once per session */
+  try { if (sessionStorage.getItem("abdan-devotion")) return; } catch {}
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      if (!entries[0].isIntersecting) return;
+      observer.disconnect();
+
+      try { sessionStorage.setItem("abdan-devotion", "1"); } catch {}
+
+      /* 700ms settle — let the section's reveal animations complete first */
+      setTimeout(() => {
+        const glow = document.createElement("div");
+        glow.className  = "lx-devotion-glow";
+        glow.setAttribute("aria-hidden", "true");
+        section.appendChild(glow);
+        glow.addEventListener("animationend", () => glow.remove(), { once: true });
+      }, 700);
+    },
+    { threshold: 0.35 }
+  );
+
+  observer.observe(section);
 }
 
 /* ── Form success ripple ──────────────────────────────────────────────────
