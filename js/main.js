@@ -1,6 +1,6 @@
 const BRAND = {
   name: "ABDAN",
-  tagline: "Your Devotion Meets Style",
+  tagline: "Where devotion meets style.",
   whatsappNumber: "918760595307",
   whatsappUrl: "https://wa.me/918760595307",
   telegramUrl: "https://t.me/+918760595307",

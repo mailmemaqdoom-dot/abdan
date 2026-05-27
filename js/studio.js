@@ -113,7 +113,7 @@ const STATUS_OPTIONS = ["active","draft","sold-out","archived"];
 /* ── Default data ───────────────────────────────────────────── */
 const DEFAULT_SETTINGS = {
   siteName:        "ABDAN",
-  tagline:         "Your Devotion Meets Style",
+  tagline:         "Where devotion meets style.",
   whatsappNumber:  "919876543210",
   upiId:           "abdan@upi",
   razorpayKey:     "",
