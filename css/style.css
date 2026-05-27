@@ -15358,4 +15358,374 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: rgba(197, 
   .space-view.is-entering::before { animation: none !important; opacity: 0 !important; }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   §57 — CINEMATIC EDITORIAL CARD SYSTEM
+   Her Story · Your Space Features · Teaser Cards · Trust Pillars
+   Editorial Campaign · Pre-footer closing
+   Apple spacing discipline · Samsung atmospheric depth · ABDAN feminine luxury
+   ─────────────────────────────────────────────────────────────────────── */
+
+/* ── 57a. Card system design tokens ──────────────────────────────────────── */
+:root {
+  --ec-pad:          clamp(1.875rem, 4.5vw, 3rem);
+  --ec-pad-sm:       clamp(1.5rem, 3.5vw, 2.25rem);
+  --ec-gap:          clamp(1.375rem, 3vw, 2.125rem);
+  --ec-radius-outer: var(--radius-xl);     /* 1.75rem — large editorial cards */
+  --ec-radius-inner: var(--radius-lg);     /* 1.6rem — feature/trust cards    */
+  --ec-bg-warm:      linear-gradient(152deg, var(--ivory) 0%, var(--ivory-deep) 100%);
+  --ec-bg-soft:      linear-gradient(152deg, var(--ivory) 0%, var(--cream) 100%);
+  --ec-shadow-rest:  0 4px 20px rgba(18, 31, 29, 0.06),
+                     0 1px 4px  rgba(18, 31, 29, 0.035);
+  --ec-shadow-lift:  0 18px 52px rgba(18, 31, 29, 0.10),
+                     0 4px  14px rgba(18, 31, 29, 0.055);
+  --ec-border:       1px solid rgba(197, 161, 59, 0.11);
+  --ec-t:            transform 480ms cubic-bezier(0.16, 1, 0.3, 1),
+                     box-shadow 480ms cubic-bezier(0.16, 1, 0.3, 1);
+  --ec-gold-atm-tl:  radial-gradient(ellipse 80% 65% at 0% 0%,
+                       rgba(197, 161, 59, 0.072) 0%, transparent 62%);
+  --ec-gold-atm-tr:  radial-gradient(ellipse 80% 65% at 100% 0%,
+                       rgba(197, 161, 59, 0.072) 0%, transparent 62%);
+  --ec-emerald-atm:  radial-gradient(ellipse 75% 60% at 0% 100%,
+                       rgba(2, 61, 58, 0.055) 0%, transparent 62%);
+}
+
+/* ── 57b. HER STORY — cinematic editorial story cards ───────────────────── */
+#wsy .story-grid {
+  gap: var(--ec-gap) !important;
+}
+
+.story-card {
+  background:    var(--ec-bg-warm);
+  border-radius: var(--ec-radius-outer) !important;
+  padding:       var(--ec-pad) !important;
+  box-shadow:    var(--ec-shadow-rest);
+  border:        var(--ec-border);
+  transition:    var(--ec-t);
+}
+
+/* Warm gold atmospheric glow — top right corner, inset 0 so it clips to card */
+.story-card::after {
+  content:        "";
+  position:       absolute;
+  inset:          0;
+  border-radius:  inherit;
+  background:     var(--ec-gold-atm-tr);
+  pointer-events: none;
+  z-index:        0;
+}
+
+/* Lift all direct children above the atmospheric ::after */
+.story-card > * { position: relative; z-index: 1; }
+
+.story-card:hover {
+  transform:  translateY(-3px);
+  box-shadow: var(--ec-shadow-lift);
+}
+
+/* Story card icon — warm gold circle frame */
+.story-card__icon {
+  width:         3.25rem        !important;
+  height:        3.25rem        !important;
+  display:       flex           !important;
+  align-items:   center         !important;
+  justify-content: center       !important;
+  background:    rgba(197, 161, 59, 0.10) !important;
+  border-radius: 50%            !important;
+  margin-bottom: 1.5rem         !important;
+  font-size:     1.6rem         !important;
+  line-height:   1              !important;
+  flex-shrink:   0              !important;
+}
+
+/* Story card typography — editorial serif */
+.story-card h3 {
+  font-family:   var(--font-editorial)                !important;
+  font-size:     clamp(1.0625rem, 2vw, 1.3rem)        !important;
+  font-weight:   400                                   !important;
+  letter-spacing: 0.01em                               !important;
+  line-height:   1.32                                  !important;
+  margin-bottom: 0.72rem                               !important;
+  color:         var(--text-ink, #162f2d)              !important;
+}
+
+.story-card p {
+  font-size:   0.9375rem                !important;
+  line-height: 1.86                     !important;
+  color:       var(--text-muted, #5d6964) !important;
+  margin-top:  0                        !important;
+}
+
+/* ── 57c. YOUR SPACE — premium feature cards ─────────────────────────────── */
+.account-features {
+  gap: 1.1rem !important;
+}
+
+.feature-card {
+  background:    var(--ec-bg-warm);
+  border-radius: var(--ec-radius-inner) !important;
+  padding:       clamp(1.5rem, 4vw, 2.25rem) !important;
+  box-shadow:    var(--ec-shadow-rest);
+  border:        var(--ec-border);
+  transition:    var(--ec-t);
+}
+
+/* Gold hairline reveal on hover — bottom edge */
+.feature-card::after {
+  content:        "";
+  position:       absolute;
+  bottom:         0; left: 12%; right: 12%;
+  height:         1.5px;
+  background:     linear-gradient(
+    90deg,
+    transparent,
+    rgba(197, 161, 59, 0.42),
+    transparent
+  );
+  border-radius:  0;
+  opacity:        0;
+  transition:     opacity 380ms ease;
+}
+
+.feature-card:hover {
+  transform:  translateY(-2px);
+  box-shadow: var(--ec-shadow-lift);
+}
+
+.feature-card:hover::after { opacity: 1; }
+
+/* Feature card icon — gold tint */
+.feature-card [data-lucide] {
+  width:         1.65rem  !important;
+  height:        1.65rem  !important;
+  color:         var(--gold) !important;
+  margin-bottom: 0.9rem   !important;
+  display:       block     !important;
+}
+
+/* Feature card typography */
+.feature-card h3 {
+  font-family:   var(--font-editorial)           !important;
+  font-size:     1rem                            !important;
+  font-weight:   400                             !important;
+  letter-spacing: 0.01em                         !important;
+  line-height:   1.35                            !important;
+  margin-bottom: 0.42rem                         !important;
+  color:         var(--text-ink, #162f2d)        !important;
+}
+
+.feature-card p {
+  font-size:   0.875rem                   !important;
+  line-height: 1.78                       !important;
+  color:       var(--text-muted, #5d6964) !important;
+  margin-top:  0                          !important;
+}
+
+/* ── 57d. TEASER CARDS — large editorial format ──────────────────────────── */
+.teaser-grid {
+  gap: var(--ec-gap) !important;
+}
+
+.teaser-card {
+  background:    var(--ec-bg-soft);
+  border-radius: var(--ec-radius-outer) !important;
+  padding:       clamp(2.25rem, 5.5vw, 3.5rem) clamp(1.875rem, 4.5vw, 2.75rem) !important;
+  box-shadow:    var(--ec-shadow-rest);
+  border:        var(--ec-border);
+  transition:    var(--ec-t);
+}
+
+/* Emerald atmospheric depth — bottom-left corner */
+.teaser-card::before {
+  content:        "";
+  position:       absolute;
+  bottom:         -24px; left: -24px;
+  width:          220px; height: 220px;
+  background:     var(--ec-emerald-atm);
+  pointer-events: none;
+}
+
+.teaser-card:hover {
+  transform:  translateY(-3px);
+  box-shadow: var(--ec-shadow-lift);
+}
+
+/* Teaser emoji — generous scale */
+.teaser-emoji {
+  font-size:     2.25rem !important;
+  display:       block   !important;
+  margin-bottom: 1.35rem !important;
+  line-height:   1       !important;
+}
+
+/* Teaser typography — editorial luxury */
+.teaser-card h3 {
+  font-family:   var(--font-editorial)                  !important;
+  font-size:     clamp(1.125rem, 2.2vw, 1.45rem)        !important;
+  font-weight:   400                                     !important;
+  letter-spacing: 0.01em                                 !important;
+  line-height:   1.32                                    !important;
+  color:         var(--text-ink, #162f2d)                !important;
+  margin-bottom: 0.8rem                                  !important;
+}
+
+.teaser-card p {
+  font-size:     0.9375rem                !important;
+  line-height:   1.84                     !important;
+  color:         var(--text-muted, #5d6964) !important;
+  margin-bottom: 1.4rem                   !important;
+  margin-top:    0                        !important;
+}
+
+/* ── 57e. TRUST PILLAR ITEMS — premium card upgrade ─────────────────────── */
+.promise-trust-item {
+  background:    var(--ivory, #f8f5ec)         !important;
+  border-radius: var(--ec-radius-inner)        !important;
+  padding:       clamp(1.25rem, 3vw, 1.875rem) 1rem !important;
+  box-shadow:    var(--ec-shadow-rest)         !important;
+  border:        var(--ec-border)              !important;
+  transition:    transform 380ms cubic-bezier(0.16, 1, 0.3, 1),
+                 box-shadow 380ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.promise-trust-item:hover {
+  transform:  translateY(-2px)                           !important;
+  box-shadow: 0 12px 36px rgba(18, 31, 29, 0.09) !important;
+}
+
+.promise-mark {
+  font-size: 1.1rem  !important;
+  color:     var(--gold) !important;
+}
+
+.promise-trust-text {
+  font-family:   var(--font-editorial)         !important;
+  font-size:     0.875rem                      !important;
+  font-weight:   400                           !important;
+  color:         var(--text-ink, #162f2d)      !important;
+  letter-spacing: 0.01em                       !important;
+  line-height:   1.42                          !important;
+  text-align:    center                        !important;
+}
+
+/* ── 57f. EDITORIAL CAMPAIGN — atmospheric card frame ───────────────────── */
+#editorialCampaign .editorial-campaign__inner {
+  background:    var(--ec-bg-warm)              !important;
+  border-radius: var(--ec-radius-outer)         !important;
+  padding:       clamp(2.5rem, 6vw, 4rem)       !important;
+  box-shadow:    var(--ec-shadow-rest)           !important;
+  border:        var(--ec-border)               !important;
+  overflow:      hidden;
+}
+
+/* Atmospheric gold corner — top right */
+#editorialCampaign .editorial-campaign__inner::before {
+  content:        "";
+  position:       absolute;
+  top:  -40px; right: -40px;
+  width:          280px; height: 280px;
+  background:     var(--ec-gold-atm-tr);
+  pointer-events: none;
+  z-index:        0;
+}
+
+/* Lift inner content above the atmosphere layer */
+#editorialCampaign .editorial-campaign__inner > * {
+  position: relative;
+  z-index:  1;
+}
+
+/* ── 57g. PROMISE QUOTE BAND — preserve emerald brand, add elegance ──────── */
+.promise-quote-band {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle warm top-edge gold vignette above the deep emerald */
+.promise-quote-band::before {
+  content:        "";
+  position:       absolute;
+  top: 0; left: 0; right: 0;
+  height:         120px;
+  background:     linear-gradient(
+    180deg,
+    rgba(197, 161, 59, 0.045) 0%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index:        0;
+}
+
+/* ── 57h. Mobile — graceful stacking and compression ────────────────────── */
+@media (max-width: 767px) {
+  .story-card {
+    padding: clamp(1.5rem, 5vw, 2rem) !important;
+    border-radius: var(--radius-lg)    !important;
+  }
+
+  .teaser-card {
+    padding: 1.875rem 1.5rem !important;
+    border-radius: var(--radius-lg) !important;
+  }
+
+  .feature-card {
+    padding: 1.375rem 1.125rem !important;
+  }
+
+  .promise-trust-item {
+    padding: 1rem 0.75rem !important;
+  }
+
+  #editorialCampaign .editorial-campaign__inner {
+    padding: 1.875rem 1.5rem !important;
+    border-radius: var(--radius-lg) !important;
+  }
+}
+
+/* ── 57i. Dark mode harmony — warm emerald depth ────────────────────────── */
+html[data-theme="dark"] .story-card {
+  background: linear-gradient(152deg, rgba(2, 61, 58, 0.44) 0%, rgba(1, 47, 44, 0.6) 100%) !important;
+  border-color: rgba(197, 161, 59, 0.12) !important;
+}
+
+html[data-theme="dark"] .feature-card {
+  background: linear-gradient(152deg, rgba(2, 61, 58, 0.38) 0%, rgba(1, 47, 44, 0.52) 100%) !important;
+  border-color: rgba(197, 161, 59, 0.12) !important;
+}
+
+html[data-theme="dark"] .teaser-card {
+  background: linear-gradient(152deg, rgba(2, 61, 58, 0.46) 0%, rgba(1, 47, 44, 0.62) 100%) !important;
+  border-color: rgba(197, 161, 59, 0.13) !important;
+}
+
+html[data-theme="dark"] .promise-trust-item {
+  background: rgba(2, 61, 58, 0.34)          !important;
+  border-color: rgba(197, 161, 59, 0.12)     !important;
+}
+
+html[data-theme="dark"] .promise-trust-text {
+  color: var(--ivory) !important;
+}
+
+html[data-theme="dark"] #editorialCampaign .editorial-campaign__inner {
+  background: linear-gradient(152deg, rgba(2, 61, 58, 0.44) 0%, rgba(1, 47, 44, 0.58) 100%) !important;
+  border-color: rgba(197, 161, 59, 0.12) !important;
+}
+
+/* ── 57j. Reduced motion guard ───────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .story-card,
+  .feature-card,
+  .teaser-card,
+  .promise-trust-item {
+    transition: none !important;
+  }
+
+  .story-card:hover,
+  .feature-card:hover,
+  .teaser-card:hover,
+  .promise-trust-item:hover {
+    transform: none !important;
+  }
+}
+
 /* ═══ END SECTION 55 ══════════════════════════════════════════════════════ */
