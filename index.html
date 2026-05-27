@@ -56,42 +56,26 @@
          tells CSS to hide this before it ever paints.
          ══════════════════════════════════════════════════════════════════ -->
     <div id="lxEntry" class="lx-entry" aria-hidden="true" role="presentation">
+
+      <!-- Atmospheric radial glow — pure CSS depth, no image dependency -->
+      <div class="lx-entry__atm" aria-hidden="true"></div>
+
       <div class="lx-entry__inner">
 
-        <!-- Step 1 — Official circular emblem mark (SVG — scales perfectly) -->
-        <div class="lx-entry__logo" aria-hidden="true">
-          <img src="./assets/abdan-icon.jpg" alt="" width="72" height="72" />
-        </div>
-
-        <!-- Step 2 — Brand wordmark
-             Uses the actual Abdan name board JPEG — this IS the official
-             Abdan Calligraph style, not a font approximation.
-             mix-blend-mode: multiply drops the white JPEG background on
-             the ivory overlay so only the emerald calligraphy shows.
-             Dark mode: CSS text fallback (font-display: swap activates
-             the real font as soon as AbdanCalligraph.woff2 is placed). -->
+        <!-- Brand wordmark — materialises from darkness via scale + opacity.
+             Always shows CSS text on the dark cinematic background.
+             .lx-entry__glint is a single CSS keyframe sweep — no JS after trigger. -->
         <div class="lx-entry__wordmark" aria-label="ABDAN">
-          <!-- Light mode: official uploaded wordmark SVG -->
           <img class="lx-entry__wordmark-img"
                src="./assets/logo/abdan-wordmark-full.jpeg"
                alt="ABDAN" draggable="false" />
-          <!-- Dark mode: CSS text fallback (emerald SVG fill invisible on dark bg) -->
           <span class="lx-entry__wordmark-text abdan-calligraph" aria-hidden="true">ABDAN</span>
+          <!-- Gold diagonal glint — JS adds .is-running to start the animation -->
+          <span class="lx-entry__glint" aria-hidden="true"></span>
         </div>
 
-        <!-- Step 3 — Emotional tagline -->
-        <p class="lx-entry__tagline">
-          You always think of everyone…<br>
-          this time, the thought belongs to you. 💛
-        </p>
-
-        <!-- Step 4 — Luxury progress system: thin line + editorial counter -->
-        <div class="lx-entry__foot" aria-hidden="true">
-          <div class="lx-entry__progress">
-            <div class="lx-entry__progress-bar" id="lxProgressBar"></div>
-          </div>
-          <span class="lx-entry__progress-pct" id="lxProgressPct" aria-hidden="true">0</span>
-        </div>
+        <!-- Brand tagline — whispers in below the wordmark after the glint -->
+        <p class="lx-entry__tagline">Where devotion meets style.</p>
 
       </div>
     </div>

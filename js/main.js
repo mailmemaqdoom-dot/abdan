@@ -2943,39 +2943,36 @@ function initEntryExperience() {
   /* Mark session so the next load skips entry entirely */
   try { sessionStorage.setItem("abdan-entry-seen", "1"); } catch { /* quota */ }
 
-  const logo     = el.querySelector(".lx-entry__logo");
   const wordmark = el.querySelector(".lx-entry__wordmark");
+  const glint    = el.querySelector(".lx-entry__glint");
   const tagline  = el.querySelector(".lx-entry__tagline");
-  const foot     = el.querySelector(".lx-entry__foot");
-  const bar      = el.querySelector(".lx-entry__progress-bar");
-  const pct      = el.querySelector(".lx-entry__progress-pct");
 
-  /* ── Reduced motion: instant content, quick dissolve ─────────────── */
+  /* ── Reduced motion: instant reveal, short hold, dissolve ─────────── */
   if (LX_MOTION.reduced()) {
-    [logo, wordmark, tagline].forEach((n) => n?.classList.add("is-visible"));
-    if (bar) bar.classList.add("is-running");
-    setTimeout(() => lxEntryDissolve(el), 300);
+    wordmark?.classList.add("is-visible");
+    tagline?.classList.add("is-visible");
+    setTimeout(() => lxEntryDissolve(el), 400);
     return;
   }
 
-  /* ── Step 1: logo symbol surfaces (180ms) ───────────────────────── */
-  setTimeout(() => logo?.classList.add("is-visible"), 180);
+  /* ── Step 1 (150ms): Wordmark materialises from darkness ────────────
+     scale(0.88 → 1) + opacity(0 → 1) with spring easing.
+     The 720ms CSS transition finishes around t=870ms.               */
+  setTimeout(() => wordmark?.classList.add("is-visible"), 150);
 
-  /* ── Step 2: brand wordmark drifts in (560ms) ───────────────────── */
-  setTimeout(() => wordmark?.classList.add("is-visible"), 560);
+  /* ── Step 2 (920ms): Gold diagonal glint sweeps across ──────────────
+     Fires once the wordmark is fully settled. The 680ms CSS keyframe
+     animates a warm gold streak diagonally, left-to-right.           */
+  setTimeout(() => glint?.classList.add("is-running"), 920);
 
-  /* ── Step 3: tagline fades in softly (920ms) ────────────────────── */
-  setTimeout(() => tagline?.classList.add("is-visible"), 920);
+  /* ── Step 3 (1380ms): Tagline whispers in below the wordmark ────────
+     Ultra-small gold italic — barely-there brand signature.          */
+  setTimeout(() => tagline?.classList.add("is-visible"), 1380);
 
-  /* ── Step 4: progress system appears and advances (1000ms) ──────── */
-  setTimeout(() => {
-    foot?.classList.add("is-visible");
-    bar?.classList.add("is-running");         /* CSS scaleX(0→1) triggers */
-    if (pct) lxEntryProgress(pct, 560);       /* rAF counter 0→100 */
-  }, 1000);
-
-  /* ── Step 5: overlay dissolves, homepage revealed underneath ──────── */
-  setTimeout(() => lxEntryDissolve(el), 1550);
+  /* ── Step 4 (2300ms): Cinematic dissolve — site emerges beneath ─────
+     700ms CSS opacity transition fades the dark overlay out,
+     revealing the homepage in whatever theme the user has set.        */
+  setTimeout(() => lxEntryDissolve(el), 2300);
 }
 
 /* lxEntryProgress — animates the editorial percentage counter 0→100

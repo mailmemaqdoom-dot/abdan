@@ -14260,3 +14260,208 @@ blockquote.promise-quote::after {
 }
 
 /* ═══ END SECTION 52 ══════════════════════════════════════════════════════ */
+
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  SECTION 53 — Cinematic Entry Screen (Netflix-inspired, ABDAN-branded)  ║
+   ║                                                                          ║
+   ║  Structure:                                                              ║
+   ║    • Deep emerald full-bleed background — always dark, never inherits   ║
+   ║      the page theme. Cinematic signature moments own their context.      ║
+   ║    • Atmospheric CSS radial glow orbs for depth without images.          ║
+   ║    • ABDAN wordmark materialises from darkness: scale(0.88→1) + fade.   ║
+   ║    • Gold diagonal glint sweeps across wordmark once (CSS keyframe).     ║
+   ║    • Tagline whispers in below the wordmark after the glint passes.      ║
+   ║    • Overlay dissolves with a 700ms opacity fade, revealing the site.    ║
+   ║                                                                          ║
+   ║  Total sequence: ~2.2 s hold + 700 ms dissolve = ~2.9 s felt duration.  ║
+   ║  Respects prefers-reduced-motion (instant reveal, 300 ms dissolve).      ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+
+/* ── 53a. Overlay — deep emerald, always dark ────────────────────────────── */
+.lx-entry {
+  background: #020f0d !important;   /* near-black emerald — cinematic dark */
+  transition: opacity 700ms cubic-bezier(0.23, 1, 0.32, 1) !important;
+}
+/* Override any theme that tries to brighten the loading screen */
+html:not([data-theme="dark"]) .lx-entry {
+  background: #020f0d !important;
+}
+
+/* ── 53b. Dissolve — longer fade, more cinematic weight ─────────────────── */
+.lx-entry.is-done {
+  opacity:        0       !important;
+  pointer-events: none    !important;
+}
+
+/* ── 53c. Atmospheric background glow ───────────────────────────────────── */
+.lx-entry__atm {
+  position:       absolute;
+  inset:          0;
+  pointer-events: none;
+  overflow:       hidden;
+  z-index:        0;
+}
+/* Slow-breathing emerald core — gives depth without busy-ness */
+.lx-entry__atm::before {
+  content:       '';
+  position:      absolute;
+  width:         70vmax;
+  height:        70vmax;
+  top:           50%;
+  left:          50%;
+  border-radius: 50%;
+  background:    radial-gradient(
+                   ellipse at center,
+                   rgba(2, 61, 58, 0.55) 0%,
+                   transparent           70%
+                 );
+  transform:     translate(-50%, -50%) scale(0.96);
+  animation:     lx-atm-breathe 5s ease-in-out infinite alternate;
+}
+/* Subtle gold corona — almost imperceptible, adds warmth */
+.lx-entry__atm::after {
+  content:       '';
+  position:      absolute;
+  width:         50vmax;
+  height:        50vmax;
+  top:           48%;
+  left:          50%;
+  border-radius: 50%;
+  background:    radial-gradient(
+                   ellipse at center,
+                   rgba(197, 161, 59, 0.07) 0%,
+                   transparent              65%
+                 );
+  transform: translate(-50%, -50%);
+}
+
+@keyframes lx-atm-breathe {
+  from { opacity: 0.6; transform: translate(-50%, -50%) scale(0.96); }
+  to   { opacity: 1;   transform: translate(-50%, -50%) scale(1.05); }
+}
+
+/* ── 53d. Inner container ────────────────────────────────────────────────── */
+.lx-entry__inner {
+  position:       relative  !important;   /* stacks above .lx-entry__atm */
+  z-index:        1         !important;
+  display:        flex      !important;
+  flex-direction: column    !important;
+  align-items:    center    !important;
+  gap:            0         !important;
+  text-align:     center    !important;
+  padding:        2rem      !important;
+}
+
+/* ── 53e. Wordmark container — materialises from darkness ────────────────── */
+.lx-entry__wordmark {
+  position:      relative                !important;
+  overflow:      hidden                  !important;   /* clips the glint */
+  border-radius: 6px                     !important;   /* smooth glint clip */
+  opacity:       0                       !important;
+  transform:     scale(0.88)             !important;
+  transition:
+    opacity   720ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 720ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+  will-change:   transform, opacity      !important;
+  margin-bottom: 1.6rem                  !important;
+}
+.lx-entry__wordmark.is-visible {
+  opacity:   1         !important;
+  transform: scale(1)  !important;
+}
+
+/* ── 53f. Wordmark text — always shown on dark cinematic screen ──────────── */
+/* Hide the JPEG (mix-blend-mode: multiply fails on near-black background) */
+.lx-entry .lx-entry__wordmark-img {
+  display: none !important;
+}
+/* Always show the CSS text variant — this is the approved dark-mode fallback */
+.lx-entry .lx-entry__wordmark-text {
+  display:        block                            !important;
+  font-size:      clamp(2.8rem, 9vw, 5.5rem)      !important;
+  letter-spacing: 0.28em                           !important;
+  color:          rgba(240, 232, 210, 0.96)        !important;   /* warm ivory */
+  line-height:    1                                !important;
+  font-weight:    400                              !important;
+  padding:        0.1em 0.3em                      !important;   /* room for glint to breathe */
+  text-shadow:
+    0 0  80px rgba(197, 161, 59, 0.22),
+    0 0  30px rgba(197, 161, 59, 0.10),
+    0 4px 40px rgba(1, 14, 13, 0.80)               !important;
+}
+
+/* ── 53g. Gold diagonal glint sweep ─────────────────────────────────────── */
+.lx-entry__glint {
+  position:       absolute                                    !important;
+  inset:          -60% 0                                      !important;   /* taller than container — skew doesn't clip top/bottom */
+  background:     linear-gradient(
+                    105deg,
+                    transparent                  0%,
+                    transparent                  28%,
+                    rgba(197, 161, 59, 0.00)     34%,
+                    rgba(197, 161, 59, 0.28)     43%,
+                    rgba(255, 248, 200, 0.70)    50%,
+                    rgba(197, 161, 59, 0.28)     57%,
+                    rgba(197, 161, 59, 0.00)     66%,
+                    transparent                  72%,
+                    transparent                 100%
+                  )                                           !important;
+  transform:      translateX(-280%) skewX(-22deg)             !important;
+  pointer-events: none                                        !important;
+  mix-blend-mode: overlay                                     !important;
+  will-change:    transform                                   !important;
+}
+.lx-entry__glint.is-running {
+  animation: lx-glint-sweep 680ms cubic-bezier(0.23, 1, 0.32, 1) forwards !important;
+}
+@keyframes lx-glint-sweep {
+  from { transform: translateX(-280%) skewX(-22deg); }
+  to   { transform: translateX(380%)  skewX(-22deg); }
+}
+
+/* ── 53h. Tagline — gold whisper below wordmark ─────────────────────────── */
+.lx-entry__tagline {
+  font-family:    var(--font-body)          !important;
+  font-style:     italic                    !important;
+  font-size:      var(--type-micro)         !important;
+  font-weight:    400                       !important;
+  letter-spacing: 0.20em                    !important;
+  color:          rgba(197, 161, 59, 0.52)  !important;
+  line-height:    1                         !important;
+  margin:         0                         !important;
+  opacity:        0                         !important;
+  transform:      translateY(5px)           !important;
+  transition:
+    opacity   560ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 560ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+  will-change: opacity, transform           !important;
+  max-width: none                           !important;
+}
+.lx-entry__tagline.is-visible {
+  opacity:   1            !important;
+  transform: translateY(0) !important;
+}
+
+/* ── 53i. Hide legacy elements no longer in the cinematic screen ─────────── */
+.lx-entry .lx-entry__logo { display: none !important; }
+.lx-entry .lx-entry__foot { display: none !important; }
+
+/* ── 53j. Reduced motion — instant wordmark, brief hold ─────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .lx-entry__atm::before       { animation: none !important; }
+  .lx-entry__glint.is-running  { animation: none !important; opacity: 0 !important; }
+  .lx-entry__wordmark {
+    transition: opacity 200ms linear !important;
+    transform:  scale(1) !important;  /* skip scale, just fade */
+  }
+}
+
+/* ── 53k. Mobile — tighter wordmark size ────────────────────────────────── */
+@media (max-width: 480px) {
+  .lx-entry .lx-entry__wordmark-text {
+    font-size:      clamp(2.2rem, 12vw, 3.2rem) !important;
+    letter-spacing: 0.20em                       !important;
+  }
+}
+
+/* ═══ END SECTION 53 ══════════════════════════════════════════════════════ */
