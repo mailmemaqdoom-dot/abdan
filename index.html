@@ -253,48 +253,64 @@
     </nav>
 
     <main class="luxury-shell">
-      <section class="hero-section section-frame" id="hero">
-        <div class="container hero-grid">
-          <!-- Hero copy: progressive reveal — each child fades in sequentially.
-               Parent article is always visible; children carry reveal classes.
-               Stagger offsets create the editorial "opening" feel.           -->
-          <article class="hero-copy editorial-panel">
-            <div class="eyebrow-row reveal" style="--reveal-delay:0ms">
-              <span>Editorial modest fashion</span>
-              <span>Curated with patience</span>
-            </div>
-            <p class="tagline-label reveal" style="--reveal-delay:110ms">Your Devotion Meets Style</p>
-            <h1 class="reveal" style="--reveal-delay:230ms">
-              You always think of everyone…
-              <span>this time, the thought belongs to you. 💛</span>
-            </h1>
-            <p class="hero-body reveal" style="--reveal-delay:390ms">
-              A quieter kind of fashion space — for the woman who moves through her days with grace,
-              devotion, and depth. Every piece is selected to feel considered, elegant, and worthy of the
-              woman who so often chooses herself last.
-            </p>
-            <div class="hero-actions reveal" style="--reveal-delay:560ms">
-              <a class="primary-button" href="#products">
-                Discover Something Beautiful
-                <i data-lucide="arrow-right"></i>
-              </a>
-              <a class="secondary-button" href="https://wa.me/918760595307" target="_blank" rel="noreferrer">
-                Speak with ABDAN
-              </a>
-            </div>
-            <div class="trust-mini reveal" style="--reveal-delay:700ms">
-              <p>
-                Carefully verified pieces. Personal support before payment. A journey that stays gentle
-                from the first question to the piece arriving at your door.
+      <!-- ══════════════════════════════════════════════════════════════════════
+           CINEMATIC HERO — Three-column editorial layout.
+           Reference: Denta design language translated to ABDAN brand identity.
+           Left: descriptor + large mixed-weight headline + CTAs
+           Center: full-height editorial slideshow (the hero image column)
+           Right: descriptor text + two collection preview chips
+           Bottom: brand metadata strip spanning all three columns
+           ══════════════════════════════════════════════════════════════════════ -->
+      <section class="hero-section" id="hero" aria-label="Hero">
+
+        <!-- Atmospheric background layers — deep emerald + warm radial glow -->
+        <div class="hero-atm" aria-hidden="true">
+          <div class="hero-atm__glow hero-atm__glow--center"></div>
+          <div class="hero-atm__glow hero-atm__glow--tl"></div>
+          <div class="hero-atm__glow hero-atm__glow--br"></div>
+        </div>
+
+        <!-- Three-column cinematic grid -->
+        <div class="hero-cinematic">
+
+          <!-- ── Column 1: Left — descriptor + headline + CTAs ─────────────── -->
+          <div class="hero-col hero-col--left">
+
+            <div class="hero-col__top">
+              <p class="hero-descriptor reveal" style="--reveal-delay:0ms">
+                From everyday grace<br>
+                to curated silks —<br>
+                a thoughtful approach<br>
+                to modest fashion.
               </p>
             </div>
-          </article>
 
-          <aside class="hero-visual reveal">
-            <!-- ══ Cinematic 4-image editorial slideshow ═══════════════════════
-                 Replaces the single portrait. Slow crossfade + subtle scale.
-                 Slide 1 loads eagerly; slides 2–4 are lazy-loaded.
-                 aria-live="polite" announces changes for screen readers.      -->
+            <div class="hero-col__bottom">
+              <!-- Mixed-weight editorial headline — inspired by the reference layout -->
+              <h1 class="hero-cinematic-h1">
+                <span class="hch-thin reveal" style="--reveal-delay:160ms">You always think of</span>
+                <span class="hch-heavy reveal" style="--reveal-delay:260ms">everyone —</span>
+                <span class="hch-serif reveal" style="--reveal-delay:380ms">this time, you. 💛</span>
+              </h1>
+              <div class="hero-actions hero-actions--cinematic reveal" style="--reveal-delay:520ms">
+                <a class="primary-button" href="#products">
+                  Discover Something Beautiful
+                  <i data-lucide="arrow-right"></i>
+                </a>
+                <a class="secondary-button" href="https://wa.me/918760595307"
+                   target="_blank" rel="noreferrer">
+                  Speak with ABDAN
+                </a>
+              </div>
+              <p class="hero-tagline-mark reveal" style="--reveal-delay:640ms">
+                Your Devotion Meets Style
+              </p>
+            </div>
+
+          </div>
+
+          <!-- ── Column 2: Center — cinematic editorial slideshow ────────────── -->
+          <div class="hero-col hero-col--center reveal" style="--reveal-delay:80ms">
             <div class="hero-slideshow" id="heroSlideshow"
                  role="region" aria-label="Editorial imagery" aria-live="polite">
 
@@ -304,38 +320,34 @@
                      alt="A South Indian woman in ivory silk saree beside a carved wooden window"
                      loading="eager" fetchpriority="high" decoding="async" />
               </div>
-
-              <!-- Slide 2: Warm devotion — emerald kurti, diyas, traditional home -->
+              <!-- Slide 2: Warm devotion — emerald kurti, traditional diyas -->
               <div class="hero-slide" data-slide="1">
                 <img src="./Website Image/Gemini_Generated_Image_c0t2lrc0t2lrc0t2.png"
                      alt="A graceful woman in emerald green beside a traditional oil lamp"
                      loading="lazy" decoding="async" />
               </div>
-
               <!-- Slide 3: Elegant fashion — green silk saree, soft window light -->
               <div class="hero-slide" data-slide="2">
                 <img src="./Website Image/Gemini_Generated_Image_9b4rgl9b4rgl9b4r.png"
                      alt="A South Indian woman in green silk saree, softly lit by natural light"
                      loading="lazy" decoding="async" />
               </div>
-
-              <!-- Slide 4: Calm luxury — emerald saree, open window, warm morning -->
+              <!-- Slide 4: Calm luxury — emerald saree, sunlit morning window -->
               <div class="hero-slide" data-slide="3">
                 <img src="./Website Image/Gemini_Generated_Image_uf9jgluf9jgluf9j.png"
                      alt="A woman in emerald green saree at a sunlit window, holding tea"
                      loading="lazy" decoding="async" />
               </div>
 
-              <!-- Caption overlay — fades elegantly with each slide transition -->
+              <!-- Caption overlay -->
               <div class="hero-slide__caption" aria-hidden="true">
                 <span class="micro-label" id="heroSlideLabel">An editorial invitation</span>
                 <p id="heroSlideCaption">For the woman whose presence is soft, assured, and deserving of beauty of her own.</p>
               </div>
-
-              <!-- Dot indicators — minimal gold, cinematic rhythm -->
+              <!-- Dot navigation -->
               <div class="hero-slide__dots" role="tablist" aria-label="Slide navigation">
                 <button class="slide-dot slide-dot--active" data-dot="0" role="tab"
-                        aria-selected="true" aria-label="Slide 1"></button>
+                        aria-selected="true"  aria-label="Slide 1"></button>
                 <button class="slide-dot" data-dot="1" role="tab"
                         aria-selected="false" aria-label="Slide 2"></button>
                 <button class="slide-dot" data-dot="2" role="tab"
@@ -344,16 +356,64 @@
                         aria-selected="false" aria-label="Slide 4"></button>
               </div>
             </div>
+          </div>
 
-            <div class="visual-card visual-card--note">
-              <span class="micro-label">Why it feels different</span>
-              <p>
-                Less marketplace noise. More thoughtful selection, measured detail, and a fashion journey
-                that feels composed rather than crowded.
+          <!-- ── Column 3: Right — descriptor + collection chips ─────────────── -->
+          <div class="hero-col hero-col--right">
+
+            <div class="hero-col__top">
+              <p class="hero-descriptor hero-descriptor--right reveal" style="--reveal-delay:40ms">
+                Discover from our curation<br>
+                of handpicked pieces for<br>
+                the graceful,<br>
+                devoted woman.
               </p>
             </div>
-          </aside>
-        </div>
+
+            <div class="hero-col__bottom reveal" style="--reveal-delay:340ms">
+              <p class="hero-chips-label">Explore collection →</p>
+              <div class="hero-chip-cards">
+                <a class="hero-chip-card" href="#products" aria-label="Browse silk sarees">
+                  <img
+                    src="./Website Image/Gemini_Generated_Image_9b4rgl9b4rgl9b4r.png"
+                    alt="Silk saree collection"
+                    loading="lazy" decoding="async"
+                  />
+                  <span class="hero-chip-card__label">Silk Sarees</span>
+                </a>
+                <a class="hero-chip-card hero-chip-card--offset" href="#products" aria-label="Browse gift pieces">
+                  <img
+                    src="./assets/editorial/Gemini_Generated_Image_wagdvfwagdvfwagd.jpg"
+                    alt="Gift pieces collection"
+                    loading="lazy" decoding="async"
+                  />
+                  <span class="hero-chip-card__label">Gift Pieces</span>
+                </a>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ── Meta strip — spans all columns (brand credentials) ──────────── -->
+          <div class="hero-meta-strip reveal" style="--reveal-delay:720ms"
+               aria-label="Brand credentials">
+            <div class="hero-meta-item">
+              <strong>Trusted Brand</strong>
+              <span>2025</span>
+            </div>
+            <div class="hero-meta-sep" aria-hidden="true"></div>
+            <div class="hero-meta-item">
+              <strong>Tamil Nadu, India</strong>
+              <span id="heroLiveTime" aria-live="off">Since 2024</span>
+            </div>
+            <div class="hero-meta-sep" aria-hidden="true"></div>
+            <div class="hero-meta-item">
+              <strong>Artisan Verified</strong>
+              <span>Every Piece</span>
+            </div>
+          </div>
+
+        </div><!-- /hero-cinematic -->
       </section>
 
       <section class="trust-rail reveal" aria-label="Trust highlights">

@@ -13177,3 +13177,430 @@ html[data-theme="dark"] .site-footer {
 }
 
 /* ═══ END SECTION 49 ══════════════════════════════════════════════════════ */
+
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  SECTION 50 — CINEMATIC HERO REDESIGN                                   ║
+   ║  Three-column editorial layout (ref: Denta design language) translated  ║
+   ║  to ABDAN's deep-emerald brand identity.                                ║
+   ║  Left: thin descriptor + mixed-weight headline + CTAs                   ║
+   ║  Center: full-height editorial slideshow                                 ║
+   ║  Right: descriptor text + staggered collection chips                    ║
+   ║  Bottom: brand metadata strip spanning all three columns                ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+
+/* ── 50a. Hero section — deep emerald full-bleed canvas ──────────────────
+   Override all accumulated padding and layout properties from earlier
+   sections (section-frame, hero-section grid, align-items center).        */
+.hero-section {
+  display:    block     !important;
+  padding:    0         !important;
+  background: #010e0d;
+  position:   relative;
+  overflow:   hidden;
+  min-height: 100svh;
+}
+
+/* ── 50b. Atmospheric background layers ───────────────────────────────────
+   Three soft radial glow orbs create the warm, luminous emerald depth
+   that makes the full-bleed background feel alive — not flat.             */
+.hero-atm {
+  position:       absolute;
+  inset:          0;
+  z-index:        0;
+  pointer-events: none;
+  overflow:       hidden;
+}
+.hero-atm__glow {
+  position:      absolute;
+  border-radius: 50%;
+}
+/* Warm emerald center glow — behind the slideshow column */
+.hero-atm__glow--center {
+  width:      80%;
+  height:     120%;
+  top:        -10%;
+  left:       10%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(2, 61, 58, 0.75) 0%,
+    transparent           70%
+  );
+  filter:     blur(60px);
+}
+/* Subtle gold warmth — top-left corner */
+.hero-atm__glow--tl {
+  width:      50%;
+  height:     60%;
+  top:        -20%;
+  left:       -10%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(197, 161, 59, 0.05) 0%,
+    transparent              65%
+  );
+  filter:     blur(50px);
+}
+/* Deep emerald bottom-right anchor */
+.hero-atm__glow--br {
+  width:      45%;
+  height:     55%;
+  bottom:     -15%;
+  right:      -5%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(2, 61, 58, 0.40) 0%,
+    transparent           70%
+  );
+  filter:     blur(70px);
+}
+
+/* ── 50c. Three-column cinematic grid ────────────────────────────────────
+   Columns: [left text] [center image] [right panel]
+   Rows:    [content — fills viewport] [meta strip — auto height]         */
+.hero-cinematic {
+  position:              relative;
+  z-index:               1;
+  display:               grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.15fr) minmax(0, 0.68fr);
+  grid-template-rows:    1fr auto;
+  min-height:            100svh;
+}
+
+/* ── 50d. Column base — flex column with space-between so top/bottom
+   content anchors to their respective ends of the column.                 */
+.hero-col {
+  display:        flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* ── 50e. Left column — descriptor top, headline+CTAs bottom ─────────────*/
+.hero-col--left {
+  padding:      clamp(5.5rem, 10vw, 8.5rem)
+                clamp(1.8rem,  3.5vw, 3.5rem)
+                clamp(2rem,    4vw,   3.5rem);
+  border-right: 1px solid rgba(253, 250, 245, 0.07);
+  grid-row: 1;
+}
+
+/* ── 50f. Center column — full-height editorial slideshow ────────────────
+   The slideshow fills the entire center column height.
+   Override §48 rules that give it a fixed aspect-ratio.                   */
+.hero-col--center {
+  grid-row:    1;
+  border-right: 1px solid rgba(253, 250, 245, 0.07);
+  overflow:    hidden;
+}
+/* Slideshow fills center column completely */
+.hero-col--center .hero-slideshow {
+  height:          100%  !important;
+  aspect-ratio:    unset !important;
+  border-radius:   0     !important;
+  box-shadow:      none  !important;
+  min-height:      60vh;
+}
+/* Image object-position: keep faces in frame on portrait images */
+.hero-col--center .hero-slide img {
+  object-position: center 15%;
+}
+/* Dots — right-side for center column */
+.hero-col--center .hero-slide__dots {
+  bottom: 1.75rem;
+  right:  1.5rem;
+}
+/* Caption — bottom of center column */
+.hero-col--center .hero-slide__caption {
+  padding: 2rem 1.5rem 3.5rem;
+}
+
+/* ── 50g. Right column — descriptor top, chips bottom ────────────────────*/
+.hero-col--right {
+  grid-row: 1;
+  padding:  clamp(5.5rem, 10vw, 8.5rem)
+            clamp(1.4rem, 2.5vw, 2.5rem)
+            clamp(2rem,   4vw,   3.5rem);
+}
+
+/* ── 50h. Descriptor text ─────────────────────────────────────────────────
+   Small, italic, slightly transparent — positioned at the top of each
+   outer column. Creates the informational header layer of the layout.     */
+.hero-descriptor {
+  margin:      0;
+  font-size:   clamp(0.8rem, 1.1vw, 0.95rem);
+  line-height: 1.8;
+  color:       rgba(253, 250, 245, 0.48);
+  font-style:  italic;
+  font-family: var(--font-body);
+}
+.hero-descriptor--right {
+  text-align: left;
+}
+
+/* ── 50i. Mixed-weight editorial headline ─────────────────────────────────
+   Three typographic lines with distinct weights — light / ultra-heavy /
+   italic serif — creating the dramatic contrast seen in the reference.    */
+.hero-cinematic-h1 {
+  display:        flex;
+  flex-direction: column;
+  gap:            0.1em;
+  margin:         0 0 2rem;
+}
+/* Line 1: thin, understated setup */
+.hch-thin {
+  font-family:    var(--font-body);
+  font-weight:    300;
+  font-size:      clamp(1.3rem, 2.2vw, 2rem);
+  color:          rgba(253, 250, 245, 0.60);
+  line-height:    1.2;
+  letter-spacing: -0.01em;
+}
+/* Line 2: heavy punch — the emotional peak */
+.hch-heavy {
+  font-family:    var(--font-body);
+  font-weight:    800;
+  font-size:      clamp(2.8rem, 5.2vw, 5rem);
+  color:          var(--ivory);
+  line-height:    1.0;
+  letter-spacing: -0.03em;
+}
+/* Line 3: warm gold italic serif — the emotional resolution */
+.hch-serif {
+  font-family:    var(--font-editorial, Georgia, serif);
+  font-style:     italic;
+  font-weight:    400;
+  font-size:      clamp(1.8rem, 3.2vw, 3rem);
+  color:          rgba(197, 161, 59, 0.90);
+  line-height:    1.2;
+  letter-spacing: -0.01em;
+}
+
+/* ── 50j. CTA buttons — adapted for deep emerald background ──────────────*/
+.hero-actions--cinematic {
+  display:     flex;
+  flex-wrap:   wrap;
+  gap:         0.75rem;
+  align-items: center;
+}
+.hero-actions--cinematic .primary-button {
+  background:   rgba(197, 161, 59, 0.16) !important;
+  border-color: rgba(197, 161, 59, 0.42) !important;
+  color:        rgba(197, 161, 59, 0.95) !important;
+  white-space:  nowrap;
+}
+.hero-actions--cinematic .primary-button:hover {
+  background:   rgba(197, 161, 59, 0.28) !important;
+  border-color: rgba(197, 161, 59, 0.68) !important;
+  color:        rgb(197, 161, 59)        !important;
+}
+.hero-actions--cinematic .secondary-button {
+  background:   transparent                  !important;
+  border-color: rgba(253, 250, 245, 0.18)  !important;
+  color:        rgba(253, 250, 245, 0.62)  !important;
+  white-space:  nowrap;
+}
+.hero-actions--cinematic .secondary-button:hover {
+  border-color: rgba(253, 250, 245, 0.42) !important;
+  color:        rgba(253, 250, 245, 0.92) !important;
+}
+
+/* ── 50k. Brand tagline mark — bottom-left whisper ───────────────────────*/
+.hero-tagline-mark {
+  margin:         1.5rem 0 0;
+  font-size:      0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color:          rgba(197, 161, 59, 0.42);
+  font-family:    var(--font-body);
+}
+
+/* ── 50l. Collection chip cards (right column bottom) ─────────────────────
+   Two portrait cards side-by-side, second one offset down — directly
+   mirrors the staggered team-photo treatment in the reference.            */
+.hero-chips-label {
+  display:        block;
+  font-size:      0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color:          rgba(253, 250, 245, 0.36);
+  margin-bottom:  0.75rem;
+  transition:     color 250ms ease;
+}
+.hero-chip-cards {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;
+  gap:                   0.6rem;
+  align-items:           start;
+}
+.hero-chip-card {
+  display:         block;
+  position:        relative;
+  border-radius:   var(--radius-lg, 1rem);
+  overflow:        hidden;
+  text-decoration: none;
+  aspect-ratio:    2 / 3;
+  background:      rgba(2, 61, 58, 0.35);
+  transition:      transform 350ms cubic-bezier(0.25, 0, 0.1, 1);
+}
+.hero-chip-card img {
+  width:           100%;
+  height:          100%;
+  object-fit:      cover;
+  object-position: center top;
+  display:         block;
+  transition:      transform 600ms cubic-bezier(0.25, 0, 0.1, 1);
+}
+.hero-chip-card:hover {
+  transform: translateY(-4px);
+}
+.hero-chip-card:hover img {
+  transform: scale(1.04);
+}
+.hero-chip-card__label {
+  position:        absolute;
+  bottom:          0.7rem;
+  left:            0.6rem;
+  right:           0.6rem;
+  font-size:       0.68rem;
+  color:           rgba(253, 250, 245, 0.90);
+  background:      rgba(1, 14, 13, 0.60);
+  backdrop-filter: blur(8px);
+  padding:         0.22rem 0.65rem;
+  border-radius:   var(--radius-pill, 99px);
+  letter-spacing:  0.05em;
+  text-align:      center;
+  white-space:     nowrap;
+  overflow:        hidden;
+  text-overflow:   ellipsis;
+}
+/* Second card offset down to create stagger — mirrors Denta team cards */
+.hero-chip-card--offset {
+  transform: translateY(1.75rem);
+}
+.hero-chip-card--offset:hover {
+  transform: translateY(calc(1.75rem - 4px));
+}
+
+/* ── 50m. Meta strip — spans all three columns ───────────────────────────
+   Brand credential strip at the bottom. Thin border above, compact,
+   three data points: brand standing | location | verification.            */
+.hero-meta-strip {
+  grid-column:  1 / -1;
+  grid-row:     2;
+  display:      flex;
+  align-items:  center;
+  border-top:   1px solid rgba(253, 250, 245, 0.07);
+  overflow:     hidden;
+}
+.hero-meta-item {
+  display:        flex;
+  flex-direction: column;
+  gap:            0.18rem;
+  padding:        0.9rem clamp(1.5rem, 3.5vw, 3.5rem);
+  flex-shrink:    0;
+}
+.hero-meta-item:first-child {
+  padding-left: clamp(1.8rem, 3.5vw, 3.5rem);
+}
+.hero-meta-item strong {
+  font-size:      0.75rem;
+  font-weight:    600;
+  color:          rgba(253, 250, 245, 0.72);
+  letter-spacing: 0.04em;
+  white-space:    nowrap;
+}
+.hero-meta-item span {
+  font-size:  0.65rem;
+  color:      rgba(253, 250, 245, 0.36);
+  font-style: italic;
+  white-space: nowrap;
+}
+.hero-meta-sep {
+  width:        1px;
+  height:       2.2rem;
+  background:   rgba(253, 250, 245, 0.08);
+  flex-shrink:  0;
+}
+
+/* ── 50n. Mobile — graceful single-column stack ───────────────────────────
+   On mobile: left column (headline) → center (slideshow) → meta strip.
+   Right column hidden — too narrow to accommodate at < 768px.            */
+@media (max-width: 767px) {
+  .hero-cinematic {
+    grid-template-columns: 1fr;
+    grid-template-rows:    auto 1fr auto;
+  }
+
+  .hero-col--left {
+    grid-row:     1;
+    border-right: none;
+    border-bottom: 1px solid rgba(253, 250, 245, 0.06);
+    padding: clamp(5rem, 20vw, 7rem) 1.5rem 2rem;
+  }
+  .hero-col--left .hero-col__top {
+    display: none; /* hide descriptor on mobile — headline alone is cleaner */
+  }
+
+  .hero-col--center {
+    grid-row:     2;
+    border-right: none;
+    min-height:   70vw;
+  }
+  .hero-col--center .hero-slideshow {
+    min-height: 70vw !important;
+    border-radius: 0 !important;
+  }
+
+  .hero-col--right {
+    display: none; /* hidden on mobile */
+  }
+
+  .hch-thin  { font-size: clamp(1.1rem, 4.5vw, 1.6rem); }
+  .hch-heavy { font-size: clamp(2.2rem, 9vw,   3.2rem); }
+  .hch-serif { font-size: clamp(1.5rem, 7vw,   2.4rem); }
+
+  .hero-meta-strip {
+    grid-row: 3;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .hero-meta-strip::-webkit-scrollbar { display: none; }
+  .hero-meta-item { padding: 0.75rem 1.25rem; }
+}
+
+/* ── 50o. Tablet — 2-column (hide right panel) ───────────────────────────*/
+@media (min-width: 768px) and (max-width: 1024px) {
+  .hero-cinematic {
+    grid-template-columns: 1fr 1fr;
+  }
+  .hero-col--right {
+    display: none;
+  }
+  .hero-col--center {
+    border-right: none;
+  }
+}
+
+/* ── 50p. Dark mode — already very dark, minor adjustments ───────────────*/
+html[data-theme="dark"] .hero-section {
+  background: #000908;
+}
+html[data-theme="dark"] .hero-atm__glow--center {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(2, 61, 58, 0.55) 0%,
+    transparent           70%
+  );
+}
+
+/* ── 50q. Reduced motion ─────────────────────────────────────────────────*/
+@media (prefers-reduced-motion: reduce) {
+  .hero-chip-card,
+  .hero-chip-card img,
+  .hero-chip-card--offset,
+  .hero-actions--cinematic .primary-button,
+  .hero-actions--cinematic .secondary-button {
+    transition: none !important;
+  }
+}
+
+/* ═══ END SECTION 50 ══════════════════════════════════════════════════════ */

@@ -3171,6 +3171,7 @@ function init() {
   initHeroParallax();
   initHeroSlideshow();          /* §48 — cinematic 4-image crossfade */
   initFooterNewsletter();       /* §49 — soft relationship CTA */
+  initHeroLiveClock();          /* §50 — IST live time in meta strip */
   initSwipeGestures();
   renderAdminRoute();
   initSpaceAuth();
@@ -3503,6 +3504,30 @@ function initTactileSystem() {
     }
   });
   observer.observe(document.body, { childList: true, subtree: true });
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   §50  HERO LIVE CLOCK — IST (Asia/Kolkata) time in the meta strip.
+   Mirrors the live-clock treatment in the Denta reference design.
+   Updates every second; uses Intl.DateTimeFormat for accuracy.
+   ─────────────────────────────────────────────────────────────────────────*/
+function initHeroLiveClock() {
+  const el = document.getElementById("heroLiveTime");
+  if (!el) return;
+
+  const fmt = new Intl.DateTimeFormat("en-IN", {
+    timeZone:  "Asia/Kolkata",
+    hour:      "2-digit",
+    minute:    "2-digit",
+    second:    "2-digit",
+    hour12:    false,
+  });
+
+  function tick() {
+    el.textContent = fmt.format(new Date()) + " IST";
+  }
+  tick();
+  setInterval(tick, 1000);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
