@@ -13985,3 +13985,278 @@ html[data-theme="dark"] .hero-actions--cinematic .primary-button {
 }
 
 /* ═══ END SECTION 51 ══════════════════════════════════════════════════════ */
+
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  SECTION 52 — Her Story Cards + ABDAN Promise Section                  ║
+   ║                                                                          ║
+   ║  Story cards: white solid premium cards on cream section frame.         ║
+   ║  Overrides the shared ghost-transparent treatment from the global card  ║
+   ║  block (§34) which sets backgrounds to transparent.                     ║
+   ║                                                                          ║
+   ║  Promise section: two-band layout —                                     ║
+   ║    • Trust strip: warm ivory, 4-column ✦ pillars                        ║
+   ║    • Quote band:  deep emerald, large editorial serif italic             ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+
+/* ── 52a. Her Story — section frame ──────────────────────────────────────── */
+.story-section {
+  background: var(--ivory) !important;
+}
+html[data-theme="dark"] .story-section {
+  background: var(--bg) !important;
+}
+
+/* Section kicker "WE SEE YOU" — gold, extra-tracked small caps */
+.story-section .section-kicker {
+  color:          var(--gold)       !important;
+  font-family:    var(--font-body)  !important;
+  font-size:      var(--type-micro) !important;
+  font-weight:    700               !important;
+  letter-spacing: 0.28em            !important;
+  text-transform: uppercase         !important;
+  margin-bottom:  0.6rem            !important;
+}
+
+/* ── 52b. Story grid — 3-col premium card layout ─────────────────────────── */
+.story-grid {
+  display:               grid                            !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr))       !important;
+  gap:                   clamp(1.25rem, 2.5vw, 2rem)    !important;
+  margin-top:            clamp(2rem, 4vw, 3rem)          !important;
+}
+
+/* ── 52c. Story card — solid white premium treatment ─────────────────────── */
+.story-card {
+  background:    var(--card-bg)                    !important;
+  border:        1px solid var(--line)             !important;
+  border-radius: var(--radius-xl)                  !important;
+  box-shadow:    0 2px 20px rgba(0, 0, 0, 0.055)  !important;
+  padding:       2.25rem 2rem                      !important;
+  display:       flex                              !important;
+  flex-direction: column                           !important;
+  gap:           0                                 !important;
+  transition:    transform 320ms var(--ease-spring),
+                 box-shadow 300ms var(--ease-out)  !important;
+}
+.story-card:hover {
+  transform:  translateY(-4px)                     !important;
+  box-shadow: 0 8px 36px rgba(0, 0, 0, 0.10)      !important;
+}
+html[data-theme="dark"] .story-card {
+  background: var(--card-bg)                   !important;
+  border-color: var(--line-strong)             !important;
+  box-shadow:   0 2px 20px rgba(0, 0, 0, 0.25)!important;
+}
+html[data-theme="dark"] .story-card:hover {
+  box-shadow: 0 8px 36px rgba(0, 0, 0, 0.40)  !important;
+}
+
+/* ── 52d. Story card — icon ──────────────────────────────────────────────── */
+.story-card__icon {
+  display:       block         !important;
+  font-size:     2.4rem        !important;
+  line-height:   1             !important;
+  margin-bottom: 1.25rem       !important;
+}
+
+/* ── 52e. Story card — heading ───────────────────────────────────────────── */
+.story-card h3 {
+  font-family:    var(--font-display) !important;
+  font-weight:    700                 !important;
+  font-size:      var(--type-heading-md) !important;
+  line-height:    var(--leading-tight)   !important;
+  color:          var(--text-main)    !important;
+  margin:         0 0 0.85rem         !important;
+}
+
+/* ── 52f. Story card — body copy ─────────────────────────────────────────── */
+.story-card p {
+  font-family:  var(--font-body)     !important;
+  font-style:   italic               !important;
+  font-size:    var(--type-body-sm)  !important;
+  line-height:  var(--leading-relaxed) !important;
+  color:        var(--text-soft)     !important;
+  margin:       0                    !important;
+}
+
+/* ── 52g. Story grid — tablet/mobile collapse ────────────────────────────── */
+@media (max-width: 900px) {
+  .story-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 600px) {
+  .story-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .story-card {
+    padding: 1.75rem 1.5rem !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ABDAN PROMISE SECTION
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 52h. Outer section wrapper ──────────────────────────────────────────── */
+.abdan-promise {
+  display:  block;
+  overflow: hidden;
+}
+
+/* ── 52i. Trust pillars strip ────────────────────────────────────────────── */
+.promise-trust-strip {
+  background:  var(--ivory);
+  padding:     clamp(2.75rem, 5.5vw, 4.5rem) 0;
+  border-top:  1px solid color-mix(in srgb, var(--emerald) 14%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--emerald) 14%, transparent);
+}
+html[data-theme="dark"] .promise-trust-strip {
+  background:    color-mix(in srgb, var(--bg) 90%, var(--emerald) 10%);
+  border-color:  var(--line-strong);
+}
+
+/* ── 52j. Trust grid — 4 columns ────────────────────────────────────────── */
+.promise-trust-grid {
+  display:               grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap:                   clamp(1rem, 2.5vw, 2rem);
+  text-align:            center;
+}
+
+/* ── 52k. Trust item ─────────────────────────────────────────────────────── */
+.promise-trust-item {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  gap:            0.55rem;
+  padding:        0.5rem 0.75rem;
+}
+
+/* ── 52l. ✦ mark ─────────────────────────────────────────────────────────── */
+.promise-mark {
+  display:     block;
+  font-size:   1rem;
+  color:       var(--gold);
+  line-height: 1;
+}
+
+/* ── 52m. Trust text ─────────────────────────────────────────────────────── */
+.promise-trust-text {
+  font-family:    var(--font-display);
+  font-weight:    400;
+  font-size:      var(--type-body-sm);
+  line-height:    var(--leading-snug);
+  color:          var(--text-main);
+  letter-spacing: -0.01em;
+}
+html[data-theme="dark"] .promise-trust-text {
+  color: var(--ivory);
+}
+
+/* ── 52n. Trust strip — tablet/mobile ───────────────────────────────────── */
+@media (max-width: 860px) {
+  .promise-trust-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem 1rem;
+  }
+}
+@media (max-width: 460px) {
+  .promise-trust-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem 0.75rem;
+  }
+  .promise-trust-text {
+    font-size: var(--type-micro);
+  }
+}
+
+/* ── 52o. Quote band — deep emerald ─────────────────────────────────────── */
+.promise-quote-band {
+  background: var(--emerald);
+  padding:    clamp(5rem, 9vw, 8rem) 0;
+  position:   relative;
+  overflow:   hidden;
+}
+/* Subtle radial glow to add atmosphere without imagery */
+.promise-quote-band::before {
+  content:       '';
+  position:      absolute;
+  inset:         0;
+  background:    radial-gradient(
+                   ellipse 72% 60% at 50% 40%,
+                   rgba(255,255,255,0.045) 0%,
+                   transparent 70%
+                 );
+  pointer-events: none;
+}
+
+/* ── 52p. Quote inner layout ─────────────────────────────────────────────── */
+.promise-quote-inner {
+  position:   relative;          /* stacks above ::before glow */
+  display:    flex;
+  flex-direction: column;
+  align-items:    center;
+  text-align:     center;
+  gap:            1.5rem;
+  max-width:      720px;
+  margin-inline:  auto;
+}
+
+/* ── 52q. Ornamental opening mark ────────────────────────────────────────── */
+.promise-ornament {
+  display:     block;
+  font-family: var(--font-editorial);
+  font-style:  italic;
+  font-size:   clamp(4rem, 10vw, 8rem);
+  line-height: 0.6;
+  color:       var(--gold);
+  opacity:     0.7;
+  user-select: none;
+  margin-bottom: -0.5rem;    /* pull quote visually close beneath the mark */
+}
+
+/* ── 52r. Quote text ─────────────────────────────────────────────────────── */
+.promise-quote {
+  font-family:  var(--font-editorial)    !important;
+  font-style:   italic                   !important;
+  font-weight:  400                      !important;
+  font-size:    clamp(1.35rem, 2.7vw, 2.25rem) !important;
+  line-height:  var(--leading-relaxed)   !important;
+  color:        var(--ivory)             !important;
+  letter-spacing: -0.01em               !important;
+  margin:       0                        !important;
+  padding:      0                        !important;
+  border:       none                     !important;   /* reset any UA blockquote indent */
+  quotes:       none                     !important;
+}
+/* Ensure no UA blockquote left-border from global resets */
+blockquote.promise-quote::before,
+blockquote.promise-quote::after {
+  content: none !important;
+}
+
+/* ── 52s. Citation ───────────────────────────────────────────────────────── */
+.promise-cite {
+  display:        block;
+  font-family:    var(--font-body)   !important;
+  font-style:     normal             !important;
+  font-size:      var(--type-micro)  !important;
+  font-weight:    600                !important;
+  letter-spacing: 0.24em             !important;
+  text-transform: uppercase          !important;
+  color:          var(--gold)        !important;
+  opacity:        0.9                !important;
+}
+
+/* ── 52t. Mobile — quote band ────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .promise-quote-band {
+    padding: clamp(3.5rem, 10vw, 5rem) 0;
+  }
+  .promise-ornament {
+    font-size: clamp(3rem, 12vw, 5rem);
+  }
+}
+
+/* ═══ END SECTION 52 ══════════════════════════════════════════════════════ */
