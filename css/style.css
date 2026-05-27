@@ -13823,3 +13823,165 @@ html[data-theme="dark"] .hero-atm__glow--center {
 }
 
 /* ═══ END SECTION 50 ══════════════════════════════════════════════════════ */
+
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  SECTION 51 — HERO TYPOGRAPHY AUDIT CORRECTIONS                         ║
+   ║  Systematic reconciliation of all §50 hero elements against the site's  ║
+   ║  established type system (§1 design tokens + §5 typography baseline).   ║
+   ║                                                                          ║
+   ║  Principles applied:                                                     ║
+   ║  · All hero headlines use var(--font-display) — Libre Baskerville       ║
+   ║  · Font weights limited to what Baskerville provides: 400 / 700         ║
+   ║  · Line-heights from the leading-* token set — not raw numbers          ║
+   ║  · Font-sizes from the type-* token set — not arbitrary raw clamps      ║
+   ║  · Letter-spacing -0.02em for headings (brand standard)                 ║
+   ║  · Micro / eyebrow / label sizes from var(--type-micro/label)           ║
+   ║  · Button styles: let the global system work; hero adds only            ║
+   ║    white-space: nowrap and removes the inherited margin-top              ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+
+/* ── 51a. Headline typeface correction ────────────────────────────────────
+   §50i declared both hch-thin and hch-heavy in var(--font-body) [Open Sans].
+   The brand uses var(--font-display) [Libre Baskerville] for ALL hero
+   headlines — established in .hero-copy h1 and every section h2.
+   Baskerville weight range: 400 (Regular) and 700 (Bold) only.
+   weight-300 and weight-800 have no Baskerville variant; both fall back
+   to 400 and 700 respectively, so they must be declared explicitly.      */
+.hch-thin {
+  font-family:    var(--font-display) !important;
+  font-weight:    400                 !important;   /* Baskerville Regular   */
+  font-size:      clamp(1.1rem, 2vw, 1.75rem)  !important;
+  line-height:    var(--leading-tight)!important;   /* 1.1 — brand hero spec */
+  letter-spacing: -0.02em             !important;   /* brand heading standard */
+  color:          var(--text-soft)    !important;   /* --text-soft in context */
+}
+.hch-heavy {
+  font-family:    var(--font-display) !important;
+  font-weight:    700                 !important;   /* Baskerville Bold      */
+  font-size:      clamp(2.4rem, 4.6vw, var(--type-display)) !important;
+  line-height:    var(--leading-tight)!important;   /* 1.1                   */
+  letter-spacing: -0.02em             !important;   /* brand heading standard */
+  white-space:    nowrap              !important;   /* prevent dash orphan   */
+}
+.hch-serif {
+  font-family:    var(--font-editorial)!important;  /* Baskerville Italic    */
+  font-style:     italic               !important;
+  font-weight:    400                  !important;
+  font-size:      clamp(1.3rem, 2.6vw, 2.4rem) !important;  /* ≤ type-heading-xl max */
+  line-height:    var(--leading-snug)  !important;  /* 1.35 — editorial spec */
+  letter-spacing: -0.02em              !important;  /* brand heading standard */
+}
+
+/* Dark-mode colour corrections — use semantic tokens not raw rgba          */
+.hch-thin  { color: var(--text-soft); }
+.hch-heavy { color: var(--ivory);     }
+/* hch-serif gold: var(--gold) at ~88% — closest brand token approximation */
+.hch-serif { color: rgba(197, 161, 59, 0.90); }
+
+/* ── 51b. Light-mode colour corrections ───────────────────────────────────
+   Use var(--gold) directly in light mode — it's #c5a13b which reads
+   cleanly at display size on the ivory hero background.                    */
+html:not([data-theme="dark"]) .hch-thin  { color: var(--emerald-deep); }
+html:not([data-theme="dark"]) .hch-heavy { color: var(--emerald-deep); }
+html:not([data-theme="dark"]) .hch-serif { color: var(--gold);         }
+
+/* Dark-mode text-soft on deep-dark hero background: use near-ivory tint   */
+html[data-theme="dark"] .hch-thin { color: rgba(253, 250, 245, 0.50); }
+
+/* ── 51c. Eyebrow label — align to .micro-label / .eyebrow-row standard ──
+   §50r used: font-size 0.6rem | letter-spacing 0.20em | font-weight 500
+   Standard:  font-size 0.7rem | letter-spacing 0.22em | font-weight 600   */
+.hero-eyebrow__text {
+  font-size:      var(--type-micro)  !important;  /* 0.6875rem — brand micro scale */
+  letter-spacing: 0.22em             !important;  /* matches .micro-label standard  */
+  font-weight:    600                !important;  /* matches .micro-label standard  */
+}
+/* Light mode: use var(--gold) rather than custom dark-amber               */
+html:not([data-theme="dark"]) .hero-eyebrow__text {
+  color: color-mix(in srgb, var(--gold) 70%, transparent);
+}
+
+/* ── 51d. Descriptor text — align to type scale ──────────────────────────
+   §50h used raw clamp; replace with brand scale token.                     */
+.hero-descriptor {
+  font-size:   var(--type-body-sm) !important;   /* 0.875rem — brand secondary */
+  line-height: var(--leading-relaxed) !important; /* 1.75                       */
+}
+
+/* ── 51e. CTA buttons — remove custom overrides; use brand system ─────────
+   §50j + §50r+light-mode rewrote the button palette with !important.
+   The global system already handles dark/light correctly:
+     dark mode:  primary → gold bg / emerald text
+     light mode: primary → emerald bg / ivory text
+   Hero override retains only layout properties (nowrap, margin-top).       */
+.hero-actions--cinematic .primary-button,
+.hero-actions--cinematic .secondary-button {
+  /* Reset the §50 palette overrides — background / color / border-color
+     reverted to whatever the global dark/light rule provides.              */
+  background:   revert-layer !important;
+  color:        revert-layer !important;
+  border-color: revert-layer !important;
+}
+/* Fallback for browsers that don't support revert-layer — explicit values */
+.hero-actions--cinematic .primary-button {
+  background:   var(--emerald) !important;
+  color:        var(--ivory)   !important;
+  border-color: transparent    !important;
+}
+html[data-theme="dark"] .hero-actions--cinematic .primary-button {
+  background:   var(--gold)    !important;
+  color:        var(--emerald) !important;
+  border-color: transparent    !important;
+}
+.hero-actions--cinematic .secondary-button {
+  background:   transparent              !important;
+  border-color: var(--line-strong)       !important;
+  color:        var(--text-main)         !important;
+}
+/* On the deep dark hero, --line-strong and --text-main render in cream/ivory
+   (dark-mode custom props), so secondary naturally reads well. No override. */
+.hero-actions--cinematic {
+  margin-top: 0 !important;  /* h1 margin-bottom: 2rem already provides gap */
+  white-space: nowrap;
+}
+.hero-actions--cinematic .primary-button,
+.hero-actions--cinematic .secondary-button {
+  white-space: nowrap;  /* prevent two-line button labels in narrow column */
+}
+
+/* ── 51f. Micro-text elements — align to type scale ──────────────────────
+   All sub-display labels should use tokens from the type scale, not
+   raw rem values.                                                           */
+/* chips-label: 0.65rem + 0.14em → var(--type-micro) + 0.22em */
+.hero-chips-label {
+  font-size:      var(--type-micro) !important;
+  letter-spacing: 0.22em            !important;
+}
+/* tagline-mark: 0.6rem → var(--type-micro) */
+.hero-tagline-mark {
+  font-size: var(--type-micro) !important;
+}
+/* chip card label: 0.68rem → var(--type-micro) */
+.hero-chip-card__label {
+  font-size:      var(--type-micro) !important;
+  letter-spacing: 0.04em            !important;
+}
+/* meta strip strong: 0.75rem → var(--type-label) (0.8125rem) */
+.hero-meta-item strong {
+  font-size: var(--type-label) !important;
+}
+/* meta strip span: 0.65rem → var(--type-micro) */
+.hero-meta-item span {
+  font-size: var(--type-micro) !important;
+}
+
+/* ── 51g. Mobile headline sizes — correct to Baskerville weight range ─────
+   §50n set mobile sizes with a raw clamp for what was Open Sans.
+   With Baskerville, slightly tighter ceilings feel more refined.           */
+@media (max-width: 767px) {
+  .hch-thin  { font-size: clamp(1rem,    4.5vw, 1.4rem) !important; }
+  .hch-heavy { font-size: clamp(2rem,    9vw,   3rem)   !important; }
+  .hch-serif { font-size: clamp(1.15rem, 6.5vw, 2rem)   !important; }
+}
+
+/* ═══ END SECTION 51 ══════════════════════════════════════════════════════ */
