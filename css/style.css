@@ -12199,3 +12199,112 @@ html[data-theme="dark"] .trust-rail__inner span {
 }
 
 /* ══ END SECTION 46 ═══════════════════════════════════════════════════════ */
+
+/* ══ SECTION 47 — Proportion, Contrast & Dark Mode Corrections ════════════
+   Targeted fixes for 5 confirmed visual bugs found in screenshots:
+   1. Featured testimonial invisible text (§19h light bg + ivory text clash)
+   2. Hero CTA "Discover Something Beautiful" wrapping to 3 lines on mobile
+   3. Feature cards text breaking word-by-word in 4-col space-entry context
+   4. Feature card near-transparent background in dark mode (surface-soft bug)
+   5. Order/journey "preparing" status badge invisible in dark mode
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 47a. Featured testimonial — restore dark emerald contrast ────────────
+   §19h (line 5470) overrode the featured card's background from the original
+   dark emerald rgba(2,61,58,0.94) to a warm light color-mix. Ivory text on a
+   light warm card = completely invisible. Restore the original dark emerald
+   so the center testimonial reads clearly and creates visual hierarchy.     */
+.testimonial-card--featured {
+  background:   rgba(2, 61, 58, 0.94) !important;
+  border-color: rgba(2, 61, 58, 0.94) !important;
+}
+.testimonial-card--featured p,
+.testimonial-card--featured strong,
+.testimonial-card--featured small {
+  color: var(--ivory) !important;
+}
+/* Dark mode: deepen slightly — emerald–black mix keeps it premium on dark bg */
+html[data-theme="dark"] .testimonial-card--featured {
+  background:   color-mix(in srgb, var(--emerald) 78%, #000 22%) !important;
+  border-color: rgba(197, 161, 59, 0.18)                         !important;
+}
+html[data-theme="dark"] .testimonial-card--featured p,
+html[data-theme="dark"] .testimonial-card--featured strong,
+html[data-theme="dark"] .testimonial-card--featured small {
+  color: var(--ivory) !important;
+}
+
+/* ── 47b. Hero CTA — prevent text wrapping on mobile ─────────────────────
+   .hero-actions uses flex-direction: column + align-items: stretch, which
+   makes each button span the full column width. Without white-space: nowrap,
+   "Discover Something Beautiful" breaks across 3 lines. Since the button IS
+   already full-width, nowrap keeps the text on one line with no overflow.
+   Font-size 0.875rem + reduced padding fits comfortably at 320px minimum. */
+@media (max-width: 767px) {
+  .hero-actions .primary-button,
+  .hero-actions .secondary-button {
+    white-space:     nowrap;
+    font-size:       0.875rem;
+    padding:         0.8rem 1.2rem;
+    justify-content: center;
+  }
+}
+
+/* ── 47c. Account feature cards — fix 4-col overflow in space-entry-grid ──
+   At ≥1280px, .account-features gets grid-template-columns: repeat(4, 1fr).
+   But when inside .space-entry-grid the account-features lives in the right
+   column (0.9fr of container ≈ 540px). 4 cards in 540px = ~110px each card.
+   With 1.5rem padding per side, text area = ~62px → single word per line.
+   Force 2-column inside the space-entry-grid at all viewport widths ≥721px.
+   At ≤720px the entry grid is already 1-column (full-width), so the mobile
+   media-query 1fr rule applies naturally.                                  */
+@media (min-width: 721px) {
+  .space-entry-grid .account-features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ── 47d. Feature card dark mode — restore visible card surface ───────────
+   §34g sets .feature-card { background: var(--surface-soft) !important }.
+   In dark mode, --surface-soft = rgba(230, 223, 203, 0.06) = 6% opacity =
+   essentially transparent — no visible card background, just floating text.
+   Override to a proper warm-dark card surface.                             */
+html[data-theme="dark"] .feature-card {
+  background:   color-mix(
+                  in srgb,
+                  var(--card-bg) 92%,
+                  rgba(197, 161, 59, 0.05) 8%
+                ) !important;
+  border-color: rgba(197, 161, 59, 0.09) !important;
+}
+
+/* ── 47e. Order/journey "preparing" status — dark mode text ───────────────
+   Both .space-order-card__status and .space-journey-card__status use
+   color: var(--emerald) for "preparing" status. #023d3a (emerald) on a
+   dark card background is nearly invisible. Use gold in dark mode.        */
+html[data-theme="dark"] .space-order-card__status[data-status="preparing"],
+html[data-theme="dark"] .space-journey-card__status[data-status="preparing"] {
+  background: rgba(197, 161, 59, 0.1);
+  color:      rgba(197, 161, 59, 0.9);
+}
+
+/* ── 47f. Testimonial grid — breathing room on tablet ─────────────────────
+   At 768–1040px the testimonial-grid collapses to 1-column (stacked).
+   This looks fine structurally but the featured card padding looked tight
+   relative to its flanking peers on narrow desktop. Add a slight padding
+   increase for the featured card in the stacked context.                  */
+@media (max-width: 1040px) and (min-width: 768px) {
+  .testimonial-card--featured {
+    padding: 2.5rem 2rem;
+  }
+}
+
+/* ── 47g. Trust rail — dark mode text color ───────────────────────────────
+   The trust rail spans in dark mode need warm cream text (not the light
+   background pill treatment from light mode).                             */
+html[data-theme="dark"] .trust-rail__inner span {
+  color:      var(--text-main);
+  background: rgba(8, 27, 26, 0.9);
+}
+
+/* ═══ END SECTION 47 ══════════════════════════════════════════════════════ */
