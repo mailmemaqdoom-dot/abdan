@@ -13603,4 +13603,223 @@ html[data-theme="dark"] .hero-atm__glow--center {
   }
 }
 
+/* ── 50r. Hero eyebrow — gold ornamental label at top of left column ──────
+   A thin gold hairline + small spaced caps text. Anchors the brand voice
+   at the entry point of the column before the headline builds below.      */
+.hero-eyebrow {
+  display:     flex;
+  align-items: center;
+  gap:         0.85rem;
+}
+.hero-eyebrow__line {
+  display:    block;
+  width:      clamp(28px, 4vw, 48px);
+  height:     1px;
+  background: linear-gradient(
+    90deg,
+    rgba(197, 161, 59, 0.65),
+    rgba(197, 161, 59, 0.20)
+  );
+  flex-shrink: 0;
+}
+.hero-eyebrow__text {
+  font-size:      0.6rem;
+  letter-spacing: 0.20em;
+  text-transform: uppercase;
+  color:          rgba(197, 161, 59, 0.62);
+  font-family:    var(--font-body);
+  font-weight:    500;
+  white-space:    nowrap;
+}
+
+/* ── 50s. hch-heavy — prevent the word from ever wrapping ────────────────
+   "everyone." at 5rem can approach the column width on mid-range
+   viewports. white-space: nowrap + fluid font-size keeps it on one line.  */
+.hch-heavy {
+  white-space: nowrap;
+  font-size:   clamp(2.6rem, 4.8vw, 5rem) !important;
+}
+
+/* ── 50t. Hero section — LIGHT MODE ──────────────────────────────────────
+   Warm ivory treatment: rich emerald depth on a luminous cream canvas.
+   Preserves the three-column editorial feel with adjusted contrast.       */
+html:not([data-theme="dark"]) .hero-section {
+  background: #f5f2ec;   /* warm ivory, ABDAN cream */
+}
+html:not([data-theme="dark"]) .hero-atm__glow--center {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(2, 61, 58, 0.12) 0%,
+    transparent           70%
+  );
+}
+html:not([data-theme="dark"]) .hero-atm__glow--tl {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(197, 161, 59, 0.09) 0%,
+    transparent              65%
+  );
+}
+html:not([data-theme="dark"]) .hero-atm__glow--br {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(2, 61, 58, 0.08) 0%,
+    transparent           70%
+  );
+}
+
+/* Column separator lines — light mode: soft emerald tint */
+html:not([data-theme="dark"]) .hero-col--left,
+html:not([data-theme="dark"]) .hero-col--center {
+  border-right-color: rgba(2, 61, 58, 0.10);
+}
+
+/* Descriptor text — light mode */
+html:not([data-theme="dark"]) .hero-descriptor {
+  color: rgba(2, 61, 58, 0.52);
+}
+
+/* Eyebrow — light mode */
+html:not([data-theme="dark"]) .hero-eyebrow__line {
+  background: linear-gradient(
+    90deg,
+    rgba(130, 100, 28, 0.55),
+    rgba(130, 100, 28, 0.15)
+  );
+}
+html:not([data-theme="dark"]) .hero-eyebrow__text {
+  color: rgba(130, 100, 28, 0.65);
+}
+
+/* Headline — light mode */
+html:not([data-theme="dark"]) .hch-thin {
+  color: rgba(2, 44, 40, 0.58);
+}
+html:not([data-theme="dark"]) .hch-heavy {
+  color: #011c1a;   /* deep near-black emerald */
+}
+html:not([data-theme="dark"]) .hch-serif {
+  color: rgba(130, 100, 28, 0.88);  /* deep warm gold, readable on ivory */
+}
+
+/* Brand tagline mark — light mode */
+html:not([data-theme="dark"]) .hero-tagline-mark {
+  color: rgba(130, 100, 28, 0.45);
+}
+
+/* CTA buttons — light mode: emerald primary, soft secondary */
+html:not([data-theme="dark"]) .hero-actions--cinematic .primary-button {
+  background:   rgba(2, 61, 58, 0.90)    !important;
+  border-color: rgba(2, 61, 58, 0.90)    !important;
+  color:        #f5f2ec                  !important;
+}
+html:not([data-theme="dark"]) .hero-actions--cinematic .primary-button:hover {
+  background:   rgba(2, 61, 58, 1)       !important;
+}
+html:not([data-theme="dark"]) .hero-actions--cinematic .secondary-button {
+  border-color: rgba(2, 61, 58, 0.22)    !important;
+  color:        rgba(2, 61, 58, 0.68)    !important;
+}
+html:not([data-theme="dark"]) .hero-actions--cinematic .secondary-button:hover {
+  border-color: rgba(2, 61, 58, 0.50)    !important;
+  color:        rgba(2, 61, 58, 0.95)    !important;
+}
+
+/* Chips label — light mode */
+html:not([data-theme="dark"]) .hero-chips-label {
+  color: rgba(2, 44, 40, 0.40);
+}
+html:not([data-theme="dark"]) .hero-chip-card__label {
+  background: rgba(2, 44, 40, 0.55);
+  color:      rgba(253, 250, 245, 0.92);
+}
+
+/* Meta strip — light mode */
+html:not([data-theme="dark"]) .hero-meta-strip {
+  border-top-color: rgba(2, 61, 58, 0.10);
+  background:       rgba(245, 242, 236, 0.96);
+}
+html:not([data-theme="dark"]) .hero-meta-item strong {
+  color: rgba(2, 44, 40, 0.78);
+}
+html:not([data-theme="dark"]) .hero-meta-item span {
+  color: rgba(2, 44, 40, 0.40);
+}
+html:not([data-theme="dark"]) .hero-meta-sep {
+  background: rgba(2, 61, 58, 0.09);
+}
+
+/* Slideshow dots — light mode: emerald tint */
+html:not([data-theme="dark"]) .hero-col--center .slide-dot {
+  background: rgba(2, 61, 58, 0.25);
+}
+html:not([data-theme="dark"]) .hero-col--center .slide-dot--active {
+  background: rgba(2, 61, 58, 0.75);
+}
+
+/* ── 50u. Premium refinements — spacing, depth, rhythm ───────────────────
+   Small details that collectively shift from "good" to "world-class":
+   a thin gold horizontal rule above the heavy line, slightly more gap
+   between headline lines, and a softer focus on the chip card overlay.   */
+
+/* Thin gold accent line just before the heavy "everyone." line */
+.hch-heavy::before {
+  content:    "";
+  display:    block;
+  width:      clamp(24px, 3.5vw, 42px);
+  height:     2px;
+  background: linear-gradient(
+    90deg,
+    rgba(197, 161, 59, 0.60),
+    rgba(197, 161, 59, 0.10)
+  );
+  margin-bottom: 0.55em;
+}
+html:not([data-theme="dark"]) .hch-heavy::before {
+  background: linear-gradient(
+    90deg,
+    rgba(130, 100, 28, 0.50),
+    rgba(130, 100, 28, 0.08)
+  );
+}
+
+/* Tighten headline line-gap slightly for better visual cohesion */
+.hero-cinematic-h1 {
+  gap: 0.05em !important;
+}
+
+/* Chip card overlay: gradient from bottom for better label legibility */
+.hero-chip-card::after {
+  content:    "";
+  position:   absolute;
+  inset:      0;
+  background: linear-gradient(
+    to top,
+    rgba(1, 14, 13, 0.55) 0%,
+    transparent           50%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+.hero-chip-card__label {
+  z-index: 2;    /* above the gradient pseudo-element */
+}
+
+/* Right-column descriptor font slightly larger — more readable at small size */
+.hero-descriptor--right {
+  font-size: clamp(0.82rem, 1.15vw, 1rem) !important;
+}
+
+/* ── 50v. Dark mode refinements ───────────────────────────────────────────*/
+html[data-theme="dark"] .hero-section {
+  background: #000806 !important;
+}
+html[data-theme="dark"] .hero-atm__glow--center {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(2, 61, 58, 0.65) 0%,
+    transparent           70%
+  );
+}
+
 /* ═══ END SECTION 50 ══════════════════════════════════════════════════════ */

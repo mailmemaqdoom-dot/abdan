@@ -273,25 +273,27 @@
         <!-- Three-column cinematic grid -->
         <div class="hero-cinematic">
 
-          <!-- ── Column 1: Left — descriptor + headline + CTAs ─────────────── -->
+          <!-- ── Column 1: Left — eyebrow + headline + CTAs ──────────────── -->
           <div class="hero-col hero-col--left">
 
-            <div class="hero-col__top">
-              <p class="hero-descriptor reveal" style="--reveal-delay:0ms">
-                From everyday grace<br>
-                to curated silks —<br>
-                a thoughtful approach<br>
-                to modest fashion.
-              </p>
+            <!-- Eyebrow: gold ornamental label — anchors the brand at top -->
+            <div class="hero-eyebrow reveal" style="--reveal-delay:0ms" aria-hidden="true">
+              <span class="hero-eyebrow__line"></span>
+              <span class="hero-eyebrow__text">Editorial Modest Fashion · Est. 2024</span>
             </div>
 
             <div class="hero-col__bottom">
-              <!-- Mixed-weight editorial headline — inspired by the reference layout -->
+              <!--  Mixed-weight cinematic headline.
+                    Three distinct typographic voices in sequence:
+                    thin setup → heavy punch → warm gold resolution.
+                    The em-dash lives on the serif line (not the heavy line)
+                    to prevent orphaned characters on narrow columns.        -->
               <h1 class="hero-cinematic-h1">
-                <span class="hch-thin reveal" style="--reveal-delay:160ms">You always think of</span>
-                <span class="hch-heavy reveal" style="--reveal-delay:260ms">everyone —</span>
-                <span class="hch-serif reveal" style="--reveal-delay:380ms">this time, you. 💛</span>
+                <span class="hch-thin  reveal" style="--reveal-delay:160ms">You always think of</span>
+                <span class="hch-heavy reveal" style="--reveal-delay:260ms">everyone.</span>
+                <span class="hch-serif reveal" style="--reveal-delay:380ms">This time, you.&thinsp;💛</span>
               </h1>
+
               <div class="hero-actions hero-actions--cinematic reveal" style="--reveal-delay:520ms">
                 <a class="primary-button" href="#products">
                   Discover Something Beautiful
@@ -302,6 +304,7 @@
                   Speak with ABDAN
                 </a>
               </div>
+
               <p class="hero-tagline-mark reveal" style="--reveal-delay:640ms">
                 Your Devotion Meets Style
               </p>
@@ -363,7 +366,7 @@
 
             <div class="hero-col__top">
               <p class="hero-descriptor hero-descriptor--right reveal" style="--reveal-delay:40ms">
-                Discover from our curation<br>
+                Select from our curation<br>
                 of handpicked pieces for<br>
                 the graceful,<br>
                 devoted woman.
@@ -371,7 +374,7 @@
             </div>
 
             <div class="hero-col__bottom reveal" style="--reveal-delay:340ms">
-              <p class="hero-chips-label">Explore collection →</p>
+              <p class="hero-chips-label">Explore →</p>
               <div class="hero-chip-cards">
                 <a class="hero-chip-card" href="#products" aria-label="Browse silk sarees">
                   <img
