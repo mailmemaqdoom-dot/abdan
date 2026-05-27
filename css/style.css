@@ -15175,4 +15175,187 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: rgba(197, 
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   §56 — EMOTIONAL MICRO-INTERACTIONS
+   Floating hearts · cart glow ring · order storytelling stagger
+   Form success ripple · space atmosphere · empty-state warmth
+   GPU-guarded · prefers-reduced-motion safe · zero duplication
+   ─────────────────────────────────────────────────────────────────────── */
+
+/* ── 56a. Micro-interaction consistency tokens ───────────────────────────── */
+:root {
+  --lx-micro-fast:   180ms;
+  --lx-micro-mid:    320ms;
+  --lx-micro-slow:   560ms;
+  --lx-micro-ease:   cubic-bezier(0.16, 1, 0.3, 1);
+  --lx-micro-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --lx-micro-gold:   rgba(197, 161, 59, 0.85);
+  --lx-micro-glow:   rgba(197, 161, 59, 0.18);
+}
+
+/* ── 56b. Floating heart particles ──────────────────────────────────────── */
+@keyframes lx-heart-float {
+  0%   { transform: translateY(0)     scale(0.55) rotate(-10deg); opacity: 0.9; }
+  55%  { transform: translateY(-52px) scale(1)    rotate(7deg);  opacity: 0.65; }
+  100% { transform: translateY(-96px) scale(0.7)  rotate(-3deg); opacity: 0; }
+}
+
+.lx-heart-particle {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  width: 20px;
+  height: 20px;
+  line-height: 1;
+  text-align: center;
+  user-select: none;
+  contain: strict;
+  will-change: transform, opacity;
+  animation: lx-heart-float 820ms var(--lx-micro-ease) forwards;
+}
+
+/* ── 56c. Cart glow ring ─────────────────────────────────────────────────── */
+@keyframes lx-cart-glow-expand {
+  0%   { transform: scale(0.35); opacity: 0.85; }
+  55%  { opacity: 0.38; }
+  100% { transform: scale(3.4);  opacity: 0; }
+}
+
+.lx-cart-glow-ring {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9998;
+  border-radius: 50%;
+  border: 1.5px solid var(--lx-micro-gold);
+  background: var(--lx-micro-glow);
+  contain: strict;
+  will-change: transform, opacity;
+  animation: lx-cart-glow-expand 660ms cubic-bezier(0.2, 0, 0.38, 1) forwards;
+}
+
+/* ── 56d. Order storytelling stagger ─────────────────────────────────────── */
+@keyframes lx-story-in {
+  from { opacity: 0; transform: translateY(9px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* The SVG checkmark already has its own draw animation — override only timing */
+.cart-success.lx-story .order-check {
+  animation: lx-story-in 520ms var(--lx-micro-ease) 0ms both !important;
+}
+
+.cart-success.lx-story .cart-success__title {
+  opacity: 0;
+  animation: lx-story-in 460ms var(--lx-micro-ease) 580ms both;
+}
+
+.cart-success.lx-story .cart-success__body {
+  opacity: 0;
+  animation: lx-story-in 420ms var(--lx-micro-ease) 880ms both;
+}
+
+.cart-success.lx-story .cart-success__note {
+  opacity: 0;
+  animation: lx-story-in 400ms var(--lx-micro-ease) 1120ms both;
+}
+
+.cart-success.lx-story .cart-success__ref {
+  opacity: 0;
+  animation: lx-story-in 380ms var(--lx-micro-ease) 1300ms both;
+}
+
+.cart-success.lx-story .order-timeline {
+  opacity: 0;
+  animation: lx-story-in 440ms var(--lx-micro-ease) 1500ms both;
+}
+
+/* ── 56e. Form success ripple ────────────────────────────────────────────── */
+@keyframes lx-form-ripple {
+  0%   { transform: scale(0.4); opacity: 0.72; }
+  100% { transform: scale(5);   opacity: 0; }
+}
+
+.lx-form-ripple {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(197, 161, 59, 0.32) 0%,
+    transparent 68%
+  );
+  contain: strict;
+  will-change: transform, opacity;
+  animation: lx-form-ripple 740ms cubic-bezier(0.2, 0, 0.38, 1) forwards;
+}
+
+/* Ripple needs a positioned, clipped parent */
+.footer-relation__btn,
+.bag-footer__cta,
+[data-checkout-submit],
+.space-form [type="submit"] {
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── 56f. Empty state cinematic entrance ─────────────────────────────────── */
+@keyframes lx-empty-rise {
+  from { opacity: 0; transform: translateY(12px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+.cart-empty {
+  animation: lx-empty-rise 540ms var(--lx-micro-ease) 60ms both;
+}
+
+.space-saved-empty {
+  animation: lx-empty-rise 500ms var(--lx-micro-ease) 100ms both;
+}
+
+/* ── 56g. Space panel ambient atmosphere on enter ────────────────────────── */
+@keyframes lx-space-atm-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.space-view {
+  position: relative; /* ensure ::before is positioned inside view */
+}
+
+.space-view.is-entering::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-lg, 1.6rem);
+  background: radial-gradient(
+    ellipse 75% 44% at 50% 0%,
+    rgba(197, 161, 59, 0.045) 0%,
+    transparent 72%
+  );
+  pointer-events: none;
+  z-index: 0;
+  animation: lx-space-atm-in 500ms var(--lx-micro-ease) both;
+}
+
+/* ── 56h. prefers-reduced-motion guard ───────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .lx-heart-particle { animation-duration: 1ms !important; opacity: 0 !important; }
+  .lx-cart-glow-ring { animation-duration: 1ms !important; opacity: 0 !important; }
+  .lx-form-ripple    { animation-duration: 1ms !important; opacity: 0 !important; }
+  .cart-empty        { animation: none !important; }
+  .space-saved-empty { animation: none !important; }
+
+  .cart-success.lx-story .order-check,
+  .cart-success.lx-story .cart-success__title,
+  .cart-success.lx-story .cart-success__body,
+  .cart-success.lx-story .cart-success__note,
+  .cart-success.lx-story .cart-success__ref,
+  .cart-success.lx-story .order-timeline {
+    opacity: 1 !important;
+    animation: none !important;
+  }
+
+  .space-view.is-entering::before { animation: none !important; opacity: 0 !important; }
+}
+
 /* ═══ END SECTION 55 ══════════════════════════════════════════════════════ */

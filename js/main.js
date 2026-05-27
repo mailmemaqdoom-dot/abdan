@@ -1927,6 +1927,7 @@ function showOrderSuccess(customerName, order) {
   dom.cartCheckoutButton.hidden = true;
   dom.bagCheckoutPanel.hidden = true;
   safeCreateIcons();
+  lxOrderStory(); /* §56 — cinematic stagger: check → title → body → note → timeline */
 }
 
 /* ── Luxury cart fly: thumbnail glides from product image → cart icon ──
@@ -2027,6 +2028,7 @@ function toggleWishlist(productId, btn) {
       );
     }
     showToast("Quietly saved 💛");
+    lxHeartBurst(btn); /* §56 — floating particles, distinct from WAAPI bloom above */
   } else {
     wl.delete(productId);
     btn.classList.remove("is-saved");
@@ -2320,6 +2322,7 @@ function addToCart() {
 
   /* ── Cart pulse + count pop: timed to fly-orb arrival (~560ms) ────── */
   setTimeout(lxPulseCart, 520);
+  setTimeout(lxCartGlow,  540); /* §56 — glow ring, distinct from pulse scale */
 
   /* ── Success glow on button — fires while sheet is sliding out ────── */
   if (dom.addToCartButton) {
@@ -3732,6 +3735,7 @@ function initFooterNewsletter() {
     msg.textContent = "Beautifully received. We'll reach you gently, only when it matters.";
 
     showToast("Welcome to our quiet circle 💛");
+    lxFormRipple(form.querySelector("[type='submit']")); /* §56 — gold ripple from submit btn */
 
     /* Soft reset after 6 s */
     setTimeout(() => {
@@ -3859,6 +3863,93 @@ function initHeroSlideshow() {
   /* ── Boot ────────────────────────────────────────────────────────────── */
   goTo(0);          /* ensure first slide + caption are wired correctly     */
   startInterval();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   §56 — EMOTIONAL MICRO-INTERACTIONS
+   lxHeartBurst · lxCartGlow · lxOrderStory · lxFormRipple
+   Zero duplication: these are new effects distinct from existing systems.
+   ─────────────────────────────────────────────────────────────────────── */
+
+/* ── Floating heart particles ─────────────────────────────────────────────
+   Spawns 4 translucent gold hearts that drift upward from the wishlist
+   button and fade out. Distinct from existing WAAPI bloom (scale on SVG
+   icon) — that animation still runs; this one adds floating particles.    */
+function lxHeartBurst(triggerEl) {
+  if (LX_MOTION.reduced() || !triggerEl) return;
+  const rect   = triggerEl.getBoundingClientRect();
+  const cx     = rect.left + rect.width  / 2;
+  const cy     = rect.top  + rect.height / 2;
+  const glyphs = ["💛", "💛", "✦", "💛"];
+
+  for (let i = 0; i < glyphs.length; i++) {
+    const particle = document.createElement("span");
+    particle.className = "lx-heart-particle";
+    particle.setAttribute("aria-hidden", "true");
+    particle.textContent = glyphs[i];
+
+    /* Scatter ±22px horizontally around the button centre */
+    const spread = (Math.random() - 0.5) * 44;
+    particle.style.left             = `${cx + spread - 10}px`;
+    particle.style.top              = `${cy - 6}px`;
+    particle.style.animationDelay    = `${i * 85}ms`;
+    particle.style.animationDuration = `${720 + Math.random() * 220}ms`;
+    particle.style.fontSize          = `${10 + Math.random() * 5}px`;
+
+    document.body.appendChild(particle);
+    particle.addEventListener("animationend", () => particle.remove(), { once: true });
+  }
+}
+
+/* ── Cart glow ring ───────────────────────────────────────────────────────
+   A warm gold ring radiates outward from the cart button on item add.
+   Distinct from lxPulseCart() which CSS-animates scale on the icon itself.*/
+function lxCartGlow() {
+  if (LX_MOTION.reduced() || !dom.cartToggle) return;
+  const rect = dom.cartToggle.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height);
+
+  const ring = document.createElement("span");
+  ring.className = "lx-cart-glow-ring";
+  ring.setAttribute("aria-hidden", "true");
+  ring.style.width  = `${size}px`;
+  ring.style.height = `${size}px`;
+  ring.style.left   = `${rect.left + rect.width  / 2 - size / 2}px`;
+  ring.style.top    = `${rect.top  + rect.height / 2 - size / 2}px`;
+
+  document.body.appendChild(ring);
+  ring.addEventListener("animationend", () => ring.remove(), { once: true });
+}
+
+/* ── Order storytelling stagger ───────────────────────────────────────────
+   Adds .lx-story on .cart-success so §56d CSS sequential delays create a
+   cinematic narrative: checkmark → title → body → note → timeline.
+   The SVG circle+tick draw animations already exist and are preserved.    */
+function lxOrderStory() {
+  requestAnimationFrame(() => {
+    const el = document.querySelector(".cart-success");
+    if (el) el.classList.add("lx-story");
+  });
+}
+
+/* ── Form success ripple ──────────────────────────────────────────────────
+   A warm gold radial burst expands from the submit button's centre on
+   success. The button needs position:relative + overflow:hidden — §56e CSS
+   ensures this for .footer-relation__btn and space form submit buttons.   */
+function lxFormRipple(btn) {
+  if (LX_MOTION.reduced() || !btn) return;
+  const size = Math.max(btn.offsetWidth, btn.offsetHeight) * 0.88;
+
+  const ripple = document.createElement("span");
+  ripple.className = "lx-form-ripple";
+  ripple.setAttribute("aria-hidden", "true");
+  ripple.style.width  = `${size}px`;
+  ripple.style.height = `${size}px`;
+  ripple.style.left   = `${btn.offsetWidth  / 2 - size / 2}px`;
+  ripple.style.top    = `${btn.offsetHeight / 2 - size / 2}px`;
+
+  btn.appendChild(ripple);
+  ripple.addEventListener("animationend", () => ripple.remove(), { once: true });
 }
 
 window.addEventListener("DOMContentLoaded", init);
