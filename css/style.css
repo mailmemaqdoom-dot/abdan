@@ -12308,3 +12308,264 @@ html[data-theme="dark"] .trust-rail__inner span {
 }
 
 /* ═══ END SECTION 47 ══════════════════════════════════════════════════════ */
+
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  SECTION 48 — CINEMATIC HERO SLIDESHOW                                  ║
+   ║  Four-image crossfade with subtle scale-breathe, gold dot navigation,   ║
+   ║  and editorial caption overlay. Replaces the static visual-card--image. ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+
+/* ── 48a. Slideshow container ─────────────────────────────────────────────
+   Inherits the same aspect-ratio as the old visual-card--image (0.84) so
+   the two-column hero layout is completely undisturbed.                    */
+.hero-slideshow {
+  position:      relative;
+  overflow:      hidden;
+  border-radius: var(--radius-xl, 1.5rem);
+  aspect-ratio:  0.84;
+  background:    var(--emerald);            /* fallback while first slide loads */
+  box-shadow:    0 24px 64px rgba(2, 61, 58, 0.18),
+                 0 4px  16px rgba(2, 61, 58, 0.10);
+  /* contain stacking context so z-index on slides is self-contained */
+  isolation: isolate;
+}
+
+/* ── 48b. Individual slide ────────────────────────────────────────────────
+   All slides stacked at position:absolute. Only the --active one is
+   visible at any time via opacity. z-index keeps outgoing slide below
+   the incoming one during the crossfade window.                           */
+.hero-slide {
+  position:   absolute;
+  inset:      0;
+  opacity:    0;
+  z-index:    0;
+  transition: opacity 1400ms cubic-bezier(0.45, 0, 0.55, 1);
+}
+.hero-slide--active {
+  opacity: 1;
+  z-index: 1;
+}
+
+/* ── 48c. Slide image — slow scale-breathe ────────────────────────────────
+   The image starts very slightly zoomed (1.06) and relaxes to 1.0 while
+   it is the active slide. This "breathing" runs over 9 s — slow enough
+   to feel organic, not video-like.                                        */
+.hero-slide img {
+  width:      100%;
+  height:     100%;
+  object-fit: cover;
+  object-position: center top;          /* keep faces / shoulders in frame  */
+  display:    block;
+  transform:  scale(1.06);
+  transition: transform 9000ms cubic-bezier(0.25, 0, 0.15, 1);
+  will-change: transform;               /* GPU-promote during animation      */
+}
+.hero-slide--active img {
+  transform: scale(1.0);
+}
+
+/* ── 48d. Caption overlay ─────────────────────────────────────────────────
+   A soft gradient veil at the bottom of the slideshow hosts the micro-
+   label and caption sentence. Subtle — it doesn't compete with the image. */
+.hero-slide__caption {
+  position:   absolute;
+  bottom:     0;
+  left:       0;
+  right:      0;
+  z-index:    3;
+  padding:    2.5rem 1.75rem 4.5rem;   /* extra bottom space for dots       */
+  background: linear-gradient(
+    to top,
+    rgba(2, 20, 19, 0.72) 0%,
+    rgba(2, 20, 19, 0.30) 60%,
+    transparent           100%
+  );
+  pointer-events: none;
+}
+.hero-slide__caption .micro-label {
+  display:       block;
+  font-size:     0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color:         rgba(197, 161, 59, 0.85);    /* gold */
+  margin-bottom: 0.4rem;
+}
+.hero-slide__caption p {
+  margin:      0;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size:   0.875rem;
+  line-height: 1.5;
+  color:       rgba(253, 250, 245, 0.9);      /* near-ivory */
+  font-style:  italic;
+  max-width:   26ch;
+}
+
+/* ── 48e. Dot navigation ──────────────────────────────────────────────────
+   Gold pill-dots sit above the caption text, bottom-right. Each dot is a
+   real <button> for accessibility — keyboard and screen-reader friendly.  */
+.hero-slide__dots {
+  position:    absolute;
+  bottom:      1.25rem;
+  right:       1.25rem;
+  z-index:     4;
+  display:     flex;
+  gap:         0.45rem;
+  align-items: center;
+}
+.slide-dot {
+  width:         8px;
+  height:        8px;
+  border-radius: 50%;
+  border:        none;
+  padding:       0;
+  cursor:        pointer;
+  background:    rgba(253, 250, 245, 0.35);
+  transition:    background 400ms ease,
+                 width 400ms ease,
+                 border-radius 400ms ease;
+  flex-shrink:   0;
+  outline-offset: 3px;
+}
+.slide-dot:focus-visible {
+  outline: 2px solid rgba(197, 161, 59, 0.8);
+}
+.slide-dot--active {
+  background:    rgba(197, 161, 59, 0.88);   /* gold */
+  width:         22px;
+  border-radius: 4px;
+}
+.slide-dot:hover:not(.slide-dot--active) {
+  background: rgba(253, 250, 245, 0.65);
+}
+
+/* ── 48f. Hover pause hint — cursor ──────────────────────────────────────*/
+.hero-slideshow:hover {
+  cursor: default;
+}
+
+/* ── 48g. Mobile adjustments ─────────────────────────────────────────────
+   On mobile the slideshow stacks full-width. Relax the aspect-ratio so
+   portrait images show gracefully, and nudge caption text smaller.       */
+@media (max-width: 767px) {
+  .hero-slideshow {
+    aspect-ratio:  3 / 4;
+    border-radius: var(--radius-lg, 1rem);
+  }
+  .hero-slide__caption {
+    padding: 2rem 1.25rem 3.75rem;
+  }
+  .hero-slide__caption p {
+    font-size: 0.8rem;
+  }
+  .hero-slide__dots {
+    bottom: 1rem;
+    right:  1rem;
+  }
+}
+
+/* ── 48h. Dark mode ───────────────────────────────────────────────────────
+   The slideshow itself is image-dominant so dark mode has little visible
+   effect, but the caption gradient should deepen slightly.                */
+html[data-theme="dark"] .hero-slideshow {
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.38),
+              0 4px  16px rgba(0, 0, 0, 0.22);
+}
+html[data-theme="dark"] .hero-slide__caption {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.82) 0%,
+    rgba(0, 0, 0, 0.36) 60%,
+    transparent         100%
+  );
+}
+
+/* ── 48i. Reduced motion ──────────────────────────────────────────────────
+   Users who prefer reduced motion still get the crossfade (it is gentle),
+   but we remove the scale-breathe entirely to respect the preference.     */
+@media (prefers-reduced-motion: reduce) {
+  .hero-slide img {
+    transform:  scale(1.0) !important;
+    transition: none !important;
+  }
+  .hero-slide {
+    transition: opacity 600ms ease;
+  }
+}
+
+/* ── 48j. Promise-band — 2-column split with still-life ──────────────────
+   On desktop: blockquote on the left, atmospheric still-life on the right.
+   On mobile: stacked, image hidden to keep the quote powerful and uncluttered. */
+.promise-band__inner--split {
+  display:     flex;
+  align-items: center;
+  gap:         3.5rem;
+}
+.promise-band__text {
+  flex:        1 1 55%;
+}
+.promise-band__visual {
+  flex:        0 0 auto;
+  width:       clamp(180px, 26%, 280px);
+  align-self:  stretch;
+  display:     flex;
+  align-items: center;
+}
+.promise-band__img {
+  width:         100%;
+  aspect-ratio:  1 / 1;
+  object-fit:    cover;
+  border-radius: var(--radius-lg, 1rem);
+  opacity:       0.82;
+  box-shadow:    0 12px 40px rgba(2, 61, 58, 0.14);
+  transition:    opacity 600ms ease;
+}
+.promise-band__img:hover {
+  opacity: 0.95;
+}
+
+/* Hide the image on narrow mobile — let the quote breathe alone */
+@media (max-width: 640px) {
+  .promise-band__inner--split {
+    flex-direction: column;
+    gap:            0;
+  }
+  .promise-band__visual {
+    display: none;
+  }
+}
+
+/* Dark mode: slightly brighter image */
+html[data-theme="dark"] .promise-band__img {
+  opacity:    0.70;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.30);
+}
+
+/* ── 48k. Space-editorial — gift image ────────────────────────────────────
+   A softly lit gift-delivery image sits below the sign-in CTA buttons
+   inside the space-editorial article. It adds warmth and emotional context
+   without disrupting the layout structure.                                */
+.space-gift-visual {
+  margin:  2rem 0 0;
+  padding: 0;
+  border:  none;
+}
+.space-gift-visual img {
+  width:         100%;
+  aspect-ratio:  9 / 14;
+  object-fit:    cover;
+  object-position: center 20%;    /* keep the face / gift in frame */
+  border-radius: var(--radius-lg, 1rem);
+  opacity:       0.88;
+  box-shadow:    0 8px 28px rgba(2, 61, 58, 0.12);
+  display:       block;
+  transition:    opacity 600ms ease, transform 600ms ease;
+}
+.space-gift-visual img:hover {
+  opacity:   0.96;
+  transform: scale(1.01);
+}
+html[data-theme="dark"] .space-gift-visual img {
+  opacity: 0.72;
+}
+
+/* ═══ END SECTION 48 ══════════════════════════════════════════════════════ */

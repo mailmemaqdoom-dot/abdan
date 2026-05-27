@@ -3169,6 +3169,7 @@ function init() {
   initScrollChrome();
   initScrollAwareDock();  /* §33 — hides dock on downward scroll, mobile only */
   initHeroParallax();
+  initHeroSlideshow();          /* §48 — cinematic 4-image crossfade */
   initSwipeGestures();
   renderAdminRoute();
   initSpaceAuth();
@@ -3501,6 +3502,127 @@ function initTactileSystem() {
     }
   });
   observer.observe(document.body, { childList: true, subtree: true });
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   §48  CINEMATIC HERO SLIDESHOW
+   Four slides crossfade every 7 s with a subtle scale-breathe on the
+   active image. Dot navigation allows manual jump. Hovering pauses the
+   auto-advance. Respects prefers-reduced-motion by cutting the 9 s scale
+   animation (CSS handles it) — the JS interval still runs but transitions
+   are instant per the @media rule in §48i of style.css.
+   ─────────────────────────────────────────────────────────────────────────*/
+function initHeroSlideshow() {
+  const container = document.getElementById("heroSlideshow");
+  if (!container) return;
+
+  const slides      = Array.from(container.querySelectorAll(".hero-slide"));
+  const dots        = Array.from(container.querySelectorAll(".slide-dot"));
+  const captionEl   = container.querySelector("#heroSlideCaption");
+  const labelEl     = container.querySelector("#heroSlideLabel");
+  if (!slides.length) return;
+
+  /* ── Per-slide editorial captions ──────────────────────────────────── */
+  const CAPTIONS = [
+    {
+      label:   "An editorial invitation",
+      caption: "For the woman whose presence is soft, assured, and deserving of beauty of her own."
+    },
+    {
+      label:   "Devotion & light",
+      caption: "Beauty that honours the rituals woven into everyday grace."
+    },
+    {
+      label:   "Composed in silk",
+      caption: "A woman who dresses not to be seen, but to feel wholly herself."
+    },
+    {
+      label:   "A quiet luxury",
+      caption: "The morning cup. The moment before the day begins. Yours."
+    }
+  ];
+
+  let current  = 0;
+  let paused   = false;
+  let interval = null;
+
+  /* ── Activate a given slide index ──────────────────────────────────── */
+  function goTo(idx) {
+    const prev = current;
+    current    = (idx + slides.length) % slides.length;
+
+    /* Update slides */
+    slides[prev].classList.remove("hero-slide--active");
+    slides[current].classList.add("hero-slide--active");
+
+    /* Update dots */
+    dots[prev].classList.remove("slide-dot--active");
+    dots[prev].setAttribute("aria-selected", "false");
+    dots[current].classList.add("slide-dot--active");
+    dots[current].setAttribute("aria-selected", "true");
+
+    /* Update caption */
+    const c = CAPTIONS[current] || CAPTIONS[0];
+    if (labelEl)   labelEl.textContent   = c.label;
+    if (captionEl) captionEl.textContent = c.caption;
+
+    /* Announce to screen readers via aria-live on the container */
+    container.setAttribute("aria-label", `Slide ${current + 1} of ${slides.length}: ${c.label}`);
+  }
+
+  /* ── Auto-advance ───────────────────────────────────────────────────── */
+  function startInterval() {
+    interval = setInterval(() => {
+      if (!paused) goTo(current + 1);
+    }, 7000);
+  }
+
+  function stopInterval() {
+    clearInterval(interval);
+    interval = null;
+  }
+
+  /* ── Dot click handlers ─────────────────────────────────────────────── */
+  dots.forEach((dot, i) => {
+    dot.addEventListener("click", () => {
+      stopInterval();
+      goTo(i);
+      startInterval();          /* restart timer from this point            */
+    });
+  });
+
+  /* ── Hover pause / resume ────────────────────────────────────────────── */
+  container.addEventListener("mouseenter", () => { paused = true;  });
+  container.addEventListener("mouseleave", () => { paused = false; });
+
+  /* ── Touch swipe (mobile) ────────────────────────────────────────────── */
+  let touchStartX = 0;
+  container.addEventListener("touchstart", (e) => {
+    touchStartX = e.touches[0].clientX;
+  }, { passive: true });
+  container.addEventListener("touchend", (e) => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) < 40) return;     /* ignore taps                        */
+    stopInterval();
+    goTo(dx < 0 ? current + 1 : current - 1);
+    startInterval();
+  }, { passive: true });
+
+  /* ── Keyboard (when container or dot has focus) ──────────────────────── */
+  container.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") { stopInterval(); goTo(current + 1); startInterval(); }
+    if (e.key === "ArrowLeft")  { stopInterval(); goTo(current - 1); startInterval(); }
+  });
+
+  /* ── Visibility API — pause when tab is hidden ───────────────────────── */
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) stopInterval();
+    else if (!interval)  startInterval();
+  });
+
+  /* ── Boot ────────────────────────────────────────────────────────────── */
+  goTo(0);          /* ensure first slide + caption are wired correctly     */
+  startInterval();
 }
 
 window.addEventListener("DOMContentLoaded", init);
