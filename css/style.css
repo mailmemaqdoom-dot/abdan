@@ -12569,3 +12569,611 @@ html[data-theme="dark"] .space-gift-visual img {
 }
 
 /* ═══ END SECTION 48 ══════════════════════════════════════════════════════ */
+
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  SECTION 49 — CINEMATIC FOOTER EXPERIENCE                               ║
+   ║  Seven emotionally layered sections that close the ABDAN journey with   ║
+   ║  warmth, grace, feminine luxury, and brand memory.                      ║
+   ║  Palette: deep emerald foundation · ivory text · restrained gold        ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+
+/* ── 49a. Site-footer reset ───────────────────────────────────────────────
+   Override accumulated padding from earlier sections. Each inner layer
+   manages its own vertical rhythm.                                         */
+.site-footer {
+  padding:    0 !important;
+  background: #011c1a;            /* deeper than --emerald for cinematic depth */
+  color:      var(--ivory);
+  overflow:   hidden;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   LAYER 1 — EMOTIONAL CLOSING STATEMENT
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── 49b. Outer layer ─────────────────────────────────────────────────────*/
+.footer-emotional-close {
+  padding:    clamp(5rem, 9vw, 9rem) 0 clamp(4rem, 7vw, 7rem);
+  text-align: center;
+  background: linear-gradient(
+    180deg,
+    #011c1a 0%,
+    rgba(2, 44, 40, 0.95) 100%
+  );
+  position:   relative;
+}
+/* Gold hairline above — marks the start of the closing journey */
+.footer-emotional-close::before {
+  content:    "";
+  position:   absolute;
+  top:        0; left: 50%;
+  transform:  translateX(-50%);
+  width:      clamp(60px, 10vw, 120px);
+  height:     1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(197, 161, 59, 0.55),
+    transparent
+  );
+}
+
+/* ── 49c. Micro-label ─────────────────────────────────────────────────────*/
+.footer-emotional-close__micro {
+  display:        block;
+  font-size:      0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color:          rgba(197, 161, 59, 0.75);
+  margin-bottom:  1.75rem;
+  font-family:    var(--font-body);
+}
+
+/* ── 49d. Headline statement ──────────────────────────────────────────────*/
+.footer-emotional-close__statement {
+  font-family:  var(--font-editorial, Georgia, serif);
+  font-style:   italic;
+  font-weight:  400;
+  font-size:    clamp(2.4rem, 5.5vw, 4.2rem);
+  line-height:  1.18;
+  color:        var(--ivory);
+  margin:       0 auto 2rem;
+  max-width:    16ch;
+  letter-spacing: -0.01em;
+}
+
+/* ── 49e. Subtitle ────────────────────────────────────────────────────────*/
+.footer-emotional-close__sub {
+  font-size:   clamp(1rem, 1.6vw, 1.2rem);
+  line-height: 1.75;
+  color:       rgba(253, 250, 245, 0.68);
+  margin:      0 auto;
+  max-width:   46ch;
+  font-style:  italic;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   LAYER 2 — CINEMATIC VISUAL BAND
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── 49f. Band container ──────────────────────────────────────────────────*/
+.footer-cinematic-band {
+  position:   relative;
+  overflow:   hidden;
+  height:     clamp(280px, 48vw, 560px);
+  isolation:  isolate;
+}
+
+/* ── 49g. Cinematic image ─────────────────────────────────────────────────*/
+.footer-cinematic-band__img {
+  width:           100%;
+  height:          100%;
+  object-fit:      cover;
+  object-position: center 30%;   /* keep the face / window in frame */
+  display:         block;
+  transform:       scale(1.04);  /* subtle presense — not animated here */
+  filter:          brightness(0.62) saturate(0.88);
+}
+
+/* ── 49h. Atmospheric veil ────────────────────────────────────────────────
+   Gradient flows from deep emerald at top and bottom, transparent in the
+   luminous centre — like a fade-in / fade-out of a film scene.           */
+.footer-cinematic-band__veil {
+  position:   absolute;
+  inset:      0;
+  background: linear-gradient(
+    180deg,
+    #011c1a         0%,
+    rgba(1,28,26,0) 32%,
+    rgba(1,28,26,0) 68%,
+    #011c1a         100%
+  );
+  z-index:    1;
+}
+
+/* ── 49i. Pull quote inside the band ─────────────────────────────────────*/
+.footer-cinematic-band__pull {
+  position:   absolute;
+  bottom:     clamp(2rem, 5vw, 4rem);
+  left:       50%;
+  transform:  translateX(-50%);
+  z-index:    2;
+  margin:     0;
+  text-align: center;
+  white-space: nowrap;
+  font-family: var(--font-editorial, Georgia, serif);
+  font-style:  italic;
+  font-weight: 400;
+  font-size:   clamp(1.2rem, 2.8vw, 2rem);
+  color:       rgba(253, 250, 245, 0.90);
+  text-shadow: 0 2px 24px rgba(1, 28, 26, 0.8);
+  letter-spacing: 0.01em;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   LAYER 3 — SOFT RELATIONSHIP CTA
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── 49j. Section wrapper ─────────────────────────────────────────────────*/
+.footer-relation {
+  padding:    clamp(4rem, 7vw, 7rem) 0;
+  background: linear-gradient(
+    180deg,
+    #011c1a 0%,
+    rgba(2, 48, 44, 0.96) 100%
+  );
+  border-top: 1px solid rgba(197, 161, 59, 0.06);
+}
+
+/* ── 49k. 2-col inner layout ──────────────────────────────────────────────*/
+.footer-relation__inner {
+  display:        flex;
+  align-items:    flex-start;
+  gap:            clamp(3rem, 6vw, 6rem);
+  flex-wrap:      wrap;
+}
+
+/* ── 49l. Text column ─────────────────────────────────────────────────────*/
+.footer-relation__words {
+  flex: 1 1 300px;
+}
+.footer-relation__micro {
+  display:        block;
+  font-size:      0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color:          rgba(197, 161, 59, 0.72);
+  margin-bottom:  1rem;
+}
+.footer-relation__heading {
+  font-family:    var(--font-editorial, Georgia, serif);
+  font-style:     italic;
+  font-weight:    400;
+  font-size:      clamp(1.6rem, 3vw, 2.4rem);
+  line-height:    1.25;
+  color:          var(--ivory);
+  margin:         0 0 1.25rem;
+}
+.footer-relation__body {
+  font-size:   1rem;
+  line-height: 1.8;
+  color:       rgba(253, 250, 245, 0.62);
+  margin:      0;
+  max-width:   42ch;
+}
+
+/* ── 49m. Form column ─────────────────────────────────────────────────────*/
+.footer-relation__form {
+  flex:    1 1 300px;
+  display: flex;
+  flex-direction: column;
+  gap:     0.85rem;
+}
+.footer-relation__label {
+  display:     block;
+  font-size:   0.8rem;
+  color:       rgba(253, 250, 245, 0.5);
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.04em;
+}
+.footer-relation__row {
+  display:   flex;
+  gap:       0.6rem;
+  flex-wrap: wrap;
+}
+.footer-relation__input {
+  flex:             1 1 200px;
+  background:       rgba(255, 255, 255, 0.05);
+  border:           1px solid rgba(197, 161, 59, 0.18);
+  border-radius:    var(--radius-pill, 99px);
+  padding:          0.85rem 1.4rem;
+  font-size:        0.9rem;
+  color:            var(--ivory);
+  outline:          none;
+  transition:       border-color 300ms ease, background 300ms ease;
+  font-family:      var(--font-body);
+}
+.footer-relation__input::placeholder {
+  color:            rgba(253, 250, 245, 0.32);
+  font-style:       italic;
+}
+.footer-relation__input:focus {
+  border-color:     rgba(197, 161, 59, 0.55);
+  background:       rgba(255, 255, 255, 0.08);
+}
+.footer-relation__btn {
+  flex-shrink:      0;
+  background:       rgba(197, 161, 59, 0.15);
+  border:           1px solid rgba(197, 161, 59, 0.42);
+  border-radius:    var(--radius-pill, 99px);
+  padding:          0.85rem 1.8rem;
+  font-size:        0.875rem;
+  font-family:      var(--font-body);
+  color:            rgba(197, 161, 59, 0.90);
+  letter-spacing:   0.06em;
+  cursor:           pointer;
+  transition:       background 300ms ease, color 300ms ease, border-color 300ms ease;
+  white-space:      nowrap;
+}
+.footer-relation__btn:hover {
+  background:       rgba(197, 161, 59, 0.28);
+  color:            rgba(197, 161, 59, 1);
+  border-color:     rgba(197, 161, 59, 0.65);
+}
+.footer-relation__status {
+  font-size:   0.82rem;
+  line-height: 1.6;
+  color:       rgba(197, 161, 59, 0.75);
+  margin:      0;
+  min-height:  1.2em;
+  font-style:  italic;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   LAYER 4 — EDITORIAL NAVIGATION
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── 49n. Nav section ─────────────────────────────────────────────────────*/
+.footer-editorial-nav {
+  padding:      clamp(3.5rem, 6vw, 6rem) 0;
+  border-top:   1px solid rgba(197, 161, 59, 0.07);
+  border-bottom: 1px solid rgba(197, 161, 59, 0.07);
+}
+.footer-nav-grid {
+  display:               grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap:                   2rem clamp(2rem, 4vw, 4rem);
+}
+.footer-nav-group__title {
+  font-family:    var(--font-editorial, Georgia, serif);
+  font-style:     italic;
+  font-weight:    400;
+  font-size:      0.82rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color:          rgba(197, 161, 59, 0.72);
+  margin:         0 0 1.25rem;
+}
+.footer-nav-group__list {
+  list-style: none;
+  margin:     0;
+  padding:    0;
+  display:    flex;
+  flex-direction: column;
+  gap:        0.7rem;
+}
+.footer-nav-group__list a {
+  font-size:       0.9rem;
+  color:           rgba(253, 250, 245, 0.62);
+  text-decoration: none;
+  transition:      color 250ms ease;
+  line-height:     1.4;
+}
+.footer-nav-group__list a:hover {
+  color: rgba(253, 250, 245, 0.95);
+}
+.footer-nav-group__list a:focus-visible {
+  outline:        2px solid rgba(197, 161, 59, 0.6);
+  outline-offset: 3px;
+  border-radius:  2px;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   LAYER 5 — FAQ / TERMS (JS-POPULATED)
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── 49o. FAQ layer ───────────────────────────────────────────────────────*/
+.footer-faq-layer {
+  padding: clamp(3rem, 5vw, 5rem) 0;
+}
+.footer-faq-grid {
+  display:               grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap:                   2rem clamp(3rem, 5vw, 6rem);
+}
+.footer-faq-disclosure {
+  overflow: hidden;
+}
+.footer-faq-disclosure__title {
+  list-style:     none;
+  font-family:    var(--font-editorial, Georgia, serif);
+  font-style:     italic;
+  font-weight:    400;
+  font-size:      1.15rem;
+  color:          var(--ivory);
+  cursor:         pointer;
+  padding-bottom: 0.75rem;
+  border-bottom:  1px solid rgba(197, 161, 59, 0.14);
+  margin-bottom:  0;
+  user-select:    none;
+  transition:     color 250ms ease;
+}
+.footer-faq-disclosure__title::-webkit-details-marker { display: none; }
+.footer-faq-disclosure[open] .footer-faq-disclosure__title {
+  color: rgba(197, 161, 59, 0.88);
+}
+/* Override .footer-stack inherited styles for dark footer context */
+.footer-faq-layer .footer-stack {
+  margin-top: 1.25rem;
+  gap:        1rem;
+}
+.footer-faq-layer .footer-stack article {
+  border-top: 1px solid rgba(253, 250, 245, 0.07);
+  padding-top: 1rem;
+}
+.footer-faq-layer .footer-stack strong {
+  color:         rgba(253, 250, 245, 0.85);
+  font-size:     0.88rem;
+  margin-bottom: 0.3rem;
+  letter-spacing: 0.01em;
+}
+.footer-faq-layer .footer-stack span,
+.footer-faq-layer .footer-stack p {
+  color:       rgba(253, 250, 245, 0.55);
+  font-size:   0.83rem;
+  line-height: 1.7;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   LAYER 6 — EMOTIONAL TRUST LAYER
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── 49p. Trust section ───────────────────────────────────────────────────*/
+.footer-trust-layer {
+  padding:    clamp(3rem, 5vw, 5rem) 0;
+  border-top: 1px solid rgba(197, 161, 59, 0.07);
+  background: rgba(1, 16, 15, 0.6);
+}
+.footer-trust-grid {
+  display:               grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap:                   1.5rem 2rem;
+}
+.footer-trust-item {
+  display:        flex;
+  flex-direction: column;
+  align-items:    flex-start;
+  gap:            0.85rem;
+}
+.footer-trust-item__icon {
+  width:           2.4rem;
+  height:          2.4rem;
+  border-radius:   50%;
+  background:      rgba(197, 161, 59, 0.10);
+  border:          1px solid rgba(197, 161, 59, 0.18);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  flex-shrink:     0;
+}
+.footer-trust-item__icon i,
+.footer-trust-item__icon svg {
+  width:  1rem;
+  height: 1rem;
+  color:  rgba(197, 161, 59, 0.80);
+  stroke-width: 1.5;
+}
+.footer-trust-item p {
+  margin:      0;
+  font-size:   0.83rem;
+  line-height: 1.7;
+  color:       rgba(253, 250, 245, 0.58);
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   LAYER 7 — SIGNATURE BRAND CLOSURE
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── 49q. Signature section ───────────────────────────────────────────────*/
+.footer-signature {
+  padding:    clamp(4rem, 6vw, 6rem) 0 clamp(5rem, 8vw, 8rem);
+  text-align: center;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(1, 10, 9, 0.70) 100%
+  );
+}
+.footer-signature__inner {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  gap:            0;
+}
+
+/* ── 49r. Gold divider hairline ───────────────────────────────────────────*/
+.footer-signature__divider {
+  width:        clamp(80px, 14vw, 160px);
+  height:       1px;
+  background:   linear-gradient(
+    90deg,
+    transparent,
+    rgba(197, 161, 59, 0.45),
+    transparent
+  );
+  margin-bottom: clamp(2.5rem, 4vw, 4rem);
+}
+
+/* ── 49s. Brand mark + wordmark row ──────────────────────────────────────*/
+.footer-signature__brand {
+  display:     flex;
+  align-items: center;
+  gap:         1.25rem;
+  margin-bottom: 1.5rem;
+}
+/* Override existing footer-mark size in the signature context */
+.footer-signature .footer-mark {
+  width:  3rem;
+  height: 3rem;
+}
+.footer-signature .footer-mark img {
+  width:         100%;
+  height:        100%;
+  border-radius: 50%;
+  object-fit:    cover;
+}
+
+/* ── 49t. Signature tagline ───────────────────────────────────────────────*/
+.footer-signature__tagline {
+  font-family:    var(--font-editorial, Georgia, serif);
+  font-style:     italic;
+  font-weight:    400;
+  font-size:      clamp(1.1rem, 2vw, 1.5rem);
+  color:          rgba(253, 250, 245, 0.75);
+  margin:         0 0 2.25rem;
+  letter-spacing: 0.01em;
+}
+
+/* ── 49u. Social icons in signature ──────────────────────────────────────
+   Override existing .footer-socials so they work on dark emerald.        */
+.footer-signature__socials {
+  justify-content: center;
+  margin-bottom:   2.5rem;
+}
+.footer-signature__socials a {
+  background:   rgba(255, 255, 255, 0.05);
+  border-color: rgba(253, 250, 245, 0.14);
+  color:        rgba(253, 250, 245, 0.55);
+}
+.footer-signature__socials a:hover {
+  background:   rgba(255, 255, 255, 0.10);
+  border-color: rgba(253, 250, 245, 0.30);
+  color:        rgba(253, 250, 245, 0.90);
+}
+/* Keep brand social hover colours */
+.footer-signature__socials a[aria-label="WhatsApp"]:hover  { border-color: #25D366; color: #25D366; }
+.footer-signature__socials a[aria-label="Telegram"]:hover  { border-color: #2AABEE; color: #2AABEE; }
+.footer-signature__socials a[aria-label="Instagram"]:hover { border-color: #E1306C; color: #E1306C; }
+.footer-signature__socials a[aria-label="Facebook"]:hover  { border-color: #1877F2; color: #1877F2; }
+
+/* ── 49v. Legal text ──────────────────────────────────────────────────────*/
+.footer-signature__legal {
+  display:   flex;
+  flex-direction: column;
+  gap:       0.6rem;
+  max-width: 56ch;
+}
+.footer-signature__disclaimer {
+  font-size:   0.78rem;
+  line-height: 1.75;
+  color:       rgba(253, 250, 245, 0.35);
+  margin:      0;
+}
+.footer-signature__copyright {
+  font-size:   0.75rem;
+  color:       rgba(253, 250, 245, 0.28);
+  margin:      0;
+  letter-spacing: 0.04em;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   49w. MOBILE — graceful stacking
+   ─────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+
+  .footer-emotional-close__statement {
+    font-size:  clamp(2rem, 8vw, 2.8rem);
+    max-width:  none;
+  }
+  .footer-emotional-close__sub {
+    font-size: 0.95rem;
+    max-width: none;
+  }
+
+  .footer-cinematic-band {
+    height: clamp(220px, 65vw, 380px);
+  }
+  .footer-cinematic-band__pull {
+    white-space: normal;
+    font-size:   clamp(1rem, 4.5vw, 1.4rem);
+    width:       80%;
+    text-align:  center;
+  }
+
+  .footer-relation__inner {
+    flex-direction: column;
+    gap:            2.5rem;
+  }
+  .footer-relation__row {
+    flex-direction: column;
+  }
+  .footer-relation__btn {
+    align-self: flex-start;
+  }
+
+  .footer-nav-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem 1.5rem;
+  }
+
+  .footer-faq-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .footer-trust-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.75rem 1.5rem;
+  }
+
+  .footer-signature__brand {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-nav-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   49x. DARK MODE
+   The footer is already deeply dark (deep emerald on near-black), so dark
+   mode adjustments are minor — ensure the wordmark shows the text fallback
+   and the band image is not made darker than it already is.
+   ─────────────────────────────────────────────────────────────────────────── */
+html[data-theme="dark"] .footer-cinematic-band__img {
+  filter: brightness(0.50) saturate(0.80);
+}
+html[data-theme="dark"] .footer-relation__input {
+  background: rgba(255, 255, 255, 0.04);
+}
+html[data-theme="dark"] .site-footer {
+  background: #010f0e;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   49y. REDUCED MOTION
+   ─────────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .footer-relation__input,
+  .footer-relation__btn,
+  .footer-nav-group__list a,
+  .footer-signature__socials a {
+    transition: none !important;
+  }
+}
+
+/* ═══ END SECTION 49 ══════════════════════════════════════════════════════ */

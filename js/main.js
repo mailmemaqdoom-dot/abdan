@@ -3170,6 +3170,7 @@ function init() {
   initScrollAwareDock();  /* §33 — hides dock on downward scroll, mobile only */
   initHeroParallax();
   initHeroSlideshow();          /* §48 — cinematic 4-image crossfade */
+  initFooterNewsletter();       /* §49 — soft relationship CTA */
   initSwipeGestures();
   renderAdminRoute();
   initSpaceAuth();
@@ -3502,6 +3503,56 @@ function initTactileSystem() {
     }
   });
   observer.observe(document.body, { childList: true, subtree: true });
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   §49  FOOTER NEWSLETTER — soft relationship CTA
+   Saves email to localStorage; shows a warm contextual toast.
+   No backend needed — static Cloudflare Pages compatible.
+   ─────────────────────────────────────────────────────────────────────────*/
+function initFooterNewsletter() {
+  const form    = document.getElementById("footerNewsletterForm");
+  const input   = document.getElementById("footerEmailInput");
+  const msg     = document.getElementById("footerNewsletterMsg");
+  if (!form || !input || !msg) return;
+
+  const STORAGE_KEY = "abdan-newsletter-subs";
+
+  /* ── If already subscribed, show a quiet acknowledgement ─────────────── */
+  const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  if (existing.length > 0) {
+    msg.textContent = "You're already part of our quiet circle — thank you.";
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const email = (input.value || "").trim().toLowerCase();
+
+    /* Basic email validation */
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      msg.textContent = "Please share a valid email address.";
+      input.focus();
+      return;
+    }
+
+    /* Save (de-duplicate) */
+    const subs = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    if (!subs.includes(email)) {
+      subs.push(email);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(subs));
+    }
+
+    /* Warm success feedback */
+    input.value     = "";
+    msg.textContent = "Beautifully received. We'll reach you gently, only when it matters.";
+
+    showToast("Welcome to our quiet circle 💛");
+
+    /* Soft reset after 6 s */
+    setTimeout(() => {
+      if (msg) msg.textContent = "You're part of our quiet circle — thank you.";
+    }, 6000);
+  });
 }
 
 /* ─────────────────────────────────────────────────────────────────────────

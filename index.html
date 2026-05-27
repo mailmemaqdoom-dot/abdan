@@ -1294,29 +1294,171 @@
       </div>
     </div>
 
+    <!-- ══════════════════════════════════════════════════════════════════════
+         CINEMATIC FOOTER — World-class emotional luxury closing experience.
+         Seven emotionally layered sections, each flowing gracefully into the
+         next, designed to leave the visitor feeling calm, appreciated, and
+         softly elevated before they go.
+         ══════════════════════════════════════════════════════════════════════ -->
     <footer class="site-footer">
-      <div class="container footer-grid">
-        <section class="footer-column footer-brand">
-          <div class="footer-mark" aria-hidden="true">
-            <!-- Official circular emblem — real brand JPEG asset -->
-            <img src="./assets/abdan-icon.jpg" alt="" width="45" height="45" />
-          </div>
-          <!-- Official calligraphy wordmark — brand signature moment in footer.
-               Light: JPEG with multiply blend. Dark: CSS text in warm cream. -->
-          <div class="footer-wordmark" aria-label="ABDAN">
-            <!-- Light mode: official wordmark SVG -->
-            <img class="footer-wordmark__img"
-                 src="./assets/logo/abdan-wordmark-full.jpeg"
-                 alt="ABDAN" draggable="false" />
-            <!-- Dark mode: CSS text fallback -->
-            <span class="footer-wordmark__text abdan-calligraph" aria-hidden="true">ABDAN</span>
-          </div>
-          <p class="footer-tagline">Your Devotion Meets Style</p>
-          <p>
-            Curated for women whose grace is often seen by everyone else first. ABDAN turns that care
-            gently back toward her.
+
+      <!-- ── Layer 1: Emotional Closing Statement ─────────────────────────── -->
+      <section class="footer-emotional-close reveal" aria-label="A closing thought">
+        <div class="container footer-emotional-close__inner">
+          <span class="footer-emotional-close__micro" aria-hidden="true">A moment, quietly yours</span>
+          <h2 class="footer-emotional-close__statement">
+            You give so much of yourself<br aria-hidden="true" />
+            to the world around you.
+          </h2>
+          <p class="footer-emotional-close__sub">
+            This space was created for the one who gives — where your devotion
+            finally turns, gently, toward you.
           </p>
-          <div class="footer-socials">
+        </div>
+      </section>
+
+      <!-- ── Layer 2: Cinematic Visual Band ───────────────────────────────── -->
+      <div class="footer-cinematic-band" aria-hidden="true">
+        <img
+          src="./Website Image/Gemini_Generated_Image_uf9jgluf9jgluf9j.png"
+          alt=""
+          loading="lazy"
+          decoding="async"
+          class="footer-cinematic-band__img"
+        />
+        <div class="footer-cinematic-band__veil"></div>
+        <blockquote class="footer-cinematic-band__pull">
+          "Where devotion meets style."
+        </blockquote>
+      </div>
+
+      <!-- ── Layer 3: Soft Relationship CTA ───────────────────────────────── -->
+      <section class="footer-relation reveal" aria-label="Stay connected with ABDAN">
+        <div class="container footer-relation__inner">
+          <div class="footer-relation__words">
+            <span class="footer-relation__micro">Stay close to ABDAN</span>
+            <h3 class="footer-relation__heading">Receive thoughtfully curated moments</h3>
+            <p class="footer-relation__body">
+              Quiet letters, new arrivals, and gentle editorial notes —
+              written only when we have something truly worth sharing.
+            </p>
+          </div>
+          <form class="footer-relation__form" id="footerNewsletterForm" novalidate>
+            <label for="footerEmailInput" class="footer-relation__label">Your email address</label>
+            <div class="footer-relation__row">
+              <input
+                type="email"
+                id="footerEmailInput"
+                name="email"
+                placeholder="Quietly shared with no one else"
+                autocomplete="email"
+                class="footer-relation__input"
+              />
+              <button type="submit" class="footer-relation__btn">Stay close</button>
+            </div>
+            <p class="footer-relation__status" id="footerNewsletterMsg" aria-live="polite" aria-atomic="true"></p>
+          </form>
+        </div>
+      </section>
+
+      <!-- ── Layer 4: Editorial Navigation ────────────────────────────────── -->
+      <nav class="footer-editorial-nav reveal" aria-label="Footer navigation">
+        <div class="container footer-nav-grid">
+          <div class="footer-nav-group">
+            <h4 class="footer-nav-group__title">Discover</h4>
+            <ul class="footer-nav-group__list">
+              <li><a href="#collections">New Arrivals</a></li>
+              <li><a href="#collections">Collections</a></li>
+              <li><a href="#collections">Seasonal Edit</a></li>
+              <li><a href="#collections">Sarees &amp; Silks</a></li>
+            </ul>
+          </div>
+          <div class="footer-nav-group">
+            <h4 class="footer-nav-group__title">Your Space</h4>
+            <ul class="footer-nav-group__list">
+              <li><a href="#space">Pieces You Loved</a></li>
+              <li><a href="#space">Your Orders</a></li>
+              <li><a href="#space">Saved Moments</a></li>
+            </ul>
+          </div>
+          <div class="footer-nav-group">
+            <h4 class="footer-nav-group__title">The Brand</h4>
+            <ul class="footer-nav-group__list">
+              <li><a href="#editorial">Our Story</a></li>
+              <li><a href="#editorial">Devotion &amp; Style</a></li>
+              <li><a href="#editorial">Journal</a></li>
+            </ul>
+          </div>
+          <div class="footer-nav-group">
+            <h4 class="footer-nav-group__title">Support</h4>
+            <ul class="footer-nav-group__list">
+              <li><a href="https://wa.me/918760595307" target="_blank" rel="noreferrer">WhatsApp Us</a></li>
+              <li><a href="#space">Shipping &amp; Care</a></li>
+              <li><a href="#space">Trust Experience</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+      <!-- ── Layer 5: Questions & Promises (JS-populated, IDs preserved) ─── -->
+      <div class="footer-faq-layer reveal">
+        <div class="container footer-faq-grid">
+          <details class="footer-faq-disclosure" open>
+            <summary class="footer-faq-disclosure__title">Questions, answered with care</summary>
+            <div class="footer-stack" id="faqList"></div>
+          </details>
+          <details class="footer-faq-disclosure">
+            <summary class="footer-faq-disclosure__title">Promises we keep</summary>
+            <div class="footer-stack" id="termsList"></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- ── Layer 6: Emotional Trust Layer ───────────────────────────────── -->
+      <div class="footer-trust-layer reveal" aria-label="Our promises to you">
+        <div class="container footer-trust-grid">
+          <div class="footer-trust-item">
+            <div class="footer-trust-item__icon"><i data-lucide="shield-check"></i></div>
+            <p>Every piece personally verified before it reaches you.</p>
+          </div>
+          <div class="footer-trust-item">
+            <div class="footer-trust-item__icon"><i data-lucide="heart"></i></div>
+            <p>Curated with the care of someone who truly understands your grace.</p>
+          </div>
+          <div class="footer-trust-item">
+            <div class="footer-trust-item__icon"><i data-lucide="package"></i></div>
+            <p>Followed all the way to your door, with gentle updates throughout.</p>
+          </div>
+          <div class="footer-trust-item">
+            <div class="footer-trust-item__icon"><i data-lucide="lock"></i></div>
+            <p>Your details are held privately. ABDAN never shares them.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Layer 7: Signature Brand Closure ─────────────────────────────── -->
+      <div class="footer-signature">
+        <div class="container footer-signature__inner">
+          <div class="footer-signature__divider" aria-hidden="true"></div>
+
+          <div class="footer-signature__brand">
+            <!-- Official circular emblem — real brand JPEG asset, LOGO RULE applied -->
+            <div class="footer-mark" aria-hidden="true">
+              <img src="./assets/abdan-icon.jpg" alt="" width="48" height="48" />
+            </div>
+            <!-- Official calligraphy wordmark — LOGO RULE applied
+                 Light: JPEG with multiply blend. Dark: CSS calligraph text. -->
+            <div class="footer-wordmark" aria-label="ABDAN">
+              <img class="footer-wordmark__img"
+                   src="./assets/logo/abdan-wordmark-full.jpeg"
+                   alt="ABDAN" draggable="false" />
+              <span class="footer-wordmark__text abdan-calligraph" aria-hidden="true">ABDAN</span>
+            </div>
+          </div>
+
+          <p class="footer-signature__tagline">Where devotion meets style.</p>
+
+          <div class="footer-socials footer-signature__socials">
             <a href="https://wa.me/918760595307" target="_blank" rel="noreferrer" aria-label="WhatsApp">
               <svg class="social-icon" aria-hidden="true"><use href="#icon-whatsapp"/></svg>
             </a>
@@ -1330,27 +1472,18 @@
               <svg class="social-icon" aria-hidden="true"><use href="#icon-facebook"/></svg>
             </a>
           </div>
-        </section>
 
-        <details class="footer-column footer-disclosure" open>
-          <summary>Common Questions</summary>
-          <div class="footer-stack" id="faqList"></div>
-        </details>
-
-        <details class="footer-column footer-disclosure">
-          <summary>Promises &amp; Care (T&amp;C)</summary>
-          <div class="footer-stack" id="termsList"></div>
-        </details>
+          <div class="footer-signature__legal">
+            <p class="footer-signature__disclaimer">
+              ABDAN curates and connects you with trusted artisan and vendor partners.
+              Each piece is verified before purchase, and your journey is followed
+              all the way to your door.
+            </p>
+            <p class="footer-signature__copyright">© 2026 ABDAN — All rights warmly reserved.</p>
+          </div>
+        </div>
       </div>
 
-      <div class="container footer-bottom">
-        <p>
-          <strong>Aggregator Disclaimer:</strong> ABDAN curates and connects you with trusted artisan and
-          vendor partners. Each piece is verified before purchase, availability is confirmed before
-          payment, and the journey is followed all the way to your door.
-        </p>
-        <p>© 2026 ABDAN. Your Devotion Meets Style.</p>
-      </div>
     </footer>
 
     <script src="https://unpkg.com/lucide@latest" defer></script>
