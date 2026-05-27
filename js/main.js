@@ -1013,7 +1013,7 @@ async function createSpaceProfile(data) {
   const profiles = getSpaceProfiles();
   const email = data.email.toLowerCase().trim();
   if (profiles[email]) {
-    throw new Error("A space already exists for this email. Continue Your Space to sign in.");
+    throw new Error("Your space already exists for this email. Come back in through Your Space — it is waiting for you. 💛");
   }
   const passwordHash = await hashValue(data.password);
   const profile = {
@@ -1102,8 +1102,8 @@ function renderSpaceOrders(phone) {
       <p class="space-section-heading">Your Journey</p>
       <div class="space-journey-empty">
         <i data-lucide="package" aria-hidden="true"></i>
-        <p>When you place your first order, its journey to you will unfold here — quietly and beautifully.</p>
-        <a class="secondary-button" href="#products">Begin your journey</a>
+        <p>When you choose something beautiful, its gentle journey to you will unfold here — every step followed with care.</p>
+        <a class="secondary-button" href="#products">Discover something beautiful</a>
       </div>`;
     safeCreateIcons();
     return;
@@ -1168,13 +1168,13 @@ function showSpaceDashboard(profile, isNew = false) {
   const greetingEl  = document.getElementById("spaceDashGreeting");
   const taglineEl   = document.getElementById("spaceDashTagline");
 
-  if (kickerEl)   kickerEl.textContent   = isNew ? "A space made for you" : "Welcome back";
+  if (kickerEl)   kickerEl.textContent   = isNew ? "A space made just for you" : "You are home";
   if (greetingEl) greetingEl.textContent = isNew
     ? `Your Space is ready, ${first} 💛`
     : `${first}'s Space 💛`;
   if (taglineEl)  taglineEl.textContent  = isNew
-    ? "A quieter space, thoughtfully yours."
-    : "Your space is exactly as you left it.";
+    ? "A quieter space, thoughtfully yours. Everything you love, gently kept."
+    : "Everything you love is still here, kept with care. 💛";
 
   /* ── Mood profile strip — surfaces affinity if it exists ──────────── */
   const moodProfileEl = document.getElementById("spaceMoodProfile");
@@ -1209,7 +1209,7 @@ function showSpaceDashboard(profile, isNew = false) {
   /* Reset to overview tab on entry */
   showSpaceTab("overview");
 
-  if (isNew) showToast("Your Space is ready. Welcome. 💛");
+  if (isNew) showToast("Your space is ready — this one is just for you. 💛");
 }
 
 async function handleSpaceSignin(event) {
@@ -1281,7 +1281,7 @@ async function handleSpaceCreate(event) {
 function handleSpaceSignout() {
   clearSpaceSession();
   showSpaceView("spaceEntry");
-  showToast("Until next time 💛");
+  showToast("Your space will be here when you return. 💛");
 }
 
 /* ── Space tab navigation ────────────────────────────────────────────
@@ -1316,8 +1316,8 @@ function renderSpaceWishlist() {
       <p class="space-section-heading">Saved Pieces</p>
       <div class="space-saved-empty">
         <i data-lucide="heart" aria-hidden="true"></i>
-        <p>Nothing saved yet — when a piece catches your heart, it waits quietly here.</p>
-        <a class="secondary-button" href="#products">Browse the collection</a>
+        <p>Nothing saved yet — when a piece catches your heart, it will wait quietly here, just for you.</p>
+        <a class="secondary-button" href="#products">Begin saving pieces you love</a>
       </div>`;
     safeCreateIcons();
     return;
@@ -1539,7 +1539,7 @@ function renderProducts() {
                 <p class="product-card__meta">${product.secondaryTags.occasion}</p>
                 <div class="product-card__footer">
                   <span class="product-card__price">${product.priceLabel}</span>
-                  <button class="text-link" type="button" data-preview="${product.id}">View details</button>
+                  <button class="text-link" type="button" data-preview="${product.id}">Discover more</button>
                 </div>
               </div>
             </article>

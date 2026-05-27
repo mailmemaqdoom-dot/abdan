@@ -11541,3 +11541,367 @@ html {
 }
 
 /* ══ END SECTION 43 ═══════════════════════════════════════════════════════ */
+
+/* ══ SECTION 45 — Emotional Feminine Realignment ═════════════════════════
+   CSS-only atmospheric pass. Appended to respect cascade order.
+   Goal: transform ABDAN from "premium ecommerce" into
+   "emotionally luxurious feminine experience."
+   Audience: South Indian women, housewives, emotionally devoted women
+   who always prioritise others before themselves.
+   Method: softer surfaces, warmer ivory atmosphere, feminine breathing
+   room, graceful typography rhythm, emotional product presentation.
+   Constraint: NO structural changes, NO feature removal, NO layout breaks.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── 45a. Warmer ivory surface atmosphere ───────────────────────────────
+   Shift the base surface from cool white to a barely-warm ivory.
+   The difference is felt, not consciously noticed — like candlelight.  */
+[data-theme="light"] {
+  --surface:      #fdfaf6;
+  --surface-soft: #faf6f0;
+  --border:       rgba(180, 145, 100, 0.13);
+  --shadow-xs:    0 1px 4px  rgba(120, 90, 50, 0.07);
+  --shadow-sm:    0 3px 12px rgba(120, 90, 50, 0.09);
+  --shadow-md:    0 8px 32px rgba(120, 90, 50, 0.11);
+  --shadow-lg:    0 20px 60px rgba(120, 90, 50, 0.13);
+}
+
+/* ── 45b. Hero — softer, more embracing ─────────────────────────────────
+   More vertical space lets the emotional tagline breathe.
+   The headline span picks up warm gold for its emotional climax.       */
+.hero-section {
+  padding-top:    clamp(5.5rem, 9vw, 9rem);
+  padding-bottom: clamp(4.5rem, 7vw, 7.5rem);
+}
+
+.hero-copy h1 {
+  line-height:    1.12;
+  letter-spacing: -0.028em;
+  margin-bottom:  1.5rem;
+}
+
+.hero-copy h1 span {
+  color:     var(--gold);
+  font-style: italic;
+}
+
+.hero-body {
+  font-size:     1.0625rem;
+  line-height:   1.78;
+  color:         var(--text-soft);
+  max-width:     46ch;
+  margin-bottom: 2.4rem;
+}
+
+.hero-actions {
+  gap:       1rem;
+  flex-wrap: wrap;
+}
+
+/* ── 45c. Section frames — feminine breathing room ───────────────────────
+   Each section now breathes more generously.
+   Whitespace is the grammar of luxury feminine design.                 */
+.section-frame {
+  padding-top:    clamp(5rem, 8vw, 9rem);
+  padding-bottom: clamp(4.5rem, 7vw, 8rem);
+}
+
+.section-heading {
+  margin-bottom: 3.5rem;
+}
+
+.section-heading h2 {
+  line-height: 1.15;
+}
+
+/* ── 45d. Section kicker — warm gold tone ────────────────────────────────
+   The overline introduces each section. Gold feels warmer than green.  */
+.section-kicker {
+  color:          var(--gold);
+  letter-spacing: 0.08em;
+  font-size:      0.7rem;
+  font-weight:    600;
+  text-transform: uppercase;
+}
+
+/* ── 45e. Promise band — majestic feminine gravitas ──────────────────────  */
+.promise-band {
+  padding-top:    clamp(5rem, 8vw, 9rem);
+  padding-bottom: clamp(5rem, 8vw, 9rem);
+}
+
+.promise-band__inner blockquote {
+  font-style:  italic;
+  line-height: 1.32;
+}
+
+/* ── 45f. Trust rail — warmer, softer ────────────────────────────────────  */
+.trust-rail {
+  padding-top:    1.8rem;
+  padding-bottom: 1.8rem;
+}
+
+.trust-rail__inner {
+  gap: 2.5rem;
+}
+
+/* ── 45g. Product cards — softer feminine aesthetic ─────────────────────
+   Rounder corners, warmer hover, more generous inner padding.          */
+.product-card {
+  border-radius: 1.25rem;
+}
+
+.product-card__content {
+  padding: 1.5rem 1.5rem 1.75rem;
+}
+
+.product-card__title {
+  line-height:   1.25;
+  margin-bottom: 0.6rem;
+}
+
+.product-card__description {
+  line-height: 1.65;
+  font-size:   0.875rem;
+}
+
+/* ── 45h. Filter chips — rounder, feminine ───────────────────────────────  */
+.filter-chip {
+  border-radius: 100px;
+  padding:       0.45rem 1.1rem;
+  font-size:     0.8125rem;
+}
+
+.filter-chip.is-active {
+  background:   var(--gold);
+  color:        #fff;
+  border-color: var(--gold);
+}
+
+/* ── 45i. Buttons — pill shape, feminine roundness ───────────────────────  */
+.primary-button {
+  border-radius:  100px;
+  letter-spacing: 0.03em;
+}
+
+.secondary-button {
+  border-radius: 100px;
+}
+
+.ghost-button {
+  border-radius: 100px;
+}
+
+/* ── 45j. Editorial campaign — more generous frame ───────────────────────  */
+.editorial-campaign {
+  padding-top:    clamp(4.5rem, 7vw, 8rem);
+  padding-bottom: clamp(4.5rem, 7vw, 8rem);
+}
+
+/* ── 45k. Testimonials — warmer, more feminine presence ──────────────────  */
+.testimonial-card {
+  border-radius: 1.25rem;
+  padding:       2.25rem 2rem;
+}
+
+/* ── 45l. Story section — more atmospheric ───────────────────────────────  */
+.soft-story-section,
+.wsy-section {
+  padding-top:    clamp(5rem, 8vw, 9rem);
+  padding-bottom: clamp(5rem, 8vw, 9rem);
+}
+
+/* ── 45m. Product sheet — warmer interior ────────────────────────────────
+   The place where a woman decides. It should feel like a calm, private
+   boutique fitting room — warm, unhurried, softly lit.                 */
+.product-sheet__panel {
+  border-radius: 1.5rem 1.5rem 0 0;
+}
+
+.product-sheet__body {
+  padding: 0 1.75rem 1.75rem;
+}
+
+.editorial-story__label {
+  color:          var(--gold);
+  letter-spacing: 0.06em;
+  font-size:      0.7rem;
+  font-weight:    600;
+  text-transform: uppercase;
+}
+
+.editorial-story__text {
+  line-height: 1.72;
+  color:       var(--text-soft);
+}
+
+/* ── 45n. Cart drawer — feminine warmth ──────────────────────────────────  */
+.cart-drawer__panel {
+  border-radius: 1.5rem 1.5rem 0 0;
+}
+
+@media (min-width: 768px) {
+  .cart-drawer__panel {
+    border-radius: 1.5rem 0 0 1.5rem;
+  }
+}
+
+.drawer-header {
+  padding: 1.75rem 1.75rem 1.25rem;
+}
+
+.drawer-footer {
+  padding: 1.25rem 1.75rem 2rem;
+}
+
+/* ── 45o. Your Space — calmer, more feminine personal sanctuary ──────────
+   Her space. Not a "dashboard". A calm, private place that holds
+   her selections, her journey, her details — gently.                   */
+.space-dashboard {
+  padding: 1.75rem 0 4rem;
+}
+
+.space-privilege-card {
+  border-radius: 1.25rem;
+  padding:       1.75rem 1.5rem;
+}
+
+.space-privilege-card strong {
+  font-size: 0.9375rem;
+}
+
+/* ── 45p. Footer — emotional brand closing ───────────────────────────────  */
+.footer-tagline {
+  font-family:   var(--font-display);
+  font-style:    italic;
+  font-size:     1.0625rem;
+  color:         var(--gold);
+  margin-bottom: 0.9rem;
+}
+
+/* ── 45q. Mobile — emotionally immersive on small screens ───────────────
+   Mobile is where most of ABDAN's women will arrive. Generous, warm,
+   never cramped. The experience should feel like an intimate boutique
+   app, not a scrolling marketplace.                                    */
+@media (max-width: 720px) {
+  .hero-section {
+    padding-top:    4.5rem;
+    padding-bottom: 3.5rem;
+  }
+
+  .hero-copy h1 {
+    font-size:   clamp(2.2rem, 7vw, 3rem);
+    line-height: 1.15;
+  }
+
+  .hero-body {
+    font-size: 1rem;
+  }
+
+  .section-frame {
+    padding-top:    4rem;
+    padding-bottom: 3.5rem;
+  }
+
+  .section-heading {
+    margin-bottom: 2.5rem;
+  }
+
+  .product-card__content {
+    padding: 1.25rem 1.25rem 1.5rem;
+  }
+
+  .product-sheet__body {
+    padding: 0 1.25rem 1.25rem;
+  }
+
+  .trust-rail__inner {
+    gap: 1.5rem;
+  }
+
+  .promise-band__inner blockquote {
+    font-size: clamp(1.4rem, 5.5vw, 2.2rem);
+  }
+}
+
+/* ── 45r. Softly returning section — warmer, more gentle ─────────────────  */
+.sr-card {
+  border-radius: 1rem;
+}
+
+/* ── 45s. NPS panel — softer, more emotionally attuned ──────────────────  */
+.nps-panel {
+  border-radius: 1.25rem;
+}
+
+/* ── 45t. Mood editorial — warmer feminine introduction ─────────────────
+   The mood editorial bridges the promise and the collection.
+   Let it feel like an opening page of a personal letter.              */
+.mood-editorial {
+  padding-top:    2rem;
+  padding-bottom: 0.5rem;
+}
+
+.mood-editorial__headline {
+  font-size:     clamp(1.2rem, 3vw, 1.65rem);
+  line-height:   1.32;
+  margin-bottom: 0.85rem;
+}
+
+/* ── 45u. Teaser modal — emotionally gentle ──────────────────────────────  */
+.teaser-modal__panel {
+  border-radius: 1.75rem;
+  padding:       3rem 2.5rem;
+}
+
+/* ── 45v. Eyebrow & tagline label — warm gold tone ──────────────────────  */
+.eyebrow-row {
+  color: var(--gold);
+  gap:   1.5rem;
+}
+
+.tagline-label {
+  color:      var(--gold);
+  font-style: italic;
+}
+
+/* ── 45w. Visual card meta — warm feminine caption ──────────────────────  */
+.visual-card__meta {
+  padding: 1.5rem 1.25rem;
+}
+
+.visual-card__meta p {
+  line-height: 1.65;
+  font-style:  italic;
+}
+
+/* ── 45x. Emotional recommendation chips — rounder ──────────────────────  */
+.er-chip {
+  border-radius: 1rem;
+}
+
+/* ── 45y. Checkout form — warm, calm, trusted ────────────────────────────
+   The checkout moment should feel like a trusted boutique conversation,
+   not a clinical payment form.                                         */
+.checkout-form input,
+.checkout-form textarea,
+.checkout-form select {
+  border-radius: 0.75rem;
+}
+
+.checkout-panel__intro h3 {
+  font-family: var(--font-display);
+  font-style:  italic;
+  font-weight: 400;
+}
+
+/* ── 45z. Global feminine softening — remaining cards & panels ───────────  */
+.feature-card {
+  border-radius: 1.25rem;
+}
+
+.admin-kpi {
+  border-radius: 1.25rem;
+}
+
+/* ══ END SECTION 45 ═══════════════════════════════════════════════════════ */
