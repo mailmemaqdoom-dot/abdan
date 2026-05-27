@@ -4078,7 +4078,7 @@ function initProductImageViewer() {
     expandBtn.type = "button";
     expandBtn.className = "lx-imgview__expand-btn";
     expandBtn.setAttribute("aria-label", "View full image");
-    expandBtn.setAttribute("tabindex", "-1"); /* image is decorative; real action is click on media */
+    expandBtn.setAttribute("tabindex", "0"); /* keyboard reachable — only visible interactive control on the image */
     expandBtn.innerHTML = '<i data-lucide="maximize-2"></i>';
     expandBtn.addEventListener("click", (e) => {
       e.stopPropagation(); /* prevent media click handler from double-firing */

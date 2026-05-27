@@ -16675,11 +16675,6 @@ html[data-theme="dark"] .support-pill__icon {
    The entire mobile experience should feel like a native luxury application.
    Touch-first ergonomics, momentum physics, elastic boundaries, iOS fluidity. */
 
-/* Smooth momentum scrolling on the page */
-html {
-  scroll-behavior: smooth;
-}
-
 @media (max-width: 767px) {
   /* Prevent accidental horizontal scroll — common luxury-app mistake */
   body {
@@ -16723,10 +16718,6 @@ html {
     min-height: 42px !important;
   }
 
-  /* Hero section: tighter proportions for portrait mobile */
-  .hero-copy {
-    padding-top:    calc(var(--header-height, 4.5rem) + 1.5rem) !important;
-  }
 }
 
 /* ── 61c. TABLET EDITORIAL MAGAZINE ──────────────────────────────────────────
@@ -16871,7 +16862,6 @@ html {
     -webkit-backdrop-filter: saturate(150%) blur(20px) !important;
     border-top:  1px solid var(--line)               !important;
     box-shadow:  0 -10px 30px rgba(2, 8, 8, 0.07)   !important;
-    margin-top:  auto                                !important;
   }
 }
 
@@ -16886,9 +16876,10 @@ html {
     grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr) !important;
   }
 
-  /* Image: cinematic cover fill */
+  /* Image: cinematic cover fill — cursor signals tap-to-fullscreen */
   .product-sheet__media {
     min-height: 30rem !important;
+    cursor:     zoom-in !important;
   }
 
   /* Content: generous editorial padding */
