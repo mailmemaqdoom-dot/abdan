@@ -45,20 +45,48 @@
 
 /* ── Constants ─────────────────────────────────────────────── */
 const STUDIO_VIEWS = [
-  { id: "overview",    label: "Studio Overview",    icon: "layout-dashboard", group: "General"  },
-  { id: "products",    label: "Curated Pieces",     icon: "shopping-bag",     group: "Content"  },
-  { id: "collections", label: "Collections",        icon: "layers",           group: "Content"  },
-  { id: "generator",   label: "Editorial Generator",icon: "pen-tool",         group: "Content"  },
-  { id: "homepage",    label: "Homepage Mood",      icon: "layout",           group: "Presence" },
-  { id: "notices",     label: "Gentle Notices",     icon: "bell",             group: "Presence" },
-  { id: "customers",   label: "Her Circle 💛",       icon: "users",            group: "People"   },
-  { id: "messaging",   label: "Her Circle Updates", icon: "send",             group: "People"   },
-  { id: "orders",      label: "Orders",             icon: "receipt",          group: "Commerce" },
-  { id: "voice",       label: "Brand Voice",        icon: "type",             group: "Brand"    },
-  { id: "social",      label: "Social Sharing",     icon: "share-2",          group: "Brand"    },
-  { id: "media",       label: "Media Library",      icon: "image",            group: "Brand"    },
-  { id: "settings",    label: "Settings",           icon: "settings",         group: "System"   },
-  { id: "policy",      label: "Trust & Policy",     icon: "shield",           group: "System"   },
+  /* ── General ─────────────────────────────────────────────── */
+  { id: "overview",    label: "Studio Overview",    icon: "layout-dashboard", group: "General"      },
+
+  /* ── BRAND ───────────────────────────────────────────────── */
+  { id: "voice",       label: "Brand Voice",        icon: "type",             group: "Brand"        },
+  { id: "logo",        label: "Logo Management",    icon: "gem",              group: "Brand"        },
+  { id: "typography",  label: "Typography",         icon: "baseline",         group: "Brand"        },
+  { id: "colors",      label: "Color System",       icon: "droplet",          group: "Brand"        },
+  { id: "atmosphere",  label: "Atmosphere",         icon: "sparkles",         group: "Brand"        },
+  { id: "social",      label: "Social Sharing",     icon: "share-2",          group: "Brand"        },
+
+  /* ── EXPERIENCE ──────────────────────────────────────────── */
+  { id: "policy",      label: "Trust Center",       icon: "shield",           group: "Experience"   },
+  { id: "terms",       label: "T&C Manager",        icon: "file-text",        group: "Experience"   },
+  { id: "legal",       label: "Legal Acceptance",   icon: "check-circle",     group: "Experience"   },
+
+  /* ── COMMERCE ────────────────────────────────────────────── */
+  { id: "products",    label: "Curated Pieces",     icon: "shopping-bag",     group: "Commerce"     },
+  { id: "collections", label: "Collections",        icon: "layers",           group: "Commerce"     },
+  { id: "orders",      label: "Orders",             icon: "receipt",          group: "Commerce"     },
+  { id: "offers",      label: "Offer Studio",       icon: "tag",              group: "Commerce"     },
+  { id: "media",       label: "Media Library",      icon: "image",            group: "Commerce"     },
+
+  /* ── STORYTELLING ────────────────────────────────────────── */
+  { id: "generator",   label: "Editorial Studio",   icon: "pen-tool",         group: "Storytelling" },
+  { id: "campaigns",   label: "Campaign Engine",    icon: "megaphone",        group: "Storytelling" },
+  { id: "founder",     label: "Founder Notes",      icon: "feather",          group: "Storytelling" },
+  { id: "homepage",    label: "Homepage Mood",      icon: "layout",           group: "Storytelling" },
+  { id: "notices",     label: "Gentle Notices",     icon: "bell",             group: "Storytelling" },
+
+  /* ── HER CIRCLE ──────────────────────────────────────────── */
+  { id: "customers",   label: "Her Circle 💛",       icon: "users",            group: "Her Circle"   },
+  { id: "messaging",   label: "Circle Updates",     icon: "send",             group: "Her Circle"   },
+  { id: "reviews",     label: "Reviews",            icon: "star",             group: "Her Circle"   },
+
+  /* ── INTELLIGENCE ────────────────────────────────────────── */
+  { id: "analytics",   label: "Analytics",          icon: "bar-chart-2",      group: "Intelligence" },
+  { id: "experience",  label: "Experience Intel",   icon: "activity",         group: "Intelligence" },
+  { id: "permissions", label: "Permissions",        icon: "lock",             group: "Intelligence" },
+
+  /* ── SYSTEM ──────────────────────────────────────────────── */
+  { id: "settings",    label: "Settings",           icon: "settings",         group: "System"       },
 ];
 
 const STORAGE = {
@@ -71,6 +99,11 @@ const STORAGE = {
   homepage:    "abdan-studio-homepage",
   social:      "abdan-studio-social",
   customers:   "abdan-space-profiles",
+  offers:      "abdan-studio-offers",
+  reviews:     "abdan-studio-reviews",
+  campaigns:   "abdan-studio-campaigns",
+  founder:     "abdan-studio-founder",
+  terms:       "abdan-studio-terms",
 };
 
 const CATEGORIES = ["Everyday Grace","Modest Essence","Festive Glow","Workflow Elegance","Soft Statement","Evening Calm"];
@@ -207,10 +240,11 @@ const dom = {
 };
 
 /* ── State ──────────────────────────────────────────────────── */
-let currentView   = "overview";
-let panelSaveFn   = null;
-let toastTimer    = null;
-let sidebarOpen   = false;
+let currentView    = "overview";
+let panelSaveFn    = null;
+let toastTimer     = null;
+let sidebarOpen    = false;
+let cmdPaletteOpen = false;
 
 /* ── Toast ──────────────────────────────────────────────────── */
 function toast(msg, type = "ok") {
@@ -347,6 +381,20 @@ function renderView(id) {
     media:       renderMedia,
     settings:    renderSettings,
     policy:      renderPolicy,
+    /* §44 — Luxury Brand Operating Ecosystem */
+    logo:        renderLogo,
+    typography:  renderTypography,
+    colors:      renderColors,
+    atmosphere:  renderAtmosphere,
+    terms:       renderTerms,
+    legal:       renderLegal,
+    offers:      renderOffers,
+    reviews:     renderReviews,
+    campaigns:   renderCampaigns,
+    founder:     renderFounder,
+    analytics:   renderAnalytics,
+    experience:  renderExperience,
+    permissions: renderPermissions,
   };
   (renders[id] || renderOverview)();
   initLucide();
@@ -1337,20 +1385,30 @@ function capitalise(str) {
 
 /* Luxury empty states — emotionally warm, never clinical */
 const STUDIO_EMPTY = {
-  "shopping-bag":  "A few pieces may quietly belong here.",
-  "receipt":       "No orders have arrived yet — they will, quietly.",
-  "layers":        "Collections take shape slowly. Begin whenever it feels right.",
-  "search":        "Nothing matched — the right piece may be found with different words.",
-  "inbox":         "Something thoughtful will arrive here in time.",
-  "users":         "Her Circle grows one honest connection at a time.",
-  "bell":          "Notices reach their moment. Nothing here yet.",
-  "send":          "Messages will find their way here soon.",
-  "type":          "Brand voice is shaped gradually. Begin with one word.",
-  "share-2":       "Social sharing will be ready when the story is.",
-  "image":         "The library is waiting for its first piece.",
-  "settings":      "Settings are ready to be shaped to your preferences.",
-  "shield":        "Trust and policy content will appear here.",
+  "shopping-bag":     "A few pieces may quietly belong here.",
+  "receipt":          "No orders have arrived yet — they will, quietly.",
+  "layers":           "Collections take shape slowly. Begin whenever it feels right.",
+  "search":           "Nothing matched — the right piece may be found with different words.",
+  "inbox":            "Something thoughtful will arrive here in time.",
+  "users":            "Her Circle grows one honest connection at a time.",
+  "bell":             "Notices reach their moment. Nothing here yet.",
+  "send":             "Messages will find their way here soon.",
+  "type":             "Brand voice is shaped gradually. Begin with one word.",
+  "share-2":          "Social sharing will be ready when the story is.",
+  "image":            "The library is waiting for its first piece.",
+  "settings":         "Settings are ready to be shaped to your preferences.",
+  "shield":           "Trust and policy content will appear here.",
   "layout-dashboard": "The studio begins to breathe as the collection grows.",
+  "tag":              "Offers unfold when the right moment arrives.",
+  "star":             "Testimonials gather gently, one honest word at a time.",
+  "megaphone":        "Every great launch begins with a quiet moment of intention.",
+  "feather":          "Your first note begins the brand's private story.",
+  "bar-chart-2":      "Intelligence deepens as the circle grows and orders accumulate.",
+  "activity":         "Customer insights emerge with time and attention.",
+  "lock":             "The permission system is ready and secure.",
+  "gem":              "Brand identity is the heart of everything ABDAN.",
+  "check-circle":     "Acceptance records appear when members join Her Circle.",
+  "file-text":        "Legal documents will be published and managed here.",
 };
 
 function empty(message, icon = "inbox") {
@@ -1431,22 +1489,1037 @@ function signout() {
 
 /* ── Tab bar "More" ─────────────────────────────────────────── */
 function openMoreMenu() {
-  const moreViews = STUDIO_VIEWS.filter((v) => !["overview","products","orders","customers"].includes(v.id));
-  openPanel("More sections", `
-    <div class="s-list">
-      ${moreViews.map((v) => `
-        <button class="s-list-item s-list-item--btn" data-nav="${v.id}">
-          <i data-lucide="${v.icon}" class="s-icon"></i>
-          <span>${v.label}</span>
-          <i data-lucide="chevron-right" class="s-icon s-list-item__chevron"></i>
-        </button>
-      `).join("")}
-    </div>
+  const pinned = ["overview", "products", "orders", "customers"];
+  const groups = {};
+  STUDIO_VIEWS.filter((v) => !pinned.includes(v.id)).forEach((v) => {
+    if (!groups[v.group]) groups[v.group] = [];
+    groups[v.group].push(v);
+  });
+  openPanel("All Sections", `
+    ${Object.entries(groups).map(([group, views]) => `
+      <div style="margin-bottom:0.5rem">
+        <p class="s-nav-group__label" style="padding:0 0.25rem 0.35rem;display:block">${group}</p>
+        <div class="s-list">
+          ${views.map((v) => `
+            <button class="s-list-item s-list-item--btn" data-nav="${v.id}">
+              <i data-lucide="${v.icon}" class="s-icon"></i>
+              <span>${v.label}</span>
+              <i data-lucide="chevron-right" class="s-icon s-list-item__chevron"></i>
+            </button>
+          `).join("")}
+        </div>
+      </div>
+    `).join("")}
   `);
   dom.panelBody.querySelectorAll("[data-nav]").forEach((btn) => {
     btn.addEventListener("click", () => {
       closePanel();
       navigate(btn.dataset.nav);
+    });
+  });
+}
+
+/* ════════════════════════════════════════════════════════════
+   §44 — LUXURY BRAND OPERATING ECOSYSTEM
+   New view renderers for 5 Master Zones
+   ════════════════════════════════════════════════════════════ */
+
+/* ── BRAND: Logo Management ─────────────────────────────────── */
+function renderLogo() {
+  setTitle("Logo Management");
+  dom.content.innerHTML = `
+    <div class="s-zone-header s-zone-header--brand">
+      <i data-lucide="gem" class="s-icon"></i>
+      <span>Brand Identity Assets</span>
+    </div>
+    <div class="s-logo-grid">
+      <div class="s-logo-asset">
+        <div class="s-logo-asset__preview s-logo-asset__preview--warm">
+          <img src="./assets/abdan-icon.jpg" alt="ABDAN Icon" class="s-logo-asset__img s-logo-asset__img--round" />
+        </div>
+        <div class="s-logo-asset__info">
+          <strong>Brand Icon</strong>
+          <span>assets/abdan-icon.jpg</span>
+          <p class="s-logo-asset__note">Used in navigation, favicon fallback, Studio sidebar. 36×36px circular display with border-radius: 50%.</p>
+        </div>
+      </div>
+      <div class="s-logo-asset">
+        <div class="s-logo-asset__preview s-logo-asset__preview--warm">
+          <img src="./assets/logo/abdan-wordmark-full.jpeg" alt="ABDAN Wordmark" class="s-logo-asset__img s-logo-asset__img--wordmark" />
+        </div>
+        <div class="s-logo-asset__info">
+          <strong>Official Wordmark (Full)</strong>
+          <span>assets/logo/abdan-wordmark-full.jpeg</span>
+          <p class="s-logo-asset__note">Primary brand identity. Used in navigation dock and Studio sidebar with mix-blend-mode: multiply on warm surfaces.</p>
+        </div>
+      </div>
+      <div class="s-logo-asset">
+        <div class="s-logo-asset__preview s-logo-asset__preview--warm">
+          <img src="./assets/logo/abdan-icon-mark.jpeg" alt="ABDAN Icon Mark" class="s-logo-asset__img s-logo-asset__img--round" />
+        </div>
+        <div class="s-logo-asset__info">
+          <strong>Icon Mark</strong>
+          <span>assets/logo/abdan-icon-mark.jpeg</span>
+          <p class="s-logo-asset__note">Compact emblem for small contexts — favicons, app icons, watermarks.</p>
+        </div>
+      </div>
+      <div class="s-logo-asset">
+        <div class="s-logo-asset__preview s-logo-asset__preview--dark">
+          <img src="./assets/logo/abdan-seal-dark.jpeg" alt="ABDAN Seal Dark" class="s-logo-asset__img" style="max-height:70px;max-width:100%;object-fit:contain;" />
+        </div>
+        <div class="s-logo-asset__info">
+          <strong>Seal (Dark variant)</strong>
+          <span>assets/logo/abdan-seal-dark.jpeg</span>
+          <p class="s-logo-asset__note">Full circular seal for dark surfaces, certificates, and special editorial use.</p>
+        </div>
+      </div>
+      <div class="s-logo-asset">
+        <div class="s-logo-asset__preview s-logo-asset__preview--warm">
+          <img src="./assets/logo/abdan-seal-light.jpg" alt="ABDAN Seal Light" class="s-logo-asset__img" style="max-height:70px;max-width:100%;object-fit:contain;" />
+        </div>
+        <div class="s-logo-asset__info">
+          <strong>Seal (Light variant)</strong>
+          <span>assets/logo/abdan-seal-light.jpg</span>
+          <p class="s-logo-asset__note">Full circular seal for light surfaces, print, and packaging.</p>
+        </div>
+      </div>
+    </div>
+    <div class="s-alert s-alert--info" style="margin-top:1.5rem">
+      <i data-lucide="info" class="s-icon"></i>
+      To update brand assets, replace the JPEG files in <code style="font-family:monospace;font-size:0.8em">assets/logo/</code> and redeploy to Cloudflare Pages. Maintain exact original filenames.
+    </div>
+    <div class="s-card" style="margin-top:1rem">
+      <h3 class="s-card__title">Logo Usage Rules</h3>
+      <div class="s-policy-list">
+        <p>• Never recreate, redraw, vectorize, or simplify the ornament ring.</p>
+        <p>• Do not replace the typography in the wordmark. The calligraphic letterforms are official brand property.</p>
+        <p>• Always use <code style="font-family:monospace;font-size:0.85em">mix-blend-mode: multiply</code> on warm (light) backgrounds for the JPEG wordmark.</p>
+        <p>• On dark backgrounds, use the gold text fallback or the seal-dark variant.</p>
+        <p>• Minimum clear space: equal to the height of the 'A' letterform on all sides.</p>
+        <p>• Do not crop, filter, rotate, or apply effects to any brand asset.</p>
+      </div>
+    </div>
+  `;
+}
+
+/* ── BRAND: Typography Manager ───────────────────────────────── */
+function renderTypography() {
+  setTitle("Typography");
+  dom.content.innerHTML = `
+    <div class="s-zone-header s-zone-header--brand">
+      <i data-lucide="type" class="s-icon"></i>
+      <span>Brand Typography System</span>
+    </div>
+    <div class="s-type-row">
+      <div class="s-type-sample">
+        <span class="s-type-name">Display / Headings</span>
+        <p class="s-type-demo s-type-demo--display">Devotion Meets Style</p>
+        <span class="s-type-meta">Cormorant Garamond · Weight 600 · Letter-spacing −0.03em · Line-height 1.04</span>
+      </div>
+      <div class="s-type-sample">
+        <span class="s-type-name">Body / UI</span>
+        <p class="s-type-demo s-type-demo--body">For the woman who moves through her days with devotion, grace, and quiet intention. Every piece carries the weight of thoughtfulness.</p>
+        <span class="s-type-meta">Open Sans · Weight 400 · 1rem · Line-height 1.9</span>
+      </div>
+      <div class="s-type-sample">
+        <span class="s-type-name">Micro / Labels</span>
+        <p class="s-type-demo s-type-demo--micro">EVERYDAY GRACE · CURATED PIECES · HER CIRCLE</p>
+        <span class="s-type-meta">Open Sans · Weight 700 · 0.7rem · Letter-spacing 0.1em · Uppercase</span>
+      </div>
+      <div class="s-type-sample">
+        <span class="s-type-name">Editorial / Quotes</span>
+        <p class="s-type-demo s-type-demo--editorial">"Quietly chosen. Deeply felt."</p>
+        <span class="s-type-meta">Cormorant Garamond Italic · Weight 400 · Line-height 1.16</span>
+      </div>
+    </div>
+    <div class="s-card" style="margin-top:1.25rem">
+      <h3 class="s-card__title">Type Scale</h3>
+      <div class="s-type-scale-grid">
+        <div class="s-type-scale-item"><span class="s-type-scale-label">Hero Display</span><span class="s-type-scale-value">clamp(2.4rem, 7.5vw, 6rem)</span></div>
+        <div class="s-type-scale-item"><span class="s-type-scale-label">Section Title</span><span class="s-type-scale-value">clamp(1.6rem, 3vw, 2.4rem)</span></div>
+        <div class="s-type-scale-item"><span class="s-type-scale-label">Card Title</span><span class="s-type-scale-value">1.25rem</span></div>
+        <div class="s-type-scale-item"><span class="s-type-scale-label">Body Text</span><span class="s-type-scale-value">1rem · 1.9 leading</span></div>
+        <div class="s-type-scale-item"><span class="s-type-scale-label">Small / UI</span><span class="s-type-scale-value">0.875rem</span></div>
+        <div class="s-type-scale-item"><span class="s-type-scale-label">Micro / Label</span><span class="s-type-scale-value">0.7rem · caps · 0.1em tracking</span></div>
+      </div>
+    </div>
+    <div class="s-alert s-alert--info" style="margin-top:1rem">
+      <i data-lucide="info" class="s-icon"></i>
+      Typography tokens live in <code style="font-family:monospace;font-size:0.8em">css/style.css §43</code>. Adjust <code style="font-family:monospace;font-size:0.8em">--type-display</code> and <code style="font-family:monospace;font-size:0.8em">--type-body</code> in the <code>:root</code> block.
+    </div>
+  `;
+}
+
+/* ── BRAND: Color System ─────────────────────────────────────── */
+function renderColors() {
+  setTitle("Color System");
+  const palette = [
+    { name: "Ivory",         value: "#FFFCF6", role: "Brand background · site canvas",                 text: "#1a1a1a" },
+    { name: "Deep Emerald",  value: "#023d3a", role: "Primary brand · CTAs · nav accents",             text: "#ffffff" },
+    { name: "Warm Gold",     value: "#c5a13b", role: "Accent · highlights · active states",            text: "#ffffff" },
+    { name: "Charcoal",      value: "#1C1F1C", role: "Primary text · dark surfaces",                   text: "#ffffff" },
+    { name: "Warm Stone",    value: "#596058", role: "Secondary text · subdued UI",                    text: "#ffffff" },
+    { name: "Mist",          value: "#98a098", role: "Tertiary · disabled · placeholders",             text: "#1a1a1a" },
+    { name: "Evening Dark",  value: "#09100f", role: "Dark mode background",                            text: "#F0E9D6" },
+    { name: "Surface Dark",  value: "#0c1511", role: "Dark mode mid-surface",                          text: "#F0E9D6" },
+    { name: "Text Warm",     value: "#F0E9D6", role: "Dark mode primary text",                         text: "#1a1a1a" },
+    { name: "Success",       value: "#3d8c6e", role: "Confirmations · positive states",                text: "#ffffff" },
+    { name: "Error",         value: "#b85a55", role: "Errors · destructive actions",                   text: "#ffffff" },
+    { name: "Amber",         value: "#b87d30", role: "Caution · pending states",                       text: "#ffffff" },
+  ];
+  dom.content.innerHTML = `
+    <div class="s-zone-header s-zone-header--brand">
+      <i data-lucide="droplet" class="s-icon"></i>
+      <span>Brand Color Palette</span>
+    </div>
+    <div class="s-color-grid">
+      ${palette.map((c) => `
+        <div class="s-color-swatch">
+          <div class="s-color-swatch__block" style="background:${c.value};color:${c.text}">
+            <span class="s-color-swatch__hex">${c.value}</span>
+          </div>
+          <div class="s-color-swatch__info">
+            <strong>${c.name}</strong>
+            <span>${c.role}</span>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+    <div class="s-alert s-alert--info" style="margin-top:1.5rem">
+      <i data-lucide="info" class="s-icon"></i>
+      Colors are defined as CSS custom properties. Edit the <code style="font-family:monospace;font-size:0.8em">:root</code> block in <code style="font-family:monospace;font-size:0.8em">css/style.css</code> to adjust any color token globally.
+    </div>
+  `;
+}
+
+/* ── BRAND: Atmosphere Presets ───────────────────────────────── */
+function renderAtmosphere() {
+  setTitle("Atmosphere");
+  const saved = localStorage.getItem("abdan-studio-theme") || "light";
+  const presets = [
+    {
+      id: "light", name: "Ivory Morning",
+      desc: "The default ABDAN canvas. Warm ivory background with deep emerald and gold accents. A boutique in daylight.",
+      bg: "#FFFCF6",
+      dots: ["#023d3a", "#c5a13b", "#1C1F1C"],
+    },
+    {
+      id: "dark", name: "Evening Calm",
+      desc: "Dark mode's signature palette. Deep emerald-tinted darkness, gold accents, warm linen text. A boutique at dusk.",
+      bg: "#09100f",
+      dots: ["#c5a13b", "#F0E9D6", "#4da89e"],
+    },
+  ];
+  dom.content.innerHTML = `
+    <div class="s-zone-header s-zone-header--brand">
+      <i data-lucide="sparkles" class="s-icon"></i>
+      <span>Visual Atmosphere</span>
+    </div>
+    <p class="s-muted" style="margin-bottom:1.5rem">Choose the ambient tone for the ABDAN experience. Affects both the Studio and the storefront's dark mode.</p>
+    <div class="s-atmosphere-grid">
+      ${presets.map((p) => `
+        <div class="s-atmosphere-card ${saved === p.id ? "s-atmosphere-card--active" : ""}">
+          <div class="s-atmosphere-card__swatch" style="background:${p.bg}">
+            <div class="s-atmosphere-card__dots">
+              ${p.dots.map((d) => `<span style="background:${d}"></span>`).join("")}
+            </div>
+          </div>
+          <div class="s-atmosphere-card__body">
+            <strong>${p.name}</strong>
+            <p>${p.desc}</p>
+            ${saved === p.id
+              ? `<span class="s-badge s-badge--gold">✦ Active</span>`
+              : `<button class="s-btn s-btn--secondary s-btn--sm" data-apply-atm="${p.id}">Apply</button>`
+            }
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+  dom.content.querySelectorAll("[data-apply-atm]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const mode = btn.dataset.applyAtm;
+      document.documentElement.dataset.theme = mode;
+      localStorage.setItem("abdan-studio-theme", mode);
+      updateThemeBtn(mode);
+      toast(mode === "dark" ? "Evening Calm applied 🌙" : "Ivory Morning applied ✨");
+      renderAtmosphere();
+    });
+  });
+}
+
+/* ── EXPERIENCE: T&C Manager ─────────────────────────────────── */
+function renderTerms() {
+  setTitle("T&C Manager");
+  const saved = load(STORAGE.terms, {
+    termsOfService: "Welcome to ABDAN.\n\nBy placing an order with us, you agree to the following terms:\n\n1. All purchases are subject to availability.\n2. Prices are listed in Indian Rupees (INR) inclusive of applicable taxes.\n3. ABDAN reserves the right to cancel orders in cases of pricing errors or out-of-stock items.\n4. Custom or made-to-order pieces are non-refundable.\n5. Please allow 7–14 business days for delivery unless otherwise stated.",
+    privacyPolicy:  "Your privacy matters to us.\n\nABDAN collects only the information you choose to share:\n\n1. Name and contact details for order fulfilment.\n2. Purchase history to personalise your experience.\n3. We do not sell, rent, or share your personal information with third parties.\n4. Your data is stored securely and you may request deletion at any time by contacting us on WhatsApp.\n5. ABDAN does not use cookies or third-party tracking technologies.",
+    returnPolicy:   "Returns & Exchanges\n\nWe want you to love every piece.\n\n1. Returns accepted within 7 days of delivery for unworn, tagged items.\n2. Exchange requests are processed within 5 business days.\n3. Sale items are final sale.\n4. To initiate a return, please WhatsApp us with your order reference and reason.\n5. Shipping costs for returns are the customer's responsibility unless the item is defective.",
+    lastUpdated: "",
+  });
+  dom.content.innerHTML = `
+    <div class="s-zone-header s-zone-header--experience">
+      <i data-lucide="file-text" class="s-icon"></i>
+      <span>Legal Documents</span>
+    </div>
+    <div class="s-card s-form-card">
+      <h3 class="s-card__title">Terms of Service</h3>
+      ${textareaFull("", "tcTerms", saved.termsOfService, 10)}
+    </div>
+    <div class="s-card s-form-card" style="margin-top:1rem">
+      <h3 class="s-card__title">Privacy Policy</h3>
+      ${textareaFull("", "tcPrivacy", saved.privacyPolicy, 10)}
+    </div>
+    <div class="s-card s-form-card" style="margin-top:1rem">
+      <h3 class="s-card__title">Returns & Exchanges</h3>
+      ${textareaFull("", "tcReturns", saved.returnPolicy, 8)}
+    </div>
+    <div class="s-panel-foot-inline" style="gap:1rem;display:flex;align-items:center;margin-top:1rem">
+      <span class="s-muted" style="margin-right:auto;font-size:0.775rem">${saved.lastUpdated ? `Last published ${fmtDate(saved.lastUpdated)}` : "Not yet published"}</span>
+      <button class="s-btn s-btn--primary" id="sTCSave">
+        <i data-lucide="save" class="s-icon"></i> Publish Policies
+      </button>
+    </div>
+  `;
+  document.getElementById("sTCSave")?.addEventListener("click", () => {
+    save(STORAGE.terms, {
+      termsOfService: document.getElementById("tcTerms")?.value || "",
+      privacyPolicy:  document.getElementById("tcPrivacy")?.value || "",
+      returnPolicy:   document.getElementById("tcReturns")?.value || "",
+      lastUpdated:    new Date().toISOString(),
+    });
+    lxSaveGlow("sTCSave", "Policies published ✨");
+  });
+}
+
+/* ── EXPERIENCE: Legal Acceptance Dashboard ──────────────────── */
+function renderLegal() {
+  setTitle("Legal Acceptance");
+  const customers = load(STORAGE.customers, []);
+  const accepted  = customers.filter((c) => c.acceptedTerms);
+  const pending   = customers.filter((c) => !c.acceptedTerms);
+  dom.content.innerHTML = `
+    <div class="s-zone-header s-zone-header--experience">
+      <i data-lucide="check-circle" class="s-icon"></i>
+      <span>Trust & Acceptance Dashboard</span>
+    </div>
+    <div class="s-stats-row" style="margin-bottom:1.5rem">
+      ${stat("users",         "Total Members",  customers.length)}
+      ${stat("check-circle",  "Accepted T&C",   accepted.length,  "s-stat--green")}
+      ${stat("clock",         "Pending",         pending.length,   "s-stat--gold")}
+    </div>
+    <div class="s-card">
+      <h3 class="s-card__title">Acceptance Log</h3>
+      ${customers.length ? `
+        <div class="s-list" style="margin-top:0.75rem">
+          ${customers.map((c) => `
+            <div class="s-list-item">
+              <div class="s-list-item__avatar">${(c.name || "?")[0].toUpperCase()}</div>
+              <div class="s-list-item__main">
+                <strong>${esc(c.name || "Anonymous")}</strong>
+                <span class="s-list-item__sub">${esc(c.email || "—")}</span>
+              </div>
+              <div class="s-list-item__actions">
+                ${c.acceptedTerms
+                  ? `<span class="s-badge s-badge--green">Accepted</span>`
+                  : `<span class="s-badge s-badge--amber">Pending</span>`}
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      ` : empty("No members yet. Acceptance records appear when customers join Her Circle.", "check-circle")}
+    </div>
+    <div class="s-alert s-alert--info" style="margin-top:1rem">
+      <i data-lucide="info" class="s-icon"></i>
+      T&C acceptance is recorded when customers create a profile in Your Space. Manage document content under T&C Manager.
+    </div>
+  `;
+}
+
+/* ── COMMERCE: Offer Studio ──────────────────────────────────── */
+function renderOffers() {
+  setTitle("Offer Studio", `
+    <button class="s-btn s-btn--primary s-btn--sm" id="sAddOffer">
+      <i data-lucide="plus" class="s-icon"></i> New Offer
+    </button>
+  `);
+  const offers = load(STORAGE.offers, []);
+  dom.content.innerHTML = `
+    <div class="s-zone-header s-zone-header--commerce">
+      <i data-lucide="tag" class="s-icon"></i>
+      <span>Promotional Offers &amp; Discounts</span>
+    </div>
+    <div class="s-list" id="sOfferList">
+      ${offers.length ? offers.map(offerRow).join("") : empty("No active offers. Create your first promotional offer.", "tag")}
+    </div>
+  `;
+
+  function offerRow(o) {
+    const typeLabel = { percent: `${o.value}% off`, flat: `₹${o.value} off`, freeship: "Free Shipping", bogo: "Buy 1 Get 1" }[o.type] || o.type;
+    return `
+      <div class="s-list-item">
+        <div class="s-offer-badge"><span>${esc(o.code)}</span></div>
+        <div class="s-list-item__main">
+          <strong>${esc(o.label || o.code)}</strong>
+          <span class="s-list-item__sub">${typeLabel} · Expires ${o.expiry ? fmtDate(o.expiry) : "Never"}</span>
+        </div>
+        <div class="s-list-item__actions">
+          <span class="s-badge ${o.active ? "s-badge--green" : ""}">${o.active ? "Active" : "Inactive"}</span>
+          <button class="s-btn s-btn--ghost s-btn--sm s-btn--icon" data-edit-offer="${o.id}"><i data-lucide="pencil" class="s-icon"></i></button>
+          <button class="s-btn s-btn--ghost s-btn--sm s-btn--icon" data-del-offer="${o.id}"><i data-lucide="trash-2" class="s-icon"></i></button>
+        </div>
+      </div>`;
+  }
+
+  document.getElementById("sAddOffer")?.addEventListener("click", () => openOfferPanel());
+  dom.content.querySelectorAll("[data-edit-offer]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const o = load(STORAGE.offers, []).find((x) => x.id === btn.dataset.editOffer);
+      if (o) openOfferPanel(o);
+    });
+  });
+  dom.content.querySelectorAll("[data-del-offer]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (!confirm("Delete this offer?")) return;
+      save(STORAGE.offers, load(STORAGE.offers, []).filter((o) => o.id !== btn.dataset.delOffer));
+      toast("Offer removed");
+      renderOffers();
+    });
+  });
+
+  function openOfferPanel(offer = null) {
+    const isNew = !offer;
+    const o = offer || { id: uid(), code: "", label: "", type: "percent", value: "", minOrder: "", expiry: "", active: true };
+    openPanel(isNew ? "New Offer" : "Edit Offer", `
+      <div class="s-form-grid">
+        ${field("Offer Code", "text", "ofCode", o.code, "e.g. EID25")}
+        ${field("Label", "text", "ofLabel", o.label || "", "e.g. Eid Special")}
+        <label class="s-field">
+          <span class="s-field__label">Discount Type</span>
+          <select id="ofType" class="s-field__select">
+            <option value="percent"  ${o.type==="percent" ?"selected":""}>Percentage Off</option>
+            <option value="flat"     ${o.type==="flat"    ?"selected":""}>Flat Amount Off</option>
+            <option value="freeship" ${o.type==="freeship"?"selected":""}>Free Shipping</option>
+            <option value="bogo"     ${o.type==="bogo"    ?"selected":""}>Buy 1 Get 1</option>
+          </select>
+        </label>
+        ${field("Value (% or ₹)", "number", "ofValue", o.value || "", "e.g. 15")}
+        ${field("Min Order (₹)",  "number", "ofMin",   o.minOrder || "", "e.g. 999")}
+        ${field("Expiry Date",    "date",   "ofExpiry", o.expiry || "", "")}
+        <div class="s-field s-field--full s-toggle-row">
+          <span class="s-field__label">Active</span>
+          <label class="s-toggle">
+            <input type="checkbox" id="ofActive" ${o.active ? "checked" : ""} />
+            <span class="s-toggle__track"></span>
+          </label>
+        </div>
+      </div>
+    `, () => {
+      const code = val("ofCode").toUpperCase();
+      if (!code) { toast("Offer code is required", "error"); return; }
+      const updated = { ...o, code, label: val("ofLabel"), type: val("ofType"), value: val("ofValue"), minOrder: val("ofMin"), expiry: val("ofExpiry"), active: !!document.getElementById("ofActive")?.checked };
+      const list = load(STORAGE.offers, []);
+      const idx  = list.findIndex((x) => x.id === o.id);
+      if (idx >= 0) list[idx] = updated; else list.unshift(updated);
+      save(STORAGE.offers, list);
+      closePanel();
+      toast(isNew ? "Offer created 💛" : "Offer updated");
+      renderOffers();
+    });
+  }
+}
+
+/* ── HER CIRCLE: Reviews ─────────────────────────────────────── */
+function renderReviews() {
+  setTitle("Reviews", `
+    <button class="s-btn s-btn--primary s-btn--sm" id="sAddReview">
+      <i data-lucide="plus" class="s-icon"></i> Add Testimonial
+    </button>
+  `);
+  const reviews = load(STORAGE.reviews, []);
+  dom.content.innerHTML = `
+    <div class="s-zone-header s-zone-header--circle">
+      <i data-lucide="star" class="s-icon"></i>
+      <span>Customer Testimonials</span>
+    </div>
+    <div id="sReviewList" class="s-reviews-grid">
+      ${reviews.length ? reviews.map(reviewCard).join("") : empty("Add your first customer testimonial — these build trust on the storefront.", "star")}
+    </div>
+  `;
+
+  function reviewCard(r) {
+    const stars = "★".repeat(r.rating || 5) + "☆".repeat(5 - (r.rating || 5));
+    return `
+      <div class="s-review-card ${r.featured ? "s-review-card--featured" : ""}">
+        <div class="s-review-card__stars">${stars}</div>
+        <p class="s-review-card__text">"${esc(r.text)}"</p>
+        <div class="s-review-card__foot">
+          <strong>${esc(r.name)}</strong>
+          ${r.product ? `<span>on ${esc(r.product)}</span>` : ""}
+          ${r.featured ? `<span class="s-badge s-badge--gold">Featured</span>` : ""}
+        </div>
+        <div class="s-review-card__actions">
+          <button class="s-btn s-btn--ghost s-btn--sm s-btn--icon" data-edit-review="${r.id}"><i data-lucide="pencil" class="s-icon"></i></button>
+          <button class="s-btn s-btn--ghost s-btn--sm s-btn--icon" data-del-review="${r.id}"><i data-lucide="trash-2" class="s-icon"></i></button>
+        </div>
+      </div>`;
+  }
+
+  document.getElementById("sAddReview")?.addEventListener("click", () => openReviewPanel());
+  dom.content.querySelectorAll("[data-edit-review]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const r = load(STORAGE.reviews, []).find((x) => x.id === btn.dataset.editReview);
+      if (r) openReviewPanel(r);
+    });
+  });
+  dom.content.querySelectorAll("[data-del-review]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (!confirm("Delete this review?")) return;
+      save(STORAGE.reviews, load(STORAGE.reviews, []).filter((r) => r.id !== btn.dataset.delReview));
+      toast("Review removed");
+      renderReviews();
+    });
+  });
+
+  function openReviewPanel(review = null) {
+    const isNew = !review;
+    const r = review || { id: uid(), name: "", text: "", rating: 5, product: "", featured: false };
+    const products = load(STORAGE.products, []);
+    openPanel(isNew ? "Add Testimonial" : "Edit Testimonial", `
+      <div class="s-form-grid">
+        ${field("Customer Name", "text", "rvName", r.name, "e.g. Fatima A.")}
+        <label class="s-field">
+          <span class="s-field__label">Rating</span>
+          <select id="rvRating" class="s-field__select">
+            ${[5,4,3,2,1].map((n) => `<option value="${n}" ${r.rating===n?"selected":""}>${"★".repeat(n)} (${n} stars)</option>`).join("")}
+          </select>
+        </label>
+        ${textareaFull("Review Text", "rvText", r.text, 4, "In her own words…")}
+        <label class="s-field">
+          <span class="s-field__label">Product (optional)</span>
+          <select id="rvProduct" class="s-field__select">
+            <option value="">— General —</option>
+            ${products.map((p) => `<option value="${p.name}" ${r.product===p.name?"selected":""}>${esc(p.name)}</option>`).join("")}
+          </select>
+        </label>
+        <div class="s-field s-field--full s-toggle-row">
+          <span class="s-field__label">Feature on storefront</span>
+          <label class="s-toggle">
+            <input type="checkbox" id="rvFeatured" ${r.featured ? "checked" : ""} />
+            <span class="s-toggle__track"></span>
+          </label>
+        </div>
+      </div>
+    `, () => {
+      const name = val("rvName"), text = document.getElementById("rvText")?.value.trim() || "";
+      if (!name || !text) { toast("Name and review text are required", "error"); return; }
+      const updated = { ...r, name, text, rating: Number(val("rvRating")) || 5, product: val("rvProduct"), featured: !!document.getElementById("rvFeatured")?.checked };
+      const list = load(STORAGE.reviews, []);
+      const idx  = list.findIndex((x) => x.id === r.id);
+      if (idx >= 0) list[idx] = updated; else list.unshift(updated);
+      save(STORAGE.reviews, list);
+      closePanel();
+      toast(isNew ? "Testimonial added 💛" : "Testimonial updated");
+      renderReviews();
+    });
+  }
+}
+
+/* ── STORYTELLING: Campaign Engine ──────────────────────────── */
+function renderCampaigns() {
+  setTitle("Campaign Engine", `
+    <button class="s-btn s-btn--primary s-btn--sm" id="sAddCampaign">
+      <i data-lucide="plus" class="s-icon"></i> New Campaign
+    </button>
+  `);
+  const campaigns = load(STORAGE.campaigns, []);
+  dom.content.innerHTML = `
+    <div class="s-zone-header s-zone-header--story">
+      <i data-lucide="megaphone" class="s-icon"></i>
+      <span>Campaigns &amp; Moments</span>
+    </div>
+    <p class="s-muted" style="margin-bottom:1rem">Plan and draft brand campaigns for Eid, seasonal drops, and special moments.</p>
+    <div class="s-list" id="sCampaignList">
+      ${campaigns.length ? campaigns.map(campaignRow).join("") : empty("No campaigns yet. Every great launch begins with a moment of intention.", "megaphone")}
+    </div>
+  `;
+
+  function campaignRow(c) {
+    const cls = { draft: "s-badge--amber", active: "s-badge--green", completed: "" }[c.status] || "";
+    return `
+      <div class="s-list-item">
+        <div class="s-list-item__main">
+          <strong>${esc(c.name)}</strong>
+          <span class="s-list-item__sub">${esc(c.type || "Campaign")} · ${c.launchDate ? fmtDate(c.launchDate) : "No date set"}</span>
+        </div>
+        <div class="s-list-item__actions">
+          <span class="s-badge ${cls}">${capitalise(c.status || "draft")}</span>
+          <button class="s-btn s-btn--ghost s-btn--sm s-btn--icon" data-edit-camp="${c.id}"><i data-lucide="pencil" class="s-icon"></i></button>
+          <button class="s-btn s-btn--ghost s-btn--sm s-btn--icon" data-del-camp="${c.id}"><i data-lucide="trash-2" class="s-icon"></i></button>
+        </div>
+      </div>`;
+  }
+
+  document.getElementById("sAddCampaign")?.addEventListener("click", () => openCampaignPanel());
+  dom.content.querySelectorAll("[data-edit-camp]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const c = load(STORAGE.campaigns, []).find((x) => x.id === btn.dataset.editCamp);
+      if (c) openCampaignPanel(c);
+    });
+  });
+  dom.content.querySelectorAll("[data-del-camp]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (!confirm("Delete this campaign?")) return;
+      save(STORAGE.campaigns, load(STORAGE.campaigns, []).filter((c) => c.id !== btn.dataset.delCamp));
+      toast("Campaign removed");
+      renderCampaigns();
+    });
+  });
+
+  function openCampaignPanel(campaign = null) {
+    const isNew = !campaign;
+    const c = campaign || { id: uid(), name: "", type: "Seasonal Drop", status: "draft", launchDate: "", endDate: "", theme: "", whatsappMessage: "", instagramCaption: "", notes: "" };
+    openPanel(isNew ? "New Campaign" : "Edit Campaign", `
+      <div class="s-form-grid">
+        ${field("Campaign Name", "text", "cpName", c.name, "e.g. Eid Al-Adha Drop 2026")}
+        <label class="s-field">
+          <span class="s-field__label">Type</span>
+          <select id="cpType" class="s-field__select">
+            ${["Seasonal Drop","Eid Collection","Sale","New Arrival","Collaboration","Brand Story"].map((t) => `<option ${c.type===t?"selected":""}>${t}</option>`).join("")}
+          </select>
+        </label>
+        <label class="s-field">
+          <span class="s-field__label">Status</span>
+          <select id="cpStatus" class="s-field__select">
+            <option value="draft"     ${c.status==="draft"     ?"selected":""}>Draft</option>
+            <option value="active"    ${c.status==="active"    ?"selected":""}>Active</option>
+            <option value="completed" ${c.status==="completed" ?"selected":""}>Completed</option>
+          </select>
+        </label>
+        ${field("Launch Date", "date", "cpLaunch", c.launchDate || "", "")}
+        ${field("End Date",    "date", "cpEnd",    c.endDate    || "", "Optional")}
+        ${fieldFull("Creative Direction", "text", "cpTheme", c.theme || "", "e.g. Desert bloom. Soft textures. Gold hours.")}
+        ${textareaFull("WhatsApp Broadcast Draft", "cpWA", c.whatsappMessage   || "", 4, "Compose the message you'll send to Her Circle…")}
+        ${textareaFull("Instagram Caption Draft",  "cpIG", c.instagramCaption  || "", 4, "Write the moment into words…")}
+        ${textareaFull("Internal Notes",            "cpNotes", c.notes         || "", 3, "Anything the team should know")}
+      </div>
+    `, () => {
+      const name = val("cpName");
+      if (!name) { toast("Campaign name required", "error"); return; }
+      const updated = { ...c, name, type: val("cpType"), status: val("cpStatus"), launchDate: val("cpLaunch"), endDate: val("cpEnd"), theme: val("cpTheme"), whatsappMessage: document.getElementById("cpWA")?.value.trim() || "", instagramCaption: document.getElementById("cpIG")?.value.trim() || "", notes: document.getElementById("cpNotes")?.value.trim() || "" };
+      const list = load(STORAGE.campaigns, []);
+      const idx  = list.findIndex((x) => x.id === c.id);
+      if (idx >= 0) list[idx] = updated; else list.unshift(updated);
+      save(STORAGE.campaigns, list);
+      closePanel();
+      toast(isNew ? "Campaign created 💛" : "Campaign updated");
+      renderCampaigns();
+    });
+  }
+}
+
+/* ── STORYTELLING: Founder Notes ────────────────────────────── */
+function renderFounder() {
+  setTitle("Founder Notes");
+  const notes = load(STORAGE.founder, []);
+  dom.content.innerHTML = `
+    <div class="s-zone-header s-zone-header--story">
+      <i data-lucide="feather" class="s-icon"></i>
+      <span>Brand Journal — Private</span>
+    </div>
+    <p class="s-muted" style="margin-bottom:1rem">A private space for brand decisions, creative directions, and founder thoughts. Never visible to customers.</p>
+    <div class="s-founder-composer">
+      <textarea id="sFounderInput" class="s-field__textarea s-founder-input" placeholder="Write a note for the brand's memory…" rows="3"></textarea>
+      <button class="s-btn s-btn--primary s-btn--sm" id="sFounderSave" style="align-self:flex-end;margin-top:0.6rem">
+        <i data-lucide="feather" class="s-icon"></i> Save Note
+      </button>
+    </div>
+    <div id="sFounderList" class="s-founder-list">
+      ${notes.length ? notes.map(founderNote).join("") : `<p class="s-muted" style="text-align:center;padding:2rem 0">Your first note begins the brand's private story.</p>`}
+    </div>
+  `;
+
+  function founderNote(n) {
+    return `
+      <div class="s-founder-note">
+        <p class="s-founder-note__text">${esc(n.text).replace(/\n/g, "<br>")}</p>
+        <div class="s-founder-note__meta">
+          <span>${fmtDate(n.createdAt)}</span>
+          <button class="s-btn s-btn--ghost s-btn--sm s-btn--icon" data-del-note="${n.id}"><i data-lucide="trash-2" class="s-icon"></i></button>
+        </div>
+      </div>`;
+  }
+
+  function bindDeletes() {
+    dom.content.querySelectorAll("[data-del-note]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const list = load(STORAGE.founder, []);
+        save(STORAGE.founder, list.filter((n) => n.id !== btn.dataset.delNote));
+        btn.closest(".s-founder-note")?.remove();
+        toast("Note removed");
+      });
+    });
+  }
+
+  document.getElementById("sFounderSave")?.addEventListener("click", () => {
+    const text = document.getElementById("sFounderInput")?.value.trim();
+    if (!text) return;
+    const list = load(STORAGE.founder, []);
+    list.unshift({ id: uid(), text, createdAt: new Date().toISOString() });
+    save(STORAGE.founder, list);
+    document.getElementById("sFounderInput").value = "";
+    const listEl = document.getElementById("sFounderList");
+    listEl.innerHTML = list.map(founderNote).join("");
+    initLucide();
+    bindDeletes();
+    toast("Note saved 🌿");
+  });
+
+  bindDeletes();
+}
+
+/* ── INTELLIGENCE: Analytics Dashboard ──────────────────────── */
+function renderAnalytics() {
+  setTitle("Analytics");
+  const products  = load(STORAGE.products,  []);
+  const orders    = load(STORAGE.orders,    []);
+  const customers = load(STORAGE.customers, []);
+  const revenue   = orders.reduce((s, o) => s + (Number(o.total) || 0), 0);
+  const avgOrder  = orders.length ? revenue / orders.length : 0;
+
+  const statusCounts = { pending: 0, confirmed: 0, shipped: 0, delivered: 0, cancelled: 0 };
+  orders.forEach((o) => { if (statusCounts[o.status] !== undefined) statusCounts[o.status]++; });
+
+  const catCounts = {};
+  products.forEach((p) => { catCounts[p.category || "Uncategorised"] = (catCounts[p.category || "Uncategorised"] || 0) + 1; });
+
+  /* Monthly revenue — last 6 months */
+  const monthlyData = {};
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d   = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = d.toLocaleDateString("en-IN", { month: "short", year: "2-digit" });
+    monthlyData[key] = 0;
+  }
+  orders.forEach((o) => {
+    const d   = new Date(o.createdAt);
+    const key = d.toLocaleDateString("en-IN", { month: "short", year: "2-digit" });
+    if (key in monthlyData) monthlyData[key] += Number(o.total) || 0;
+  });
+  const maxMonthly = Math.max(...Object.values(monthlyData), 1);
+
+  dom.content.innerHTML = `
+    <div class="s-zone-header s-zone-header--intel">
+      <i data-lucide="bar-chart-2" class="s-icon"></i>
+      <span>Brand Intelligence</span>
+    </div>
+    <div class="s-stats-row">
+      ${stat("trending-up",  "Total Revenue",    fmtCurrency(revenue),           "s-stat--gold")}
+      ${stat("receipt",      "Total Orders",     orders.length,                  "s-stat--green")}
+      ${stat("shopping-bag", "Avg Order Value",  fmtCurrency(Math.round(avgOrder)), "s-stat--blue")}
+      ${stat("users",        "Her Circle",       customers.length,               "s-stat--purple")}
+    </div>
+    <div class="s-analytics-grid">
+      <div class="s-card">
+        <h3 class="s-card__title">Revenue — Last 6 Months</h3>
+        <div class="s-bar-chart">
+          ${Object.entries(monthlyData).map(([label, v]) => `
+            <div class="s-bar-chart__col">
+              <div class="s-bar-chart__bar-wrap">
+                <div class="s-bar-chart__bar" style="height:${Math.max(3, Math.round((v / maxMonthly) * 100))}%"></div>
+              </div>
+              <span class="s-bar-chart__label">${label}</span>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+      <div class="s-card">
+        <h3 class="s-card__title">Order Status</h3>
+        <div class="s-donut-list">
+          ${Object.entries(statusCounts).map(([status, count]) => {
+            const pct = orders.length ? Math.round((count / orders.length) * 100) : 0;
+            const cls = { pending: "s-badge--amber", confirmed: "s-badge--blue", shipped: "s-badge--emerald", delivered: "s-badge--green", cancelled: "s-badge--red" }[status] || "";
+            return `
+              <div class="s-donut-row">
+                <span class="s-badge ${cls}" style="min-width:78px;justify-content:center">${capitalise(status)}</span>
+                <div class="s-donut-bar"><div class="s-donut-bar__fill s-donut-bar__fill--${status}" style="width:${pct}%"></div></div>
+                <span class="s-donut-count">${count}</span>
+              </div>`;
+          }).join("")}
+        </div>
+      </div>
+      <div class="s-card">
+        <h3 class="s-card__title">Catalog by Category</h3>
+        <div class="s-donut-list">
+          ${Object.keys(catCounts).length ? Object.entries(catCounts).sort((a,b)=>b[1]-a[1]).map(([cat, count]) => `
+            <div class="s-donut-row">
+              <span class="s-muted" style="min-width:120px;font-size:0.775rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(cat)}</span>
+              <div class="s-donut-bar"><div class="s-donut-bar__fill" style="width:${Math.round((count/products.length)*100)}%"></div></div>
+              <span class="s-donut-count">${count}</span>
+            </div>
+          `).join("") : `<p class="s-muted">Add products to see category breakdown.</p>`}
+        </div>
+      </div>
+      <div class="s-card">
+        <h3 class="s-card__title">Quick Insights</h3>
+        <div class="s-insight-list">
+          <div class="s-insight-item">
+            <i data-lucide="trending-up" class="s-icon"></i>
+            <div><strong>${orders.filter((o) => o.status === "delivered").length}</strong><span>orders delivered successfully</span></div>
+          </div>
+          <div class="s-insight-item">
+            <i data-lucide="star" class="s-icon"></i>
+            <div><strong>${products.filter((p) => p.featured).length}</strong><span>pieces featured on homepage</span></div>
+          </div>
+          <div class="s-insight-item">
+            <i data-lucide="shopping-bag" class="s-icon"></i>
+            <div><strong>${products.filter((p) => p.status === "active").length} / ${products.length}</strong><span>pieces currently active</span></div>
+          </div>
+          <div class="s-insight-item">
+            <i data-lucide="heart" class="s-icon"></i>
+            <div><strong>${customers.reduce((s,c) => s + (c.wishlist?.length || 0), 0)}</strong><span>items saved to wishlists</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ── INTELLIGENCE: Experience Intelligence ───────────────────── */
+function renderExperience() {
+  setTitle("Experience Intel");
+  const orders    = load(STORAGE.orders,    []);
+  const customers = load(STORAGE.customers, []);
+  const reviews   = load(STORAGE.reviews,   []);
+
+  const productFreq = {};
+  orders.forEach((o) => { if (o.product) productFreq[o.product] = (productFreq[o.product] || 0) + 1; });
+  const topProducts = Object.entries(productFreq).sort((a,b) => b[1]-a[1]).slice(0, 5);
+
+  const avgRating = reviews.length ? (reviews.reduce((s,r) => s + (r.rating || 5), 0) / reviews.length).toFixed(1) : "—";
+
+  dom.content.innerHTML = `
+    <div class="s-zone-header s-zone-header--intel">
+      <i data-lucide="activity" class="s-icon"></i>
+      <span>Customer Experience Intelligence</span>
+    </div>
+    <div class="s-stats-row" style="margin-bottom:1rem">
+      ${stat("star",         "Avg Rating",    avgRating,              "s-stat--gold")}
+      ${stat("message-circle","Reviews",      reviews.length,         "s-stat--green")}
+      ${stat("users",        "Her Circle",    customers.length,       "s-stat--purple")}
+      ${stat("heart",        "Wishlist Saves",customers.reduce((s,c) => s + (c.wishlist?.length||0), 0), "s-stat--gold")}
+    </div>
+    <div class="s-card" style="margin-bottom:1rem">
+      <h3 class="s-card__title">Most Ordered Pieces</h3>
+      ${topProducts.length ? `
+        <div class="s-donut-list" style="margin-top:0.75rem">
+          ${topProducts.map(([name, count]) => `
+            <div class="s-donut-row">
+              <span class="s-muted" style="min-width:180px;font-size:0.833rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(name)}</span>
+              <div class="s-donut-bar"><div class="s-donut-bar__fill" style="width:${Math.round((count/topProducts[0][1])*100)}%"></div></div>
+              <span class="s-donut-count">${count}</span>
+            </div>
+          `).join("")}
+        </div>
+      ` : `<p class="s-muted" style="margin-top:0.75rem">Order data will reveal the most-loved pieces over time.</p>`}
+    </div>
+    <div class="s-card" style="margin-bottom:1rem">
+      <h3 class="s-card__title">Her Circle Insights</h3>
+      <div class="s-insight-list" style="margin-top:0.75rem">
+        <div class="s-insight-item">
+          <i data-lucide="users" class="s-icon"></i>
+          <div><strong>${customers.length}</strong><span>members in Her Circle</span></div>
+        </div>
+        <div class="s-insight-item">
+          <i data-lucide="message-circle" class="s-icon"></i>
+          <div><strong>${customers.filter((c) => c.phone).length}</strong><span>members reachable via WhatsApp</span></div>
+        </div>
+        <div class="s-insight-item">
+          <i data-lucide="star" class="s-icon"></i>
+          <div><strong>${reviews.filter((r) => r.featured).length}</strong><span>testimonials featured on storefront</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="s-alert s-alert--info">
+      <i data-lucide="info" class="s-icon"></i>
+      Intelligence deepens as your circle grows and orders accumulate. Every interaction adds clarity to the brand's direction.
+    </div>
+  `;
+}
+
+/* ── INTELLIGENCE: Permission System ────────────────────────── */
+function renderPermissions() {
+  setTitle("Permissions");
+  dom.content.innerHTML = `
+    <div class="s-zone-header s-zone-header--intel">
+      <i data-lucide="lock" class="s-icon"></i>
+      <span>Access &amp; Security</span>
+    </div>
+    <div class="s-card" style="margin-bottom:1rem">
+      <h3 class="s-card__title">Current Session</h3>
+      <div class="s-insight-list" style="margin-top:0.75rem">
+        <div class="s-insight-item">
+          <i data-lucide="shield-check" class="s-icon"></i>
+          <div><strong>Admin</strong><span>Full access — Brand Operating System</span></div>
+        </div>
+        <div class="s-insight-item">
+          <i data-lucide="clock" class="s-icon"></i>
+          <div><strong>8 hours</strong><span>Session duration — auto-renewed on activity</span></div>
+        </div>
+        <div class="s-insight-item">
+          <i data-lucide="key" class="s-icon"></i>
+          <div><strong>SHA-256</strong><span>Credentials hashed — password never stored in plain text</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="s-card" style="margin-bottom:1rem">
+      <h3 class="s-card__title">Access by Zone</h3>
+      <div class="s-permissions-table">
+        ${[
+          { zone: "Brand",        desc: "Logo, Typography, Colors, Atmosphere, Voice" },
+          { zone: "Experience",   desc: "Trust Center, T&C Manager, Legal Acceptance" },
+          { zone: "Commerce",     desc: "Pieces, Collections, Orders, Offers, Media"  },
+          { zone: "Storytelling", desc: "Editorial Studio, Campaigns, Founder Notes"  },
+          { zone: "Her Circle",   desc: "Customer profiles, messaging, reviews"       },
+          { zone: "Intelligence", desc: "Analytics, Experience Intel, Permissions"    },
+          { zone: "System",       desc: "Settings, sign-out"                          },
+        ].map((row) => `
+          <div class="s-permissions-row">
+            <div class="s-permissions-zone">
+              <strong>${row.zone}</strong>
+              <span>${row.desc}</span>
+            </div>
+            <span class="s-badge s-badge--gold">Admin</span>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+    <div class="s-card">
+      <h3 class="s-card__title">Security Actions</h3>
+      <div class="s-danger-row" style="margin-top:0.75rem">
+        <button class="s-btn s-btn--secondary s-btn--sm" id="sSessionRefresh">
+          <i data-lucide="refresh-cw" class="s-icon"></i> Refresh Session
+        </button>
+        <button class="s-btn s-btn--danger s-btn--sm" id="sForceSignout">
+          <i data-lucide="log-out" class="s-icon"></i> Sign Out Now
+        </button>
+      </div>
+    </div>
+  `;
+  document.getElementById("sSessionRefresh")?.addEventListener("click", () => {
+    try {
+      const exp = Date.now() + 8 * 60 * 60 * 1000;
+      localStorage.setItem("abdan-admin-token", JSON.stringify({ v: "true", exp }));
+      sessionStorage.setItem("abdan-admin-auth", "true");
+      toast("Session refreshed — 8 hours extended ✨");
+    } catch { toast("Could not refresh session", "error"); }
+  });
+  document.getElementById("sForceSignout")?.addEventListener("click", signout);
+}
+
+/* ════════════════════════════════════════════════════════════
+   COMMAND PALETTE  (⌘K / Ctrl+K)
+   ════════════════════════════════════════════════════════════ */
+
+function openCommandPalette() {
+  if (cmdPaletteOpen) return;
+  cmdPaletteOpen = true;
+
+  const overlay = document.createElement("div");
+  overlay.id = "sCmdOverlay";
+  overlay.className = "s-cmd-overlay";
+  overlay.innerHTML = `
+    <div class="s-cmd-palette" role="dialog" aria-label="Command palette">
+      <div class="s-cmd-search">
+        <i data-lucide="search" class="s-icon s-cmd-search__icon"></i>
+        <input type="text" class="s-cmd-input" id="sCmdInput"
+               placeholder="Search views, actions…"
+               autocomplete="off" spellcheck="false" />
+        <kbd class="s-cmd-kbd">ESC</kbd>
+      </div>
+      <div class="s-cmd-results" id="sCmdResults"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  initLucide();
+
+  const input = document.getElementById("sCmdInput");
+  input?.focus();
+  renderCmdResults("");
+
+  input?.addEventListener("input", (e) => renderCmdResults(e.target.value));
+
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closeCommandPalette();
+  });
+
+  input?.addEventListener("keydown", (e) => {
+    const items  = [...document.querySelectorAll(".s-cmd-item")];
+    const active = document.querySelector(".s-cmd-item--focused");
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      const next = active ? (items[items.indexOf(active) + 1] || items[0]) : items[0];
+      active?.classList.remove("s-cmd-item--focused");
+      next?.classList.add("s-cmd-item--focused");
+      next?.scrollIntoView({ block: "nearest" });
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      const prev = active ? (items[items.indexOf(active) - 1] || items[items.length - 1]) : items[items.length - 1];
+      active?.classList.remove("s-cmd-item--focused");
+      prev?.classList.add("s-cmd-item--focused");
+      prev?.scrollIntoView({ block: "nearest" });
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      document.querySelector(".s-cmd-item--focused")?.click();
+    }
+  });
+}
+
+function closeCommandPalette() {
+  cmdPaletteOpen = false;
+  document.getElementById("sCmdOverlay")?.remove();
+}
+
+function renderCmdResults(query) {
+  const q         = query.toLowerCase().trim();
+  const container = document.getElementById("sCmdResults");
+  if (!container) return;
+
+  const matches = q
+    ? STUDIO_VIEWS.filter((v) =>
+        v.label.toLowerCase().includes(q) ||
+        v.group.toLowerCase().includes(q)  ||
+        v.id.includes(q))
+    : STUDIO_VIEWS;
+
+  if (!matches.length) {
+    container.innerHTML = `<p class="s-cmd-empty">No results for "${esc(query)}"</p>`;
+    return;
+  }
+
+  container.innerHTML = matches.slice(0, 12).map((v, i) => `
+    <button class="s-cmd-item ${i === 0 ? "s-cmd-item--focused" : ""}" data-cmd-nav="${v.id}" type="button">
+      <div class="s-cmd-item__icon">
+        <i data-lucide="${v.icon}" class="s-icon"></i>
+      </div>
+      <div class="s-cmd-item__label">
+        <span>${v.label}</span>
+        <span class="s-cmd-item__group">${v.group}</span>
+      </div>
+      <i data-lucide="corner-down-left" class="s-icon s-cmd-item__enter"></i>
+    </button>
+  `).join("");
+
+  initLucide();
+
+  container.querySelectorAll("[data-cmd-nav]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      closeCommandPalette();
+      navigate(btn.dataset.cmdNav);
+    });
+    btn.addEventListener("mouseenter", () => {
+      document.querySelector(".s-cmd-item--focused")?.classList.remove("s-cmd-item--focused");
+      btn.classList.add("s-cmd-item--focused");
     });
   });
 }
@@ -1503,11 +2576,16 @@ function wireEvents() {
     }
   });
 
-  /* Keyboard: Escape closes panel / sidebar */
+  /* Keyboard: Escape + ⌘K command palette */
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
-      if (!dom.panel.hidden) closePanel();
-      else if (sidebarOpen)  closeSidebar();
+      if (cmdPaletteOpen)        closeCommandPalette();
+      else if (!dom.panel.hidden) closePanel();
+      else if (sidebarOpen)       closeSidebar();
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      e.preventDefault();
+      cmdPaletteOpen ? closeCommandPalette() : openCommandPalette();
     }
   });
 }
@@ -1520,6 +2598,21 @@ function init() {
   loadTheme();
   buildNav();
   wireEvents();
+
+  /* Inject ⌘K command palette search button into sidebar footer */
+  const cmdHint = document.createElement("button");
+  cmdHint.type = "button";
+  cmdHint.className = "s-cmd-hint";
+  cmdHint.innerHTML = `
+    <span class="s-cmd-hint__left">
+      <i data-lucide="search" class="s-icon"></i>
+      <span>Search & Navigate</span>
+    </span>
+    <span class="s-cmd-hint__kbd">
+      <kbd>⌘</kbd><kbd>K</kbd>
+    </span>`;
+  cmdHint.addEventListener("click", openCommandPalette);
+  dom.aside.querySelector(".s-aside-foot")?.prepend(cmdHint);
 
   /* Seed products from main site if none exist */
   if (!localStorage.getItem(STORAGE.products)) {
