@@ -16085,3 +16085,250 @@ html[data-theme="dark"] .section-kicker {
 
   body::before { display: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   §59 — NEXT LEVEL: ASYMMETRY · BREATHING · EDITORIAL DEPTH
+   Luxury breathing section · Visual asymmetry · Testimonial elevation
+   Product image warmth · Teaser stagger · Typographic editorial offset
+   ─────────────────────────────────────────────────────────────────────── */
+
+/* ── 59a. LUXURY BREATHING SECTION ──────────────────────────────────────────
+   A cinematic pause between the Collection and Her Story. Full-width,
+   ivory-deep background — the same tone as the sections flanking it so it
+   dissolves seamlessly into the flow. One editorial statement, no CTA.
+   Atmosphere is the content.                                               */
+.lx-breath {
+  padding:         clamp(2.75rem, 5.5vw, 4.5rem) 0;
+  text-align:      center;
+  background:      var(--ivory-deep);
+  position:        relative;
+  overflow:        hidden;
+}
+
+/* Warm gold atmospheric radial — subconscious illumination */
+.lx-breath::before {
+  content:         "";
+  position:        absolute;
+  inset:           0;
+  background:      radial-gradient(
+    ellipse 55% 90% at 50% 50%,
+    rgba(197, 161, 59, 0.055) 0%,
+    transparent 65%
+  );
+  pointer-events:  none;
+}
+
+/* Horizontal gold hairlines flanking the statement — editorial restraint */
+.lx-breath::after {
+  content:         "";
+  position:        absolute;
+  top:             50%;
+  left:            50%;
+  transform:       translate(-50%, -50%);
+  width:           min(400px, 72vw);
+  height:          1px;
+  background:      linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(197, 161, 59, 0.28) 30%,
+    rgba(197, 161, 59, 0.28) 70%,
+    transparent 100%
+  );
+  pointer-events:  none;
+  opacity:         0.6;
+}
+
+.lx-breath__statement {
+  position:        relative;
+  z-index:         1;
+  font-family:     var(--font-editorial);
+  font-style:      italic;
+  font-weight:     400;
+  font-size:       clamp(1rem, 2.2vw, 1.5rem);
+  line-height:     1.62;
+  letter-spacing:  0.015em;
+  color:           rgba(22, 47, 45, 0.52);
+  max-width:       46ch;
+  margin:          0 auto;
+  padding:         0 1.5rem;
+}
+
+html[data-theme="dark"] .lx-breath {
+  background: color-mix(in srgb, var(--bg, #071d1c) 90%, var(--emerald) 10%);
+}
+
+html[data-theme="dark"] .lx-breath__statement {
+  color: rgba(230, 223, 203, 0.42);
+}
+
+/* ── 59b. EDITORIAL ASYMMETRY — Her Story card stagger ──────────────────────
+   Middle story card offsets downward by ~1.5rem — creates a staggered
+   editorial rhythm without touching the grid structure. Visible only at
+   desktop widths where three columns render side by side.                  */
+@media (min-width: 900px) {
+  #wsy .story-grid .story-card:nth-child(2) {
+    margin-top: clamp(1rem, 2.2vw, 1.625rem);
+  }
+}
+
+/* ── 59c. TESTIMONIAL GRID — editorial asymmetry: centre card wider ─────────
+   The featured (centre) testimonial becomes the obvious emotional anchor.
+   1fr · 1.38fr · 1fr — centred weight without destroying the grid.
+   Collapsed to 1fr on mobile by existing responsive rule.                  */
+@media (min-width: 900px) {
+  .testimonial-grid {
+    grid-template-columns: 1fr 1.38fr 1fr !important;
+    align-items: start;
+  }
+}
+
+/* ── 59d. FEATURED TESTIMONIAL — luxury pull-quote treatment ─────────────────
+   The centre testimonial (emerald bg) becomes a large editorial pull-quote.
+   Large italic serif, gold-tinted attribution, cinematic vertical breathing. */
+.testimonial-card--featured {
+  padding: clamp(2rem, 4.5vw, 3rem) clamp(1.5rem, 3.5vw, 2.5rem) !important;
+}
+
+.testimonial-card--featured p {
+  font-family:   var(--font-editorial)                !important;
+  font-style:    italic                               !important;
+  font-size:     clamp(1rem, 1.7vw, 1.2rem)           !important;
+  line-height:   1.74                                 !important;
+  color:         rgba(248, 245, 236, 0.92)            !important;
+  margin-top:    0                                    !important;
+}
+
+.testimonial-card--featured footer span {
+  background:    rgba(197, 161, 59, 0.22)             !important;
+  color:         var(--gold)                          !important;
+  border:        1px solid rgba(197, 161, 59, 0.38)   !important;
+}
+
+.testimonial-card--featured footer strong {
+  color: var(--ivory) !important;
+}
+
+.testimonial-card--featured footer small {
+  color: rgba(230, 223, 203, 0.65) !important;
+}
+
+/* ── 59e. PRODUCT CARD — atmospheric warmth overlay on hover ─────────────────
+   A barely-visible warm amber glow breathes into the product image centre
+   on hover. Stacks above the existing bottom-dark overlay.
+   Max opacity 7% — felt, not seen.                                         */
+.product-card__media::after {
+  content:     "";
+  position:    absolute;
+  inset:       0;
+  background:  radial-gradient(
+    ellipse 68% 52% at 50% 28%,
+    rgba(197, 161, 59, 0.07) 0%,
+    transparent 60%
+  );
+  opacity:     0;
+  transition:  opacity 680ms cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.product-card:hover .product-card__media::after {
+  opacity: 1;
+}
+
+/* ── 59f. TEASER CARD STAGGER — editorial rhythm ────────────────────────────
+   Second teaser card offsets downward for staggered visual pacing.
+   Creates asymmetric tension between the two equal-width cards.           */
+@media (min-width: 700px) {
+  .teaser-grid .teaser-card:nth-child(2) {
+    margin-top: clamp(1.25rem, 3vw, 2rem);
+  }
+}
+
+/* ── 59g. TYPOGRAPHIC EDITORIAL OFFSET — section heading indent ──────────────
+   Testimonials and teasers headings carry a subtle left indent that signals
+   editorial sophistication — a barely-perceptible offset, not a hard indent. */
+@media (min-width: 1024px) {
+  #testi  .section-heading,
+  #teasers .section-heading {
+    padding-left: clamp(0.25rem, 1.5vw, 1rem);
+  }
+}
+
+/* ── 59h. TESTIMONIAL CARD BASE — editorial warmth ──────────────────────────
+   Side testimonial cards get richer inner padding and a warm atmospheric
+   ::before that subtly warms the card face from the top corner.           */
+.testimonial-card:not(.testimonial-card--featured) {
+  padding: clamp(1.75rem, 4vw, 2.5rem) clamp(1.5rem, 3.5vw, 2.25rem) !important;
+}
+
+.testimonial-card:not(.testimonial-card--featured)::before {
+  content:    "";
+  position:   absolute;
+  top:        0; right: 0;
+  width:      120px; height: 120px;
+  background: radial-gradient(
+    circle at 100% 0%,
+    rgba(197, 161, 59, 0.06) 0%,
+    transparent 65%
+  );
+  pointer-events: none;
+}
+
+.testimonial-card p {
+  font-style: italic !important;
+  font-size:  clamp(0.9375rem, 1.5vw, 1.0625rem) !important;
+  line-height: 1.78 !important;
+}
+
+/* ── 59i. PRODUCT CARD IMAGE — cinematic focal adjustment ────────────────────
+   Inherit the editorial object-position logic from §58d onto ALL product
+   cards. Fashion imagery should breathe from the top, not centre.         */
+.product-card__media img {
+  object-position: center 18% !important;
+}
+
+/* ── 59j. MOBILE TOUCH-TARGET REFINEMENT — ergonomic luxury ──────────────────
+   Ensure all primary touch interactions meet the 44px minimum ergonomic
+   threshold. Floating dock items, nav chips, filter chips.                */
+@media (max-width: 767px) {
+  .nav-item {
+    min-height:     44px;
+    padding-top:    0.55rem;
+    padding-bottom: 0.55rem;
+  }
+
+  .filter-chip {
+    min-height:  40px;
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
+  }
+
+  /* Breathing section — compress slightly on mobile */
+  .lx-breath {
+    padding: clamp(2rem, 5vw, 3rem) 1.25rem;
+  }
+
+  /* Testimonial featured card — slightly less padding on small screens */
+  .testimonial-card--featured {
+    padding: 1.75rem 1.5rem !important;
+  }
+
+  /* Remove teaser stagger on mobile — single-column stacks cleanly */
+  .teaser-grid .teaser-card:nth-child(2) {
+    margin-top: 0;
+  }
+
+  /* Remove story stagger on mobile */
+  #wsy .story-grid .story-card:nth-child(2) {
+    margin-top: 0;
+  }
+}
+
+/* ── 59k. DARK MODE HARMONY ──────────────────────────────────────────────────*/
+html[data-theme="dark"] .testimonial-card:not(.testimonial-card--featured) {
+  background: color-mix(in srgb, var(--card-bg) 92%, rgba(197, 161, 59, 0.04) 8%) !important;
+}
+
+/* ── 59l. REDUCED MOTION GUARD ───────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .product-card__media::after { transition: none !important; }
+}
