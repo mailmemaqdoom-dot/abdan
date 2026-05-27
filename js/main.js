@@ -2666,16 +2666,49 @@ function initDockObserver() {
 }
 
 function initScrollChrome() {
+  let lastY   = window.scrollY;
+  let ticking = false;
+
   const updateChrome = () => {
-    const isScrolled = window.scrollY > 18;
+    const y          = window.scrollY;
+    const isScrolled = y > 18;
+    const goingDown  = y > lastY;
+    const scrolledFar = y > 100;   /* ignore micro-scrolls at page top */
+
     dom.siteHeader.classList.toggle("is-scrolled", isScrolled);
     dom.bottomDock.classList.toggle("is-scrolled", isScrolled);
-    /* body.is-scrolled: dims support pill at 0.78 opacity via CSS */
     dom.body.classList.toggle("is-scrolled", isScrolled);
+
+    /* ── Scroll-direction nav hide/show (desktop + mobile header) ───────
+       Hide the site-header when scrolling down past the threshold;
+       reveal instantly on any upward scroll. This is the Phillip Murphy /
+       Apple pattern: the nav is invisible when the user is reading and
+       present when they reach up to navigate.
+       On desktop the bottom-dock is visually coupled to the header
+       (both sit at the top) so it hides with it.                       */
+    if (scrolledFar && goingDown) {
+      dom.siteHeader.classList.add("is-nav-hidden");
+      /* Desktop only: dock travels with header */
+      if (window.innerWidth > 767) {
+        dom.bottomDock.classList.add("is-nav-hidden");
+      }
+    } else if (!goingDown) {
+      dom.siteHeader.classList.remove("is-nav-hidden");
+      if (window.innerWidth > 767) {
+        dom.bottomDock.classList.remove("is-nav-hidden");
+      }
+    }
+
+    lastY   = y;
+    ticking = false;
   };
 
   updateChrome();
-  window.addEventListener("scroll", updateChrome, { passive: true });
+  window.addEventListener("scroll", () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(updateChrome);
+  }, { passive: true });
 }
 
 /* ── §33 Scroll-aware dock hiding (mobile only) ──────────────────────
@@ -3132,6 +3165,133 @@ function initTimeOfDay() {
   if (tod) document.documentElement.dataset.tod = tod;
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   §55 — ADMIN IMAGE MANAGEMENT SYSTEM
+   Allows the admin to override key visual images via URL input fields.
+   Overrides are stored in localStorage under "abdan-image-overrides" (JSON).
+   On every page load, stored URLs are applied to matching image elements.
+   Cloudflare Pages compatible — fully client-side, no backend required.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const IMAGE_SLOTS = [
+  { key: "heroSlide0", label: "Hero Slide 1",         selector: "#heroSlideshow .hero-slide:nth-child(1) img" },
+  { key: "heroSlide1", label: "Hero Slide 2",         selector: "#heroSlideshow .hero-slide:nth-child(2) img" },
+  { key: "heroSlide2", label: "Hero Slide 3",         selector: "#heroSlideshow .hero-slide:nth-child(3) img" },
+  { key: "heroSlide3", label: "Hero Slide 4",         selector: "#heroSlideshow .hero-slide:nth-child(4) img" },
+  { key: "promiseBand", label: "Promise Band Image",  selector: ".promise-band__img" },
+  { key: "footerBand",  label: "Footer Cinematic Band", selector: ".footer-cinematic-band__img" },
+];
+
+function loadImageOverrides() {
+  try {
+    const raw = localStorage.getItem("abdan-image-overrides");
+    if (!raw) return;
+    const overrides = JSON.parse(raw);
+    IMAGE_SLOTS.forEach(({ key, selector }) => {
+      if (!overrides[key]) return;
+      const el = document.querySelector(selector);
+      if (el) { el.src = overrides[key]; el.dataset.overridden = "1"; }
+    });
+  } catch { /* quota or parse error */ }
+}
+
+function saveImageOverride(key, url) {
+  try {
+    const raw = localStorage.getItem("abdan-image-overrides");
+    const overrides = raw ? JSON.parse(raw) : {};
+    if (url.trim()) {
+      overrides[key] = url.trim();
+    } else {
+      delete overrides[key];
+    }
+    localStorage.setItem("abdan-image-overrides", JSON.stringify(overrides));
+  } catch { /* quota */ }
+}
+
+function resetImageOverride(key) {
+  saveImageOverride(key, "");
+}
+
+function renderAdminImageManager() {
+  const container = document.getElementById("adminImageManager");
+  if (!container) return;
+
+  let overrides = {};
+  try { overrides = JSON.parse(localStorage.getItem("abdan-image-overrides") || "{}"); } catch {}
+
+  container.innerHTML = `
+    <div class="aim-grid">
+      ${IMAGE_SLOTS.map(({ key, label, selector }) => {
+        const currentSrc = (() => {
+          const el = document.querySelector(selector);
+          return el ? el.getAttribute("src") : "";
+        })();
+        const override = overrides[key] || "";
+        return `
+          <article class="feature-card aim-card" data-aim-key="${key}">
+            <div class="aim-preview" aria-hidden="true">
+              <img class="aim-preview__img" src="${override || currentSrc || ""}"
+                   alt="${label}" loading="lazy" onerror="this.style.opacity='0.2'" />
+            </div>
+            <div class="aim-body">
+              <p class="micro-label">${label}</p>
+              <div class="aim-input-row">
+                <input type="url" class="aim-url-input"
+                       placeholder="Paste image URL here…"
+                       value="${override}"
+                       aria-label="URL for ${label}" />
+                <button class="aim-save-btn primary-button" type="button">Apply</button>
+                ${override ? `<button class="aim-reset-btn ghost-button" type="button">Reset</button>` : ""}
+              </div>
+              ${override ? `<p class="aim-status aim-status--active">✦ Override active</p>` : ""}
+            </div>
+          </article>
+        `;
+      }).join("")}
+    </div>
+  `;
+
+  /* Event delegation — handles save + reset for all cards */
+  container.addEventListener("click", (e) => {
+    const card = e.target.closest("[data-aim-key]");
+    if (!card) return;
+    const key = card.dataset.aimKey;
+    const input = card.querySelector(".aim-url-input");
+
+    if (e.target.classList.contains("aim-save-btn")) {
+      const url = input?.value.trim() || "";
+      saveImageOverride(key, url);
+      /* Live-apply to the page image */
+      const slot = IMAGE_SLOTS.find((s) => s.key === key);
+      if (slot && url) {
+        const img = document.querySelector(slot.selector);
+        if (img) { img.src = url; img.dataset.overridden = "1"; }
+      }
+      showToast(url ? "Image updated ✦" : "Override cleared");
+      renderAdminImageManager();
+    }
+    if (e.target.classList.contains("aim-reset-btn")) {
+      resetImageOverride(key);
+      /* Reload the original src from the slot selector */
+      showToast("Image reset to default");
+      renderAdminImageManager();
+    }
+  });
+}
+
+function initAdminImageManager() {
+  loadImageOverrides();   /* apply any saved overrides on page load */
+  /* Render the manager UI whenever the admin panel becomes visible */
+  const observer = new MutationObserver(() => {
+    const panel = document.getElementById("adminPanel");
+    if (panel && !panel.hidden) renderAdminImageManager();
+  });
+  const panel = document.getElementById("adminPanel");
+  if (panel) observer.observe(panel, { attributes: true, attributeFilter: ["hidden"] });
+  /* Also render immediately if already visible */
+  if (panel && !panel.hidden) renderAdminImageManager();
+}
+
 function init() {
   // DEPLOYMENT STATUS: VERIFIED ✔
   // Logo: assets/abdan-icon.jpg — real brand icon, circular clip applied
@@ -3245,6 +3405,9 @@ function init() {
   if (memory.visitCount >= 3) {
     document.body.setAttribute("data-returning", "true");
   }
+
+  /* ── Admin image manager ────────────────────────────────────────────── */
+  initAdminImageManager();
 
   /* ── Page entrance: fade body in after full hydration ──────────────── */
   requestAnimationFrame(() => document.body.classList.add("page-ready"));

@@ -14873,3 +14873,306 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: rgba(197, 
 }
 
 /* ═══ END SECTION 54 ══════════════════════════════════════════════════════ */
+
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  SECTION 55 — Navigation · Mobile · Newsletter · Admin Image Manager   ║
+   ║                                                                          ║
+   ║  Precision correction pass:                                              ║
+   ║  · Logo / wordmark proportions — eliminate brand-pill overlap           ║
+   ║  · Scroll-direction header hide/show (Phillip Murphy / Apple pattern)   ║
+   ║  · Mobile bottom-dock repositioned to bottom of screen (thumb reach)    ║
+   ║  · Support pill repositioned above mobile dock — no collision           ║
+   ║  · Newsletter mobile layout — stacked, full-width, warm                 ║
+   ║  · Admin image manager UI styles                                         ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+
+/* ── 55a. Brand pill logo — precision sizing ─────────────────────────────
+   The wordmark JPEG at 22px sits too close to pill edges on tight screens.
+   Fix: increase to 24px, cap max-width, ensure overflow never clips the
+   calligraphy strokes, tighten gap between mark and text stack.           */
+.brand-pill__wordmark {
+  height:    24px         !important;
+  max-width: 118px        !important;
+  width:     auto         !important;
+  display:   block        !important;
+}
+
+/* Contain the text stack — prevents wordmark overflow */
+.brand-pill__name {
+  overflow:  hidden       !important;
+  max-width: 140px        !important;
+}
+
+/* Slightly less gap — pill feels more proportional */
+.brand-pill {
+  gap: 0.85rem !important;
+}
+
+/* Brand mark: ensure circular clip is always clean */
+.brand-mark {
+  flex-shrink: 0 !important;
+  width:       2.6rem !important;
+  height:      2.6rem !important;
+}
+
+/* ── 55b. Scroll-direction header hide/show ──────────────────────────────
+   JS adds .is-nav-hidden when scrolling down past 100px.
+   Transform slides the pill upward (translateY(-110%)) — enough to clear
+   the safe area but not so much it causes layout reflow.                  */
+.site-header {
+  transition:
+    transform    420ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity      320ms var(--ease-out),
+    top          340ms cubic-bezier(0.16, 1, 0.3, 1)  !important;
+  will-change: transform, opacity !important;
+}
+
+.site-header.is-nav-hidden {
+  transform:      translateY(calc(-100% - 1.5rem)) !important;
+  opacity:        0                                !important;
+  pointer-events: none                             !important;
+}
+
+/* Bottom dock on desktop: couples with header — slides up together */
+@media (min-width: 768px) {
+  .bottom-dock {
+    transition:
+      background 240ms var(--ease-out),
+      transform  420ms cubic-bezier(0.16, 1, 0.3, 1),
+      opacity    320ms var(--ease-out) !important;
+  }
+  .bottom-dock.is-nav-hidden {
+    transform: translateY(calc(-100% - 1.5rem)) !important;
+    opacity:   0                                !important;
+  }
+}
+
+/* ── 55c. Mobile bottom dock — reposition to bottom of screen ────────────
+   Moves the navigation to the bottom where thumbs naturally rest.
+   This is the pattern used by Apple Maps, Instagram, and luxury apps —
+   ergonomically correct for one-handed use on 5–6.7" screens.            */
+@media (max-width: 767px) {
+  .bottom-dock {
+    top:       auto                                          !important;
+    bottom:    calc(env(safe-area-inset-bottom) + 0.9rem)   !important;
+    transform: translateX(-50%)                              !important;  /* centred */
+    /* Wider pill — more comfortable on mobile */
+    width:     min(calc(100% - 2rem), 480px)                !important;
+  }
+
+  /* Hide: slide DOWN off bottom edge (correct direction for bottom-anchored dock) */
+  .bottom-dock.is-dock-hidden {
+    transform: translateX(-50%) translateY(calc(100% + env(safe-area-inset-bottom) + 1.5rem)) !important;
+    transition: transform 200ms ease-in !important;
+  }
+
+  /* Reveal: spring back smoothly */
+  .bottom-dock:not(.is-dock-hidden) {
+    transition:
+      background 240ms var(--ease-out),
+      transform  340ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  /* Luxury shell: top padding reduced (header only), bottom padding for dock */
+  .luxury-shell {
+    padding-top:    6rem                                           !important;
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom))      !important;
+  }
+
+  /* Sections: scroll-margin adjusted for mobile (header only at top) */
+  .section-frame {
+    scroll-margin-top: 5rem !important;
+  }
+}
+
+/* ── 55d. Support pill — float above mobile dock ────────────────────────
+   On mobile, the support pill was at bottom:1rem, which now sits behind
+   the dock. Lift it above the dock (dock is ~52px + 0.9rem safe gap).   */
+@media (max-width: 767px) {
+  .support-pill {
+    bottom: calc(env(safe-area-inset-bottom) + 5.2rem) !important;
+    right:  1rem                                        !important;
+  }
+
+  /* When dock hides on scroll, pill follows it down slightly so it doesn't
+     float orphaned — but stays visible for WhatsApp access */
+  .bottom-dock.is-dock-hidden ~ * .support-pill,
+  body.is-dock-hidden .support-pill {
+    bottom: calc(env(safe-area-inset-bottom) + 1rem) !important;
+  }
+}
+
+/* ── 55e. Newsletter section — mobile layout refinement ─────────────────
+   On small screens the 2-col inline form wraps awkwardly — input and button
+   compete for width. Stack them full-width for warmth and readability.    */
+@media (max-width: 700px) {
+  .footer-relation__inner {
+    flex-direction: column        !important;
+    gap:            clamp(2rem, 6vw, 3rem) !important;
+  }
+
+  .footer-relation__words,
+  .footer-relation__form {
+    flex: none !important;
+    width: 100% !important;
+  }
+
+  .footer-relation__heading {
+    font-size: clamp(1.4rem, 5vw, 1.9rem) !important;
+  }
+
+  .footer-relation__row {
+    flex-direction: column !important;
+    gap:            0.85rem !important;
+  }
+
+  .footer-relation__input {
+    flex:       none   !important;
+    width:      100%   !important;
+    min-height: 52px   !important;   /* thumb ergonomic minimum */
+    font-size:  1rem   !important;   /* prevent iOS auto-zoom on focus */
+  }
+
+  .footer-relation__btn {
+    flex-shrink:  unset  !important;
+    width:        100%   !important;
+    min-height:   52px   !important;
+    text-align:   center !important;
+    font-size:    0.9rem !important;
+  }
+}
+
+/* ── 55f. Newsletter input — focus glow refinement (all screens) ─────────
+   Soft gold focus ring instead of the default browser outline.           */
+.footer-relation__input:focus {
+  outline:      none                               !important;
+  border-color: rgba(197, 161, 59, 0.65)          !important;
+  background:   rgba(255, 255, 255, 0.10)         !important;
+  box-shadow:   0 0 0 3px rgba(197, 161, 59, 0.12) !important;
+}
+
+/* ── 55g. Admin image manager styles ─────────────────────────────────────
+   Clean, editorial admin UI for managing site images.                    */
+.admin-image-manager {
+  margin-top: 2rem !important;
+}
+
+.aim-header {
+  margin-bottom: 2rem;
+}
+.aim-header h2 {
+  margin: 0.5rem 0 0.75rem;
+  font-size: var(--type-heading-lg);
+}
+.aim-header p {
+  font-size: var(--type-body-sm);
+  color: var(--text-soft);
+  line-height: var(--leading-relaxed);
+  max-width: 52ch;
+}
+
+.aim-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.aim-card {
+  padding: 1.5rem !important;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.aim-preview {
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: color-mix(in srgb, var(--emerald) 8%, var(--ivory));
+  position: relative;
+}
+
+.aim-preview__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: opacity 300ms var(--ease-out);
+}
+
+.aim-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.aim-input-row {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.aim-url-input {
+  flex: 1 1 160px;
+  padding: 0.65rem 0.9rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  font-size: var(--type-body-sm);
+  outline: none;
+  transition: border-color 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
+}
+.aim-url-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(197, 161, 59, 0.12);
+}
+.aim-url-input::placeholder {
+  color: var(--text-soft);
+  font-style: italic;
+}
+
+.aim-save-btn {
+  flex-shrink: 0;
+  padding: 0.65rem 1.2rem !important;
+  font-size: var(--type-label) !important;
+}
+
+.aim-reset-btn {
+  flex-shrink: 0;
+  padding: 0.65rem 1rem !important;
+  font-size: var(--type-label) !important;
+}
+
+.aim-status {
+  font-size: var(--type-micro);
+  color: var(--text-soft);
+  margin: 0;
+}
+.aim-status--active {
+  color: var(--gold);
+  font-style: italic;
+}
+
+/* ── 55h. Mobile dock — reduced motion guard ─────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .site-header,
+  .site-header.is-nav-hidden { transition: none !important; }
+
+  @media (max-width: 767px) {
+    .bottom-dock,
+    .bottom-dock.is-dock-hidden { transition: none !important; }
+  }
+}
+
+/* ── 55i. iPhone safe area — prevent dock / pill from home bar overlap ── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  @media (max-width: 767px) {
+    .bottom-dock {
+      padding-bottom: calc(0.38rem + env(safe-area-inset-bottom) * 0.3) !important;
+    }
+  }
+}
+
+/* ═══ END SECTION 55 ══════════════════════════════════════════════════════ */
