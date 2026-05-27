@@ -13867,9 +13867,9 @@ html[data-theme="dark"] .hero-atm__glow--center {
   font-family:    var(--font-editorial)!important;  /* Baskerville Italic    */
   font-style:     italic               !important;
   font-weight:    400                  !important;
-  font-size:      clamp(1.3rem, 2.6vw, 2.4rem) !important;  /* ≤ type-heading-xl max */
+  font-size:      clamp(1.05rem, 2vw, 1.9rem) !important;  /* reduced to fit full phrase */
   line-height:    var(--leading-snug)  !important;  /* 1.35 — editorial spec */
-  letter-spacing: -0.02em              !important;  /* brand heading standard */
+  letter-spacing: -0.01em              !important;  /* slightly looser at smaller size */
 }
 
 /* Dark-mode colour corrections — use semantic tokens not raw rgba          */
@@ -13981,7 +13981,7 @@ html[data-theme="dark"] .hero-actions--cinematic .primary-button {
 @media (max-width: 767px) {
   .hch-thin  { font-size: clamp(1rem,    4.5vw, 1.4rem) !important; }
   .hch-heavy { font-size: clamp(2rem,    9vw,   3rem)   !important; }
-  .hch-serif { font-size: clamp(1.15rem, 6.5vw, 2rem)   !important; }
+  .hch-serif { font-size: clamp(0.95rem, 4.5vw, 1.4rem)  !important; }  /* full phrase fits single-col */
 }
 
 /* ═══ END SECTION 51 ══════════════════════════════════════════════════════ */
