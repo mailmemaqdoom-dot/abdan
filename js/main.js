@@ -1503,6 +1503,31 @@ function renderFilters() {
   });
 }
 
+/* ── §72: Cinematic editorial CTA language ───────────────────────────── */
+const CTA_LABELS = [
+  "Explore the Piece",
+  "Keep This Close",
+  "Discover the Story",
+  "Add to Your Space",
+  "Wear It Gently",
+];
+
+/* ── §72: Editorial breathing pauses injected every 4 products ───────── */
+const EDITORIAL_PAUSES = [
+  {
+    quote: "Each thread carries a quiet intention.",
+    sub:   "Woven for the woman who moves through the world with grace.",
+  },
+  {
+    quote: "Dressed in devotion.",
+    sub:   "Every piece begins with emotion — chosen slowly, felt deeply.",
+  },
+  {
+    quote: "The softest things endure.",
+    sub:   "ABDAN's curation begins with feeling, not with inventory.",
+  },
+];
+
 function renderProducts() {
   const filteredProducts = state.filter === "All"
     ? PRODUCTS
@@ -1511,62 +1536,73 @@ function renderProducts() {
   const wl = getWishlist();
 
   const paintCards = () => {
-    dom.productsGrid.innerHTML = filteredProducts
-      .map(
-        (product, index) => {
-          const saved = wl.has(product.id);
-          return `
-            <article class="product-card reveal" data-product-card="${product.id}">
-              <div class="product-card__media">
-                <img src="${product.image}" alt="${product.name}" loading="lazy" />
-                <div class="product-card__overlay"></div>
-                <span class="product-card__badge">${product.primaryTag}</span>
-                <span class="product-card__index">${String(index + 1).padStart(2, "0")}</span>
+    /* ── Build cinematic scene cards with editorial pause injections ── */
+    const cardHtmls = filteredProducts.map((product, index) => {
+      const saved      = wl.has(product.id);
+      const ctaLabel   = CTA_LABELS[index % CTA_LABELS.length];
+      const verse      = buildEditorialExcerpt(product);
+      const numeral    = String(index + 1).padStart(2, "0");
+      const savedLabel = saved ? "Remove from wishlist" : "Save to wishlist";
+
+      return `
+        <article class="product-card reveal" data-product-card="${product.id}">
+          <div class="product-card__media">
+            <img src="${product.image}" alt="${product.name}" loading="lazy" />
+            <div class="product-card__atmos" aria-hidden="true"></div>
+
+            <!-- Corner cluster: save heart + index numeral -->
+            <div class="product-card__corner-cluster">
+              <button class="product-card__save${saved ? " is-saved" : ""}"
+                      type="button"
+                      data-wishlist="${product.id}"
+                      aria-label="${savedLabel}">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </button>
+              <span class="product-card__index" aria-hidden="true">${numeral}</span>
+            </div>
+
+            <!-- Story layer: floats over cinematic gradient -->
+            <div class="product-card__story">
+              <span class="product-card__emotion-chip">${product.primaryTag}</span>
+              <h3 class="product-card__title">${product.name}</h3>
+              <p class="product-card__verse">${verse}</p>
+              <div class="product-card__quiet-row">
+                <span class="product-card__price-soft">${product.priceLabel}</span>
+                <button class="product-card__cta" type="button" data-preview="${product.id}">
+                  ${ctaLabel}
+                  <svg viewBox="0 0 24 24" aria-hidden="true" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                </button>
               </div>
-              <div class="product-card__content">
-                <h3 class="product-card__title">${product.name}</h3>
-                <p class="product-card__description">${buildEditorialExcerpt(product)}</p>
-                <div class="product-card__stats">
-                  <div class="product-card__stat">
-                    <span class="product-card__stat-value">${product.priceLabel}</span>
-                    <span class="product-card__stat-label">Price</span>
-                  </div>
-                  <div class="product-card__stat-sep" aria-hidden="true"></div>
-                  <div class="product-card__stat">
-                    <span class="product-card__stat-value">${product.secondaryTags.emotion}</span>
-                    <span class="product-card__stat-label">Feel</span>
-                  </div>
-                  <div class="product-card__stat-sep" aria-hidden="true"></div>
-                  <div class="product-card__stat">
-                    <span class="product-card__stat-value">${product.secondaryTags.style}</span>
-                    <span class="product-card__stat-label">Style</span>
-                  </div>
-                </div>
-                <div class="product-card__footer">
-                  <button class="product-card__cta" type="button" data-preview="${product.id}">
-                    <svg viewBox="0 0 24 24" aria-hidden="true" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                    Discover More
-                  </button>
-                  <button class="product-card__save${saved ? " is-saved" : ""}"
-                          type="button"
-                          data-wishlist="${product.id}"
-                          aria-label="${saved ? "Remove from wishlist" : "Save to wishlist"}">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </article>
-          `;
-        },
-      )
-      .join("");
+            </div>
+          </div>
+        </article>
+      `;
+    });
+
+    /* Inject editorial pause after every 4th card (not at end) */
+    const gridParts = [];
+    cardHtmls.forEach((html, i) => {
+      gridParts.push(html);
+      if ((i + 1) % 4 === 0 && i < cardHtmls.length - 1) {
+        const pause = EDITORIAL_PAUSES[Math.floor(i / 4) % EDITORIAL_PAUSES.length];
+        gridParts.push(`
+          <div class="product-pause-card" aria-hidden="true">
+            <p class="pause-quote">${pause.quote}</p>
+            <p class="pause-sub">${pause.sub}</p>
+          </div>
+        `);
+      }
+    });
+    dom.productsGrid.innerHTML = gridParts.join("");
 
     /* Reset carousel — filter changes always start from card 1 */
     dom.productsGrid.scrollLeft = 0;
 
-    /* Stagger reveal delays + image fade-in */
+    /* Stagger reveal delays + cinematic image load */
     dom.productsGrid.querySelectorAll(".product-card").forEach((card, i) => {
       card.style.setProperty("--reveal-delay", `${Math.min(i * 40, 200)}ms`);
     });
