@@ -18378,14 +18378,15 @@ html[data-theme="dark"] .bottom-dock {
    Viewport meta fix is in index.html (maximum-scale=1 added).
    ════════════════════════════════════════════════════════════════════════ */
 
-/* §69a — HTML/body dual containment
-   Belt: body overflow-x:hidden (already in base CSS, line 211).
-   Suspenders: html overflow-x:hidden — Safari uses the html element for
-   rubber-band scrolling. Without this, overscroll-bounce can briefly
-   expose horizontal overflow even when body clips it.                   */
+/* §69a — HTML/body containment
+   CRITICAL: overflow-x:hidden must NOT be set on html. Setting it on html
+   removes html as the scroll root, killing touch scroll (mobile) and wheel
+   scroll (desktop) entirely. Only body gets overflow-x:hidden — body clips
+   horizontal paint bleed without displacing the scroll container.
+   max-width:100% on both elements prevents any intrinsic width overshoot.  */
 html {
-  overflow-x: hidden !important;
-  max-width:  100%   !important;
+  max-width: 100% !important;
+  /* NO overflow-x:hidden here — would break scrolling */
 }
 
 body {
@@ -18441,9 +18442,11 @@ body {
 }
 
 /* §69f — Safari iOS overscroll stabilization
-   overscroll-behavior:none on html prevents rubber-band bounce from
-   briefly revealing horizontal overflow during gesture physics.         */
-html {
+   overscroll-behavior-x:none on BODY (not html) prevents horizontal
+   rubber-band bounce from briefly revealing overflow during gesture physics.
+   Setting this on html would also suppress vertical scroll bounce which
+   users expect — body-scoped version is safe.                             */
+body {
   overscroll-behavior-x: none !important;
 }
 
