@@ -17511,3 +17511,270 @@ html[data-theme="dark"] .site-header.is-scrolled .orb-button {
     -webkit-backdrop-filter: saturate(160%) blur(20px) !important;
   }
 }
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   §66. MOBILE ADAPTIVE ARCHITECTURE — PURPOSE-BUILT FOR PHONE
+   ──────────────────────────────────────────────────────────────────────
+   Every section redesigned for phone, not shrunk from desktop.
+   Philosophy: native app spatial logic · editorial typography · cinematic
+   portrait framing · luxury compactness without compression.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── §66a. CONTAINER — ADAPTIVE HORIZONTAL BREATHING ────────────────────
+   Previous: 0.7rem/side on ≤720px (too tight against phone bezels).
+   Fixed: 1.25rem/side matches comfortable phone grip posture.
+   Scales gracefully down to very small phones.                         */
+@media (max-width: 767px) {
+  .container { width: min(calc(100% - 2.5rem),  var(--container)) !important; }
+  .site-header { width: calc(100% - 2.5rem) !important; }
+}
+@media (max-width: 430px) {
+  .container { width: min(calc(100% - 2.25rem), var(--container)) !important; }
+  .site-header { width: calc(100% - 2.25rem) !important; }
+}
+@media (max-width: 390px) {
+  .container { width: min(calc(100% - 2rem),    var(--container)) !important; }
+  .site-header { width: calc(100% - 2rem) !important; }
+}
+@media (max-width: 360px) {
+  .container { width: min(calc(100% - 1.75rem), var(--container)) !important; }
+  .site-header { width: calc(100% - 1.75rem) !important; }
+}
+
+/* ── §66b. GLOBAL OVERFLOW PREVENTION ───────────────────────────────────
+   Belt-and-suspenders: belt (body overflow-x:hidden) is already set.
+   These suspenders prevent deep-nested elements from painting outside
+   the viewport and triggering horizontal scroll on specific sections.  */
+@media (max-width: 767px) {
+  .hero-section,
+  .section-frame,
+  .editorial-campaign__inner,
+  .story-section > .container,
+  .testimonial-section > .container {
+    max-width: 100%;
+  }
+  img { max-width: 100%; }
+}
+
+/* ── §66c. HERO SECTION — REMOVE COMPOUNDING DEAD SPACE ─────────────────
+   Root cause: .luxury-shell padding-top: 5.5rem (§720 rule)
+   STACKS ON TOP OF .hero-section padding-top: 7rem (§34m rule).
+   Together = 12.5rem (200px) before hero h1. Header is only ~4.6rem.
+   Result: ~8rem (128px) of dead space below the header.
+
+   Fix: shell padding is the ONLY header clearance. Hero section gets a
+   minimal visual breath — not a second full clearance zone.            */
+@media (max-width: 767px) {
+  .luxury-shell {
+    padding-top: 5rem !important;
+  }
+
+  .hero-section {
+    min-height:     96svh   !important;
+    padding-top:    1rem    !important;
+    padding-bottom: 2.5rem  !important;
+  }
+}
+
+/* ── §66d. HERO TYPOGRAPHY — EDITORIAL MOBILE SCALE ─────────────────────
+   Current: clamp(2.75rem, 11vw, 3.75rem) — on 390px phone floors at
+   2.75rem (44px). Reads as billboard, not editorial headline.
+   Fix: fluid scale that feels premium magazine, not large-format signage.*/
+@media (max-width: 767px) {
+  .hero-copy h1 {
+    font-size:      clamp(2.0rem, 9.5vw, 3.0rem) !important;
+    line-height:    1.1      !important;
+    letter-spacing: -0.025em !important;
+    max-width:      13ch     !important;
+    margin-bottom:  1rem     !important;
+  }
+
+  .hero-copy .hero-body,
+  .hero-copy > p {
+    font-size:   0.9375rem !important;
+    line-height: 1.72      !important;
+    max-width:   36ch      !important;
+  }
+}
+
+/* ── §66e. HERO IMAGE — PORTRAIT CINEMATIC CROP ─────────────────────────
+   Current at ≤720px: aspect-ratio: 1.2 (landscape) for the hero visual.
+   Fashion photography is portrait. Landscape crop on a 390px phone reads
+   as a thumbnail. Fix: true 4:5 portrait ratio for editorial presence.  */
+@media (max-width: 767px) {
+  .visual-card--image img {
+    aspect-ratio:    4 / 5 !important;
+    object-fit:      cover !important;
+    object-position: center top !important;
+  }
+
+  .hero-visual .visual-card--image {
+    border-radius: var(--radius-lg) !important;
+  }
+}
+
+/* ── §66f. SECTION FRAME — LUXURY COMPACT RHYTHM ────────────────────────
+   Current §34m: clamp(4rem, 7.5vh, 6.5rem) — on 844px phone always 4rem
+   (64px) per section. On a phone this is large-format spacing, not
+   editorial rhythm. Fix: compress to purposeful luxury pacing.          */
+@media (max-width: 767px) {
+  .section-frame {
+    padding-top: clamp(2.4rem, 5vh, 3.75rem) !important;
+  }
+
+  .editorial-campaign.section-frame {
+    padding-top: clamp(2.6rem, 5.5vh, 4rem) !important;
+  }
+}
+
+/* ── §66g. EDITORIAL CAMPAIGN — MOBILE-FIRST TYPOGRAPHY + IMAGE ─────────
+   Headline floor at 2.1rem (33.6px) dominates the mobile screen.
+   Image uses 4:3 landscape ratio at <899px — wrong for fashion editorial.
+   Fix: recalibrated mobile headline scale + portrait image.             */
+@media (max-width: 767px) {
+  .editorial-campaign__headline {
+    font-size:      clamp(1.55rem, 6.5vw, 2.5rem) !important;
+    line-height:    1.12    !important;
+    margin-bottom:  0.85rem !important;
+  }
+
+  .editorial-campaign__body {
+    font-size:     0.9375rem !important;
+    line-height:   1.72      !important;
+    max-width:     none      !important;
+    margin-bottom: 1.25rem   !important;
+  }
+
+  .editorial-campaign__inner {
+    gap: 1.5rem !important;
+  }
+
+  /* Portrait editorial frame — fashion is inherently portrait */
+  .editorial-campaign__frame {
+    aspect-ratio:  3 / 4 !important;
+    max-height:    70svh !important;
+    border-radius: var(--radius-lg) !important;
+  }
+}
+
+/* ── §66h. PROMISE BAND — INTIMATE EDITORIAL CALIBRATION ────────────────
+   Blockquote floors at 2rem (32px) on mobile — strong but too dominant.
+   Fix: more intimate editorial presence; still carries emotional weight. */
+@media (max-width: 767px) {
+  .promise-band__inner blockquote {
+    font-size:   clamp(1.35rem, 6.5vw, 2.2rem) !important;
+    line-height: 1.28 !important;
+  }
+
+  .promise-band__inner {
+    padding: clamp(2rem, 5.5vw, 3rem) clamp(1.25rem, 5vw, 1.75rem) !important;
+  }
+}
+
+/* ── §66i. PRODUCT CAROUSEL — GEOMETRY REBASE ───────────────────────────
+   Carousel used margin-inline: -0.7rem to break out of the old 0.7rem
+   container. New container is 1.25rem/side. Rebased to match exactly so
+   the carousel achieves true edge-to-edge bleed without a left gap.    */
+@media (max-width: 767px) {
+  .products-grid {
+    margin-inline:               -1.25rem !important;
+    scroll-padding-inline-start:  1.25rem !important;
+    padding-left:                 1.25rem !important;
+    padding-right:                1.25rem !important;
+  }
+}
+@media (max-width: 430px) {
+  .products-grid {
+    margin-inline:               -1.125rem !important;
+    scroll-padding-inline-start:  1.125rem !important;
+    padding-left:                 1.125rem !important;
+    padding-right:                1.125rem !important;
+  }
+}
+@media (max-width: 390px) {
+  .products-grid {
+    margin-inline:               -1rem !important;
+    scroll-padding-inline-start:  1rem !important;
+    padding-left:                 1rem !important;
+    padding-right:                1rem !important;
+  }
+}
+@media (max-width: 360px) {
+  .products-grid {
+    margin-inline:               -0.875rem !important;
+    scroll-padding-inline-start:  0.875rem !important;
+    padding-left:                 0.875rem !important;
+    padding-right:                0.875rem !important;
+  }
+}
+
+/* ── §66j. SECTION HEADING — MOBILE SPACING CALIBRATION ─────────────────
+   Current floor is 2.8rem on mobile. Tighten for purposeful rhythm.    */
+@media (max-width: 767px) {
+  .section-heading {
+    margin-bottom: clamp(1.5rem, 3.5vh, 2.4rem) !important;
+  }
+
+  .collection-section .section-heading {
+    margin-bottom: clamp(1.25rem, 3vh, 2rem) !important;
+  }
+}
+
+/* ── §66k. TRUST RAIL — COMPACT MOBILE ITEMS ────────────────────────────
+   Trust items slightly smaller — same signal, less visual weight.       */
+@media (max-width: 767px) {
+  .trust-rail__inner span {
+    min-width:      7.5rem !important;
+    padding:        0.8rem !important;
+    font-size:      0.62rem !important;
+    letter-spacing: 0.18em !important;
+  }
+}
+
+/* ── §66l. EDITORIAL PANEL — MOBILE INNER PADDING ───────────────────────
+   Rebalance inner card padding for luxury breathing on mobile.          */
+@media (max-width: 767px) {
+  .editorial-panel {
+    padding: 1.35rem !important;
+  }
+}
+
+/* ── §66m. LANDSCAPE MOBILE — SHORT VIEWPORT ADAPTATION ─────────────────
+   Phones turned sideways: hero must fit, minimal vertical waste.
+   Overrides the portrait adjustments above for landscape context.       */
+@media (max-width: 767px) and (orientation: landscape) {
+  .luxury-shell {
+    padding-top: 4.5rem !important;
+  }
+
+  .hero-section {
+    min-height:     100dvh !important;
+    padding-top:    4.5rem !important;
+    padding-bottom: 1.5rem !important;
+  }
+
+  .hero-copy h1 {
+    font-size: clamp(1.65rem, 5.5vw, 2.4rem) !important;
+  }
+
+  .section-frame {
+    padding-top: 1.75rem !important;
+  }
+}
+
+/* ── §66n. SCROLL MOMENTUM — NATIVE IOS PHYSICS ─────────────────────────
+   All horizontally scrollable containers carry native momentum physics. */
+@media (max-width: 767px) {
+  .products-grid,
+  .filter-row,
+  .trust-rail__inner {
+    -webkit-overflow-scrolling: touch   !important;
+    overscroll-behavior-x:      contain !important;
+  }
+}
+
+/* ── §66o. REDUCED MOTION GUARD ─────────────────────────────────────────*/
+@media (prefers-reduced-motion: reduce) {
+  .hero-section { transition: none !important; }
+}
