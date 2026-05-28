@@ -811,29 +811,37 @@ function safeCreateIcons() {
 function setTheme(theme) {
   state.theme = theme;
 
-  /* ── §38 Cinematic atmospheric drape — ambient lighting sweep ──────────
-     A radial-gradient overlay fades in briefly as the theme token changes,
-     then recedes. The effect mimics ambient light shifting inside a luxury
-     space — not an animation, a change of atmosphere.                      */
+  /* ── §77 Directional cinematic transitions ──────────────────────────────
+     "Midnight Silk" (→ dark): deep emerald-black diagonal veil drifts across
+     the viewport, ~700 ms — like heavy silk drawn slowly over the light.
+     "Ivory Shawl"   (→ light): warm ivory radial bloom from upper-centre,
+     ~530 ms — like dawn through fine muslin. Both GPU-composited.
+     Toggle glyph swap is handled entirely by CSS (§77c) — no Lucide update
+     needed. safeCreateIcons() still runs for all other page icons.          */
+  const isMidnightSilk = (theme === "dark");
+  const drapeVariant   = isMidnightSilk ? "theme-drape--midnight-silk"
+                                        : "theme-drape--ivory-shawl";
+  const switchDelay    = isMidnightSilk ? 300 : 210;
+  const fadeOutDur     = isMidnightSilk ? 400 : 320;
+
   const drape = document.createElement("div");
-  drape.className = "theme-drape";
+  drape.className = `theme-drape ${drapeVariant}`;
   document.body.appendChild(drape);
 
   requestAnimationFrame(() => {
     drape.classList.add("theme-drape--sweep");
 
-    /* Switch theme tokens at the sweep's luminance peak (180ms in) */
+    /* Switch theme tokens at the sweep's luminance peak */
     setTimeout(() => {
       dom.html.setAttribute("data-theme", theme);
       localStorage.setItem("abdan-theme", theme);
-      const icon = dom.themeToggle?.querySelector("i");
-      if (icon) icon.setAttribute("data-lucide", theme === "dark" ? "sun" : "moon");
-      safeCreateIcons();
+      safeCreateIcons(); /* refresh other Lucide icons on the page */
 
-      /* Recede — leave only the new atmosphere */
+      /* Recede — override transition for the fade-out pace */
       drape.classList.remove("theme-drape--sweep");
-      setTimeout(() => drape.remove(), 340);
-    }, 180);
+      drape.style.transition = `opacity ${fadeOutDur}ms ease-in`;
+      setTimeout(() => drape.remove(), fadeOutDur + 40);
+    }, switchDelay);
   });
 }
 
