@@ -1004,6 +1004,8 @@ const SP_TAGS_KEY      = "abdan-sp-tags";
 const SP_LOYALTY_KEY   = "abdan-sp-loyalty";
 const SP_CONCIERGE_KEY = "abdan-sp-concierge";
 const SP_LOOKBOOK_KEY  = "abdan-sp-lookbook";
+const SP_JOURNAL_KEY   = "abdan-sp-journal";   /* §80 */
+const SP_THEME_KEY     = "abdan-sp-theme";     /* §80 */
 
 const SP_STYLE_IDENTITIES = [
   "Quiet Gold", "Temple Elegance", "Soft Minimal", "Monsoon Silk",
@@ -1028,6 +1030,44 @@ const SP_BADGE_DEFS = [
     desc: "Defined a personal style identity" },
   { id: "devotion-edit",   label: "Devotion Edit",    icon: "◇",
     desc: "Full profile completed with care" },
+];
+
+/* §80 — Style Journal data */
+const SP_JOURNAL_MOODS = [
+  { sym: "◇", label: "Calm"        },
+  { sym: "✦", label: "Inspired"    },
+  { sym: "♡", label: "Loved"       },
+  { sym: "◈", label: "Thoughtful"  },
+  { sym: "✧", label: "Joyful"      },
+];
+const SP_JOURNAL_OCCASIONS = [
+  "Festive", "Wedding", "Everyday", "Gifting", "Travel", "Just Because",
+];
+
+/* §80 — Profile themes (unlocked by loyalty pts) */
+const SP_THEME_DEFS = [
+  { id: "",              name: "Classic",       minPts: 0,   unlock: "",
+    swatch: "linear-gradient(135deg,rgba(250,248,242,1),rgba(220,210,190,1))" },
+  { id: "temple-gold",   name: "Temple Gold",   minPts: 50,  unlock: "Devoted Collector",
+    swatch: "linear-gradient(135deg,rgba(210,178,110,1),rgba(183,150,72,1))" },
+  { id: "ivory-calm",    name: "Ivory Calm",    minPts: 50,  unlock: "Devoted Collector",
+    swatch: "linear-gradient(135deg,rgba(255,252,240,1),rgba(235,222,200,1))" },
+  { id: "emerald-night", name: "Emerald Night", minPts: 150, unlock: "Inner Circle",
+    swatch: "linear-gradient(135deg,rgba(2,61,58,1),rgba(0,78,65,1))" },
+  { id: "quiet-rose",    name: "Quiet Rose",    minPts: 150, unlock: "Inner Circle",
+    swatch: "linear-gradient(135deg,rgba(200,162,152,1),rgba(178,128,128,1))" },
+  { id: "monsoon-silk",  name: "Monsoon Silk",  minPts: 300, unlock: "House of ABDAN",
+    swatch: "linear-gradient(135deg,rgba(88,98,138,1),rgba(68,78,118,1))" },
+];
+
+/* §80 — Inner Circle editorial cards */
+const SP_IC_CARDS = [
+  { label: "Members Only",    title: "Early Preview — The Monsoon Edit",
+    body:  "A quiet glimpse into the next collection, before it opens to the world.", minPts: 150, unlock: "Inner Circle" },
+  { label: "Private Resource", title: "Draping Guide — Summer Silk",
+    body:  "Six silhouettes, thoughtfully illustrated. Reserved for our devoted collectors.", minPts: 150, unlock: "Inner Circle" },
+  { label: "From the Founder", title: "A Handwritten Note from ABDAN",
+    body:  "Personal. Quiet. A message written only for those who truly belong to the house.", minPts: 300, unlock: "House of ABDAN" },
 ];
 
 /* §78 — per-email localStorage helpers */
@@ -1068,6 +1108,12 @@ function spAddMsg(email, msg)  {
 }
 function spGetLookbook(email)  { return spGet(email, SP_LOOKBOOK_KEY) || []; }
 function spSaveLookbook(email, items) { spSet(email, SP_LOOKBOOK_KEY, items); }
+
+/* §80 — Journal + theme helpers */
+function spGetJournal(email)           { return spGet(email, SP_JOURNAL_KEY) || []; }
+function spSaveJournal(email, entries) { spSet(email, SP_JOURNAL_KEY, entries); }
+function spGetTheme(email)             { return spGet(email, SP_THEME_KEY) || ""; }
+function spSetTheme(email, theme)      { spSet(email, SP_THEME_KEY, theme); }
 
 function getSpaceProfiles() {
   try { return JSON.parse(localStorage.getItem(SPACE_STORAGE_KEY) || "{}"); }
@@ -1312,7 +1358,13 @@ function showSpaceDashboard(profile, isNew = false) {
   renderSpaceOverview(profile);
   renderSpaceLookbook(email);
   renderSpaceConcierge(email);
+  renderSpaceJournal(email);               /* §80 */
   updateSavedPiecesCount();
+
+  /* §80 — Apply saved profile theme to dashboard shell */
+  const savedTheme80 = spGetTheme(email);
+  const dashEl80 = document.getElementById("spaceDashboard");
+  if (dashEl80) dashEl80.dataset.spTheme = savedTheme80 || "";
 
   /* Reset to overview tab on entry */
   showSpaceTab("overview");
@@ -1387,9 +1439,27 @@ async function handleSpaceCreate(event) {
 }
 
 function handleSpaceSignout() {
-  clearSpaceSession();
-  showSpaceView("spaceEntry");
-  showToast("Your space will be here when you return. 💛");
+  /* §80 — Cinematic farewell veil before sign-out */
+  const veil = document.createElement("div");
+  veil.className = "sp-farewell-veil";
+  veil.innerHTML = `
+    <span class="sp-farewell-veil__icon">◇</span>
+    <p class="sp-farewell-veil__title">Resting for now</p>
+    <p class="sp-farewell-veil__body">Your space is safe, quietly waiting for your return. 💛</p>
+  `;
+  document.body.appendChild(veil);
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    veil.classList.add("is-visible");
+  }));
+  setTimeout(() => {
+    clearSpaceSession();
+    const dashEl = document.getElementById("spaceDashboard");
+    if (dashEl) dashEl.dataset.spTheme = "";
+    showSpaceView("spaceEntry");
+    showToast("Your space will be here when you return. 💛");
+    veil.classList.remove("is-visible");
+    setTimeout(() => veil.remove(), 420);
+  }, 1500);
 }
 
 /* ── Space tab navigation ────────────────────────────────────────────
@@ -1404,6 +1474,7 @@ function showSpaceTab(tabId) {
     profile:   "spaceTabProfile",
     lookbook:  "spaceTabLookbook",
     concierge: "spaceTabConcierge",
+    journal:   "spaceTabJournal",   /* §80 */
   };
   document.querySelectorAll("[data-space-tab]").forEach((t) => {
     t.classList.toggle("is-active", t.dataset.spaceTab === tabId);
