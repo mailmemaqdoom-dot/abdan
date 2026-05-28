@@ -6,7 +6,7 @@
 
 'use strict';
 
-const CACHE_VERSION = 'abdan-shell-v1';
+const CACHE_VERSION = 'abdan-shell-v6';
 
 /* Core UI shell — cached on install for instant offline presence */
 const SHELL_ASSETS = [
