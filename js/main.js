@@ -1627,6 +1627,21 @@ function renderSpaceProfile(email) {
     `<button class="sp-tag${tags.includes(t) ? " is-selected" : ""}" type="button" data-tag="${t}">${t}</button>`
   ).join("");
 
+  /* §80 — Profile theme cards */
+  const pts80        = spGetLoyalty(email);
+  const currentTheme80 = spGetTheme(email) || "";
+  const themeCards80 = SP_THEME_DEFS.map(th => {
+    const locked   = pts80 < th.minPts;
+    const selected = th.id === currentTheme80;
+    return `
+      <button class="sp-theme-card${locked ? " is-locked" : ""}${selected ? " is-selected" : ""}"
+              type="button" data-theme-id="${th.id}"${locked ? " disabled" : ""}>
+        <div class="sp-theme-swatch" style="background:${th.swatch}"></div>
+        <p class="sp-theme-card__name">${th.name}</p>
+        ${locked ? `<p class="sp-theme-card__unlock">${th.unlock}</p>` : ""}
+      </button>`;
+  }).join("");
+
   panel.innerHTML = `
     <!-- §78 Profile hero: cover + avatar -->
     <div class="sp-profile-hero">
@@ -1671,6 +1686,13 @@ function renderSpaceProfile(email) {
       <p class="sp-tags-section__title">Your aesthetic moods</p>
       <p class="sp-tags-section__sub">Select everything that resonates. There are no wrong choices.</p>
       <div class="sp-tag-row" id="spTagRow">${tagChips}</div>
+    </div>
+
+    <!-- §80 Profile themes -->
+    <div class="sp-theme-section" id="spThemeSection">
+      <p class="sp-theme-section__title">Your Space atmosphere</p>
+      <p class="sp-theme-section__sub">Choose a tone that feels like yours. Themes unlock as your devotion deepens.</p>
+      <div class="sp-theme-grid" id="spThemeGrid">${themeCards80}</div>
     </div>
 
     <!-- Edit details -->
@@ -1772,6 +1794,21 @@ function renderSpaceProfile(email) {
     btn.classList.toggle("is-selected", cur.includes(tag));
   });
 
+  /* §80 — Profile theme selection */
+  document.getElementById("spThemeGrid")?.addEventListener("click", (e) => {
+    const card = e.target.closest("[data-theme-id]");
+    if (!card || card.disabled) return;
+    const themeId = card.dataset.themeId;
+    spSetTheme(email, themeId);
+    const dashEl = document.getElementById("spaceDashboard");
+    if (dashEl) dashEl.dataset.spTheme = themeId;
+    document.querySelectorAll(".sp-theme-card").forEach(c => {
+      c.classList.toggle("is-selected", c.dataset.themeId === themeId);
+    });
+    const themeName = SP_THEME_DEFS.find(t => t.id === themeId)?.name || "Classic";
+    showToast(`${themeName} — atmosphere applied 💛`);
+  });
+
   /* Toggle edit form visibility */
   document.getElementById("spaceEditToggle")?.addEventListener("click", () => {
     const form   = document.getElementById("spaceProfileForm");
@@ -1869,6 +1906,18 @@ function renderSpaceOverview(profile) {
 
   const affinityMood = getAffinityMood();
 
+  /* §80 — Inner Circle editorial cards */
+  const icCardsHtml80 = SP_IC_CARDS.map(card => {
+    const unlocked = pts >= card.minPts;
+    return `
+      <div class="sp-ic-card ${unlocked ? "sp-ic-card--unlocked" : "sp-ic-card--locked"}">
+        <p class="sp-ic-card__label">${card.label}</p>
+        <p class="sp-ic-card__title">${card.title}</p>
+        <p class="sp-ic-card__body">${card.body}</p>
+        ${!unlocked ? `<span class="sp-ic-card__lock">Unlock at ${card.unlock}</span>` : ""}
+      </div>`;
+  }).join("");
+
   panel.innerHTML = `
     <div class="sp-home">
 
@@ -1936,6 +1985,12 @@ function renderSpaceOverview(profile) {
             </button>
           </div>
         </div>` : ""}
+
+      <!-- §80 Inner Circle -->
+      <div class="sp-ic-section">
+        <p class="sp-ic-section__kicker">The Inner Circle</p>
+        <div class="sp-ic-cards">${icCardsHtml80}</div>
+      </div>
 
       <div class="space-browse-cta">
         <p class="space-browse-cta__text">The collection is waiting, curated with care.</p>
@@ -2104,6 +2159,16 @@ function renderSpaceConcierge(email) {
 
       <div class="sp-msg-thread" id="spMsgThread">${threadHtml}</div>
 
+      <div class="sp-occ-row" id="spConciergeOccRow">
+        <span class="sp-occ-row__label">Quick starts</span>
+        <button class="sp-occ-chip" type="button" data-cocc="Festive occasion — I'm looking for styling guidance for a festive occasion.">Festive occasion</button>
+        <button class="sp-occ-chip" type="button" data-cocc="Wedding styling — I'm attending a wedding and would love your guidance on the perfect saree.">Wedding styling</button>
+        <button class="sp-occ-chip" type="button" data-cocc="Everyday grace — I'm looking for something beautiful I can wear every day.">Everyday grace</button>
+        <button class="sp-occ-chip" type="button" data-cocc="A gift for someone special — Could you help me choose a thoughtful piece?">A gift</button>
+        <button class="sp-occ-chip" type="button" data-cocc="I'm interested in a custom piece. Could you tell me more about your bespoke process?">Custom piece</button>
+        <button class="sp-occ-chip" type="button" data-cocc="I'd love guidance on fabric — what would you recommend for">Fabric guidance</button>
+      </div>
+
       <div class="sp-compose" id="spCompose">
         <div class="sp-compose__img-preview" id="spComposeImgPrev"></div>
         <textarea class="sp-compose__textarea"
@@ -2175,6 +2240,18 @@ function renderSpaceConcierge(email) {
     /* Re-render thread */
     renderSpaceConcierge(email);
     showToast("Your message is ready — sent via WhatsApp 💛");
+  });
+
+  /* §80 — Occasion quick-start chips pre-fill the compose textarea */
+  document.getElementById("spConciergeOccRow")?.addEventListener("click", (e) => {
+    const chip = e.target.closest("[data-cocc]");
+    if (!chip) return;
+    const ta = document.getElementById("spComposeText");
+    if (ta) {
+      ta.value = chip.dataset.cocc;
+      ta.focus();
+      ta.setSelectionRange(ta.value.length, ta.value.length);
+    }
   });
 }
 
