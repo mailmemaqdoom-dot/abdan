@@ -21288,3 +21288,176 @@ html[data-theme="dark"] .sp-bio-textarea {
   .sp-style-card:hover { transform: none !important; }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   §79 — Emotionally Assisted Luxury Commerce
+   ───────────────────────────────────────────────────────────────────────────
+   Additive refinement pass: inquiry-first product CTA, post-checkout journey
+   storytelling, order emotional notes, delivered moment celebration.
+   All changes are purely additive. Zero existing selectors modified.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* §79a — Product sheet inquiry link ─────────────────────────────────────── */
+.product-sheet__inquiry {
+  padding: 0.6rem 1.25rem 1rem;
+  text-align: center;
+  border-top: 1px solid rgba(183,155,114,0.10);
+}
+.product-sheet__ask {
+  display: inline-block;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  text-decoration: none;
+  padding: 0.3rem 0.6rem;
+  border-radius: 100px;
+  transition: color 180ms ease, background 180ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.product-sheet__ask::before {
+  content: '✦ ';
+  font-size: 0.65rem;
+  opacity: 0.65;
+}
+.product-sheet__ask:hover {
+  color: var(--text-main);
+  background: rgba(183,155,114,0.08);
+}
+html[data-theme="dark"] .product-sheet__inquiry {
+  border-color: rgba(183,155,114,0.10);
+}
+html[data-theme="dark"] .product-sheet__ask { color: rgba(230,220,200,0.42); }
+html[data-theme="dark"] .product-sheet__ask:hover {
+  color: rgba(230,220,200,0.75);
+  background: rgba(183,155,114,0.08);
+}
+
+/* §79b — Post-checkout: "Your journey with ABDAN" storytelling ──────────── */
+.cj-journey {
+  margin-top: 1.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+.cj-journey__heading {
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 0 0 1.1rem;
+}
+.cj-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.cj-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+}
+.cj-step__icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(183,155,114,0.10);
+  border: 1px solid rgba(183,155,114,0.20);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: var(--gold, rgba(183,155,114,1));
+  margin-top: 0.1rem;
+}
+.cj-step__title {
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0 0 0.18rem;
+  letter-spacing: 0.02em;
+}
+.cj-step__body {
+  font-size: 0.76rem;
+  color: var(--text-dim);
+  margin: 0;
+  line-height: 1.5;
+}
+html[data-theme="dark"] .cj-step__icon {
+  background: rgba(183,155,114,0.08);
+  border-color: rgba(183,155,114,0.16);
+}
+
+/* §79c — Order card emotional note ─────────────────────────────────────── */
+.space-journey-card__note {
+  font-size: 0.76rem;
+  color: var(--text-soft);
+  line-height: 1.55;
+  padding: 0.55rem 0.9rem;
+  margin: 0.6rem 0 0;
+  background: linear-gradient(135deg,
+    rgba(2,61,58,0.05) 0%,
+    rgba(183,155,114,0.04) 100%
+  );
+  border-left: 2px solid rgba(183,155,114,0.28);
+  border-radius: 0 0.5rem 0.5rem 0;
+  font-style: italic;
+}
+html[data-theme="dark"] .space-journey-card__note {
+  background: linear-gradient(135deg,
+    rgba(2,61,58,0.08) 0%,
+    rgba(183,155,114,0.04) 100%
+  );
+  border-color: rgba(183,155,114,0.22);
+  color: rgba(230,220,200,0.55);
+}
+
+/* §79d — Delivered moment celebration in Your Space home ────────────────── */
+.sp-delivered-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  padding: 1.1rem 1.4rem;
+  background: linear-gradient(135deg,
+    rgba(2,61,58,0.07) 0%,
+    rgba(183,155,114,0.06) 100%
+  );
+  border: 1px solid rgba(183,155,114,0.20);
+  border-radius: 1.1rem;
+}
+.sp-delivered-note__icon {
+  flex-shrink: 0;
+  font-size: 1.3rem;
+  opacity: 0.70;
+  line-height: 1;
+  margin-top: 0.1rem;
+}
+.sp-delivered-note__title {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0 0 0.25rem;
+}
+.sp-delivered-note__body {
+  font-size: 0.76rem;
+  color: var(--text-soft);
+  margin: 0;
+  line-height: 1.55;
+  font-style: italic;
+}
+html[data-theme="dark"] .sp-delivered-note {
+  background: linear-gradient(135deg,
+    rgba(2,61,58,0.10) 0%,
+    rgba(183,155,114,0.055) 100%
+  );
+  border-color: rgba(183,155,114,0.16);
+}
+
+/* §79e — Reduced-motion guards */
+@media (prefers-reduced-motion: reduce) {
+  .product-sheet__ask { transition: none !important; }
+}
+

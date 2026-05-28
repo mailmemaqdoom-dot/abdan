@@ -1234,6 +1234,13 @@ function renderSpaceOrders(phone) {
           <span class="space-journey-card__status" data-status="${order.status || "confirmed"}">${statusLabel[order.status] || "Carefully Reserved"}</span>
           <span class="space-journey-card__total">${formatCurrency(order.total || 0)}</span>
         </div>
+        ${(() => {
+          /* §79 — Emotional anticipation note for active state */
+          const stateObj = ORDER_STATES.find(s => s.key === (order.status || "confirmed"));
+          return stateObj?.note
+            ? `<p class="space-journey-card__note">${stateObj.note}</p>`
+            : "";
+        })()}
       </div>`;
   }).join("");
 
@@ -1763,6 +1770,18 @@ function renderSpaceOverview(profile) {
   const identity = spGet(email, SP_STYLE_KEY) || "";
   const wlSize   = getWishlist().size;
 
+  /* §79 — Delivered moment: warm celebration if any delivered orders */
+  let deliveredCount79 = 0;
+  try {
+    const fullProfile79 = getSpaceProfiles()[(email || "").toLowerCase()] || {};
+    const phone79       = (fullProfile79.phone || "").replace(/\D/g, "");
+    const allOrders79   = JSON.parse(localStorage.getItem("abdan-studio-orders") || "[]");
+    const myOrders79    = phone79
+      ? allOrders79.filter(o => String(o.customerPhone||"").replace(/\D/g,"") === phone79)
+      : [];
+    deliveredCount79 = myOrders79.filter(o => o.status === "delivered").length;
+  } catch { /* ignore */ }
+
   const avatarHtml = photo
     ? `<img src="${photo}" alt="" />`
     : `<span>${first.charAt(0).toUpperCase()}</span>`;
@@ -1803,6 +1822,15 @@ function renderSpaceOverview(profile) {
       </div>
 
       ${badgeHtml}
+
+      ${deliveredCount79 > 0 ? `
+      <div class="sp-delivered-note">
+        <span class="sp-delivered-note__icon">◇</span>
+        <div>
+          <p class="sp-delivered-note__title">Beautifully delivered</p>
+          <p class="sp-delivered-note__body">${deliveredCount79 === 1 ? "A piece" : `${deliveredCount79} pieces`} reached you. We hope each one feels as beautiful as the moment you chose it.</p>
+        </div>
+      </div>` : ""}
 
       <div class="sp-quick-grid">
         <button class="sp-quick-card" type="button" onclick="showSpaceTab('saved')">
@@ -2464,6 +2492,13 @@ function openProduct(productId) {
   dom.body.classList.add("is-locked");
   updateOverlayState();
   safeCreateIcons();
+
+  /* §79 — Enrich inquiry link + support pill with this product's context */
+  const askText79 = `I'm interested in the ${product.name}. Could you share more about availability, fabric, and sizing?`;
+  const askEncoded79 = encodeURIComponent(askText79);
+  const askLink79 = document.getElementById("productSheetAsk");
+  if (askLink79) askLink79.href = `https://wa.me/918760595307?text=${askEncoded79}`;
+  dom.supportPill?.setAttribute("href", `https://wa.me/918760595307?text=${askEncoded79}`);
 }
 
 function closeProduct() {
@@ -2473,6 +2508,8 @@ function closeProduct() {
     dom.body.classList.remove("is-locked");
   }
   updateOverlayState();
+  /* §79 — Restore support pill to default when product sheet closes */
+  dom.supportPill?.setAttribute("href", "https://wa.me/918760595307");
 }
 
 function renderCart() {
@@ -2575,6 +2612,32 @@ function showOrderSuccess(customerName, order) {
       <p class="cart-success__note">Opening WhatsApp so you can stay in touch with ABDAN directly. 💛</p>
       ${ref ? `<p class="cart-success__ref">Ref · ${ref}</p>` : ""}
       ${timeline}
+      <div class="cj-journey">
+        <p class="cj-journey__heading">Your journey with ABDAN</p>
+        <div class="cj-steps">
+          <div class="cj-step">
+            <span class="cj-step__icon">✦</span>
+            <div>
+              <p class="cj-step__title">Personal confirmation</p>
+              <p class="cj-step__body">ABDAN will reach out via WhatsApp to confirm your reservation and answer anything you'd like to know.</p>
+            </div>
+          </div>
+          <div class="cj-step">
+            <span class="cj-step__icon">◈</span>
+            <div>
+              <p class="cj-step__title">Thoughtfully prepared</p>
+              <p class="cj-step__body">Each piece is carefully verified and packed with quiet attention — the way it deserves to travel.</p>
+            </div>
+          </div>
+          <div class="cj-step">
+            <span class="cj-step__icon">◇</span>
+            <div>
+              <p class="cj-step__title">Delivered with care</p>
+              <p class="cj-step__body">Follow its journey in Your Space. A beautiful piece is making its way, gently and surely, to you.</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>`;
   dom.cartTotal.textContent = formatCurrency(0);
   dom.cartCount.textContent = "0";
