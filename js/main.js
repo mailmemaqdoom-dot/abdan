@@ -4293,3 +4293,49 @@ function initPWA() {
     document.startViewTransition(() => openProduct(productId));
   }, true /* capture — fires before bubble-phase listeners */);
 })();
+
+/* ── §74 Fabric-breathe stagger: prevent synchronised GPU spike ──────────
+   When all product cards share animation-delay: 0s, their scale keyframes
+   peak and valley in unison every 4.5 s — creating a periodic compositor
+   spike visible as a brief scroll stutter.
+   Assign each card a unique --fabric-delay so their cycles are spread
+   across the 9-second period. Called after renderProducts() paints cards. */
+function staggerFabricBreathe() {
+  /* Only applies on hover-capable (desktop) devices — mobile has anim: none */
+  if (window.matchMedia("(hover: none)").matches) return;
+
+  const cards = document.querySelectorAll(".product-card");
+  const period = 9; /* seconds — must match @keyframes fabric-breathe */
+
+  cards.forEach((card, i) => {
+    /* Distribute evenly: 0s, 9/n, 18/n … up to (n-1)*9/n */
+    const delay = ((i * period) / Math.max(cards.length, 1)).toFixed(2);
+    card.style.setProperty("--fabric-delay", `${delay}s`);
+  });
+}
+
+/* Hook into renderProducts so stagger runs every time the grid re-paints */
+(function patchRenderProductsForStagger() {
+  const _orig = window.renderProducts;
+  if (typeof _orig !== "function") {
+    /* renderProducts not yet on window — wait for DOMContentLoaded */
+    document.addEventListener("DOMContentLoaded", () => {
+      const orig = window.renderProducts;
+      if (typeof orig === "function") {
+        window.renderProducts = function (...args) {
+          const result = orig.apply(this, args);
+          requestAnimationFrame(staggerFabricBreathe);
+          return result;
+        };
+      }
+      /* Also stagger on first paint */
+      requestAnimationFrame(staggerFabricBreathe);
+    }, { once: true });
+    return;
+  }
+  window.renderProducts = function (...args) {
+    const result = _orig.apply(this, args);
+    requestAnimationFrame(staggerFabricBreathe);
+    return result;
+  };
+})();

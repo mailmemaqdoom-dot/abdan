@@ -19362,3 +19362,150 @@ html {
     animation: none !important;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   §74. INTERACTION PERFORMANCE ENGINE
+   Surgical GPU-budget optimisation for Apple-level touch responsiveness.
+   No visual redesign — pure compositing efficiency.
+   Strategy:
+     a) Opacity-only image reveal  (eliminates 8 simultaneous blur layers)
+     b) Fabric-breathe off on mobile (8 rAF-concurrent scale animations)
+     c) Backdrop-filter audit      (20px blur × 4 chrome elements → 10px)
+     d) Card-scene glass off mobile (solid rgba replaces backdrop-filter)
+     e) Fixed-element compositing  (backface-visibility: hidden)
+     f) contain + content-visibility on below-fold sections
+     g) Press state: transform-only (remove repainting shadow/border)
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* §74a — Image reveal: opacity-only (kills 8 GPU blur layers on page load)
+   The §72 blur-clear effect is beautiful but catastrophic on iOS Safari:
+   8 concurrent filter:blur() layers during initial paint = guaranteed jank.
+   Replace with a clean opacity fade — equally elegant, composited cheaply. */
+.product-card__media img {
+  filter:    none         !important;   /* no blur on initial state */
+  opacity:   0            !important;   /* invisible until loaded   */
+  transform: scale(1.0)   !important;   /* no scale on initial state */
+  transition:
+    opacity   600ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.product-card__media img.img-loaded {
+  opacity:   1    !important;
+  filter:    none !important;
+  transform: scale(1.0) !important;
+  transition:
+    opacity   600ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 700ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* §74b — Fabric breathe: DISABLE on mobile (hover:none) devices
+   8 concurrent CSS scale() keyframe animations on mobile GPU = scroll jank.
+   Touch devices don't benefit from the subtle drift — they interact directly.
+   Desktop hover-zoom already provides the "living" presence. */
+@media (hover: none) {
+  .product-card__media img.img-loaded {
+    animation: none !important;
+  }
+}
+
+/* §74c — Desktop fabric breathe: stagger via JS-set --fabric-delay
+   Each card gets a unique animation-delay so they don't all peak/valley
+   together (which would create a synchronized GPU spike every 4.5s).
+   JS writes --fabric-delay on each .product-card. */
+@media (hover: hover) {
+  .product-card__media img.img-loaded {
+    animation: fabric-breathe 9s ease-in-out var(--fabric-delay, 0s) infinite;
+  }
+}
+
+/* §74d — Backdrop-filter audit: always-visible chrome elements
+   Current cascade winner (§65a) sets blur(20px) saturate(160%) !important
+   on .brand-pill, .orb-button, .support-pill — plus blur(20px) on .bottom-dock.
+   Reducing to blur(10px) and dropping saturate() saves significant GPU fill-rate
+   while still providing clear glass depth. Visually imperceptible difference. */
+.brand-pill,
+.orb-button,
+.support-pill,
+.bottom-dock {
+  backdrop-filter:         blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+/* §74e — Card-scene glass: remove backdrop-filter on mobile entirely
+   On mobile, .product-card__cta and .product-card__save each carry
+   backdrop-filter: blur(10-14px). With 2–4 cards visible at once that's
+   4–8 active backdrop-filter nodes during scroll. Replace with solid rgba. */
+@media (max-width: 900px) {
+  .product-card__cta {
+    backdrop-filter:         none !important;
+    -webkit-backdrop-filter: none !important;
+    background:              rgba(18, 40, 38, 0.72) !important;
+    border-color:            rgba(255, 253, 250, 0.18) !important;
+  }
+  .product-card__save {
+    backdrop-filter:         none !important;
+    -webkit-backdrop-filter: none !important;
+    background:              rgba(18, 40, 38, 0.65) !important;
+  }
+}
+
+/* §74f — Fixed-element compositing: backface-visibility: hidden
+   Forces iOS Safari to composite the header, dock, and support pill on their
+   own GPU layers unconditionally — prevents scroll-induced repaints and the
+   flickering / ghosting that appears when these overlap scrolling content.  */
+.site-header,
+.bottom-dock,
+.support-pill {
+  -webkit-backface-visibility: hidden;
+  backface-visibility:         hidden;
+}
+
+/* §74g — Product card: contain layout recalculations
+   contain: layout style isolates each card so browser doesn't re-flow the
+   whole grid when a card's inner state changes (hover, is-pressing, etc.).
+   Safe because card children are all absolutely or relatively positioned. */
+.product-card {
+  contain: layout style;
+}
+
+/* §74h — Below-fold sections: content-visibility: auto
+   Browser skips paint + layout for off-screen sections entirely.
+   Each section declares an intrinsic-size so scroll bar stays accurate. */
+.story-section {
+  content-visibility:        auto;
+  contain-intrinsic-block-size: 720px;
+}
+.circle-section {
+  content-visibility:        auto;
+  contain-intrinsic-block-size: 640px;
+}
+.teaser-section {
+  content-visibility:        auto;
+  contain-intrinsic-block-size: 580px;
+}
+.account-section {
+  content-visibility:        auto;
+  contain-intrinsic-block-size: 480px;
+}
+
+/* §74i — Press state: transform-only (no repainting properties)
+   The existing .is-pressing rule triggers box-shadow and border-color changes
+   on product cards (§39e dark-mode). Shadow transitions cause full compositing
+   layer uploads. Strip to transform-only so press feedback stays on the
+   fast path. */
+html[data-theme="dark"] .product-card.is-pressing {
+  box-shadow:   var(--shadow-xs)             !important;
+  border-color: rgba(183, 155, 114, 0.10)   !important;
+  /* ↑ pinned — prevents shadow repaint on press (values match rest state) */
+}
+
+/* §74j — Reduced-motion: collapse §74 additions cleanly */
+@media (prefers-reduced-motion: reduce) {
+  .product-card__media img,
+  .product-card__media img.img-loaded {
+    animation:  none          !important;
+    opacity:    1             !important;
+    filter:     none          !important;
+    transform:  scale(1.0)    !important;
+    transition: none          !important;
+  }
+}
