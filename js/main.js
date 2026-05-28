@@ -2178,6 +2178,119 @@ function renderSpaceConcierge(email) {
   });
 }
 
+/* ── §80 renderSpaceJournal ──────────────────────────────────────────────── */
+function renderSpaceJournal(email) {
+  const panel = document.getElementById("spaceJournalPanel");
+  if (!panel) return;
+
+  const entries = spGetJournal(email);
+
+  const entryHtml = entries.length
+    ? [...entries].reverse().map(e => {
+        const dateStr = e.createdAt
+          ? new Date(e.createdAt).toLocaleDateString("en-IN",
+              { day: "numeric", month: "short", year: "numeric" })
+          : "";
+        const safeText = (e.text || "")
+          .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        return `
+          <div class="sp-j-entry" data-entry-id="${e.id}">
+            <div class="sp-j-entry__head">
+              <span class="sp-j-entry__mood">${e.mood || "◇"}</span>
+              <span class="sp-j-entry__meta">${dateStr}</span>
+              ${e.occasion ? `<span class="sp-j-entry__occ">${e.occasion}</span>` : ""}
+            </div>
+            <p class="sp-j-entry__body">${safeText}</p>
+            <button class="sp-j-entry__del" type="button"
+                    data-del-entry="${e.id}" aria-label="Delete journal entry">✕</button>
+          </div>`;
+      }).join("")
+    : `<div class="sp-empty">
+        <div class="sp-empty__icon">✦</div>
+        <p class="sp-empty__title">A quiet place for your thoughts</p>
+        <p class="sp-empty__body">Write about a moment, a feeling, or a look that stayed with you.</p>
+      </div>`;
+
+  const moodBtns = SP_JOURNAL_MOODS.map((m, i) =>
+    `<button class="sp-j-mood-btn${i === 0 ? " is-selected" : ""}" type="button"
+             data-jmood="${m.sym}" title="${m.label}" aria-label="${m.label}">${m.sym}</button>`
+  ).join("");
+
+  const occChips = SP_JOURNAL_OCCASIONS.map(o =>
+    `<button class="sp-j-occ-chip" type="button" data-jocc="${o}">${o}</button>`
+  ).join("");
+
+  panel.innerHTML = `
+    <div class="sp-journal">
+      <div class="sp-journal-head">
+        <p class="sp-journal-head__kicker">Style Journal</p>
+        <h3 class="sp-journal-head__title">Your private fashion diary</h3>
+        <p class="sp-journal-head__sub">A quiet place to capture styling thoughts, outfit ideas, and fashion moments that matter only to you.</p>
+      </div>
+      <div class="sp-journal-compose" id="spJournalCompose">
+        <p class="sp-journal-compose__label">How are you feeling?</p>
+        <div class="sp-j-mood-row" id="spJournalMoodRow">${moodBtns}</div>
+        <p class="sp-journal-compose__label">Occasion</p>
+        <div class="sp-j-occ-row" id="spJournalOccRow">${occChips}</div>
+        <textarea class="sp-journal-textarea" id="spJournalText"
+                  placeholder="Write about a look you loved, a styling idea, or a moment to remember…"
+                  rows="3"></textarea>
+        <button type="button" class="sp-journal-save" id="spJournalSave">Save to journal</button>
+      </div>
+      <div class="sp-j-list" id="spJournalList">${entryHtml}</div>
+    </div>`;
+
+  let selectedMood = SP_JOURNAL_MOODS[0].sym;
+  document.getElementById("spJournalMoodRow")?.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-jmood]");
+    if (!btn) return;
+    selectedMood = btn.dataset.jmood;
+    document.querySelectorAll(".sp-j-mood-btn").forEach(b => {
+      b.classList.toggle("is-selected", b.dataset.jmood === selectedMood);
+    });
+  });
+
+  let selectedOcc = "";
+  document.getElementById("spJournalOccRow")?.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-jocc]");
+    if (!btn) return;
+    const occ = btn.dataset.jocc;
+    selectedOcc = selectedOcc === occ ? "" : occ;
+    document.querySelectorAll(".sp-j-occ-chip").forEach(b => {
+      b.classList.toggle("is-selected", b.dataset.jocc === selectedOcc);
+    });
+  });
+
+  document.getElementById("spJournalSave")?.addEventListener("click", () => {
+    const ta   = document.getElementById("spJournalText");
+    const text = ta?.value?.trim() || "";
+    if (!text) { showToast("Write a little something first 💛"); return; }
+    const entry = {
+      id:        Date.now().toString(36),
+      text,
+      mood:      selectedMood,
+      occasion:  selectedOcc,
+      createdAt: Date.now(),
+    };
+    const allEntries = spGetJournal(email);
+    allEntries.push(entry);
+    spSaveJournal(email, allEntries);
+    if (allEntries.length === 1) spAddLoyalty(email, 10);
+    renderSpaceJournal(email);
+    showToast("Saved to your journal 💛");
+  });
+
+  document.getElementById("spJournalList")?.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-del-entry]");
+    if (!btn) return;
+    const id       = btn.dataset.delEntry;
+    const filtered = spGetJournal(email).filter(en => en.id !== id);
+    spSaveJournal(email, filtered);
+    renderSpaceJournal(email);
+    showToast("Entry removed 💛");
+  });
+}
+
 function initSpaceAuth() {
   const session = getSpaceSession();
   if (session) showSpaceDashboard(session, false);
