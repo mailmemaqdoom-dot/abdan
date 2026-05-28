@@ -18026,6 +18026,326 @@ html[data-theme="dark"] .site-header.is-scrolled .orb-button {
   }
 }
 
+
+/* ════════════════════════════════════════════════════════════════════════
+   §68. UNIFIED FLOATING NAVBAR ARCHITECTURE
+   ════════════════════════════════════════════════════════════════════════
+   Architectural rebuild. The site-header becomes a transparent 3-zone
+   flex container:
+     Zone 1 (left):   .brand-pill       — logo
+     Zone 2 (center): .bottom-dock      — navigation (static on desktop,
+                                          position:fixed at viewport
+                                          bottom on mobile)
+     Zone 3 (right):  .header-actions   — utility icons
+
+   Glass aesthetics live on individual zones, not on the container.
+   This avoids transform stacking-context issues on mobile: the container
+   never has transform, so the fixed-positioned dock child always resolves
+   to the viewport, not the header.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── §68a. UNIFIED VIEWPORT-SAFE CONTAINER ──────────────────────────────
+   Replaces ALL prior site-header width/position/transition rules.
+   Width: calc(100vw - 24px) ± safe-area padding (mission spec).
+   Centering: left:0/right:0/margin:auto — NO transform on the container
+   itself, preserving fixed-child stacking context on mobile.            */
+.site-header {
+  position:      fixed                                                      !important;
+  top:           max(0.85rem, calc(env(safe-area-inset-top) + 0.625rem))   !important;
+  left:          0                                                          !important;
+  right:         0                                                          !important;
+  width:         calc(100vw - max(1.5rem, env(safe-area-inset-left) + env(safe-area-inset-right) + 1.5rem)) !important;
+  max-width:     var(--container)                                           !important;
+  margin-inline: auto                                                       !important;
+
+  display:         flex            !important;
+  align-items:     center          !important;
+  justify-content: space-between   !important;
+  gap:             0.625rem        !important;
+  overflow:        visible         !important;
+
+  /* Transparent container — zones hold their own glass */
+  background:              transparent !important;
+  border:                  none        !important;
+  box-shadow:              none        !important;
+  backdrop-filter:         none        !important;
+  -webkit-backdrop-filter: none        !important;
+  padding:                 0           !important;
+
+  /* Transition: top only (no transform) — critical for mobile stacking context */
+  transition:  top 340ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+  will-change: top                                      !important;
+  z-index:     var(--z-header)                          !important;
+}
+
+/* §68a-ii — Scrolled micro-settle */
+.site-header.is-scrolled {
+  top: max(0.55rem, calc(env(safe-area-inset-top) + 0.375rem)) !important;
+}
+
+/* ── §68b. DESKTOP (≥ 768px) — TRANSFORM HIDE IS SAFE ───────────────────
+   On desktop the bottom-dock is position:static (flex child). No fixed
+   child in the container, so transform creates no unwanted stacking
+   context. Both header and dock slide away together on scroll-down.     */
+@media (min-width: 768px) {
+  .site-header {
+    transition:
+      transform  380ms cubic-bezier(0.16, 1, 0.3, 1),
+      opacity    300ms var(--ease-out),
+      top        340ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+    will-change: transform, opacity !important;
+  }
+
+  .site-header.is-nav-hidden {
+    transform:      translateY(calc(-100% - 2rem)) !important;
+    opacity:        0                              !important;
+    pointer-events: none                           !important;
+  }
+
+  /* Nav center zone: static flex child, self-sizing, centered */
+  .bottom-dock {
+    position:   static !important;
+    top:        auto   !important;
+    left:       auto   !important;
+    right:      auto   !important;
+    bottom:     auto   !important;
+    transform:  none   !important;
+    flex:       0 1 auto !important;
+    margin:     0 auto !important;
+    width:      auto   !important;
+    min-width:  0      !important;
+    overflow-x: auto   !important;
+
+    /* Glass — same language as brand-pill */
+    border-radius:           var(--radius-pill)       !important;
+    background:              var(--paper)             !important;
+    border:                  1px solid var(--line)    !important;
+    box-shadow:              var(--shadow-sm)         !important;
+    backdrop-filter:         saturate(128%) blur(14px) !important;
+    -webkit-backdrop-filter: saturate(128%) blur(14px) !important;
+    padding:                 0.38rem                  !important;
+    gap:                     0.25rem                  !important;
+    justify-content:         flex-start               !important;
+  }
+
+  /* Dock is already moved by parent transform — no own transform needed */
+  .bottom-dock.is-nav-hidden {
+    transform: none !important;
+    opacity:   1    !important;
+  }
+}
+
+/* ── §68c. MOBILE (≤ 767px) — CHILD-LEVEL HIDE, DOCK ESCAPES VIEWPORT ──
+   Critical design: the site-header NEVER gets transform on mobile.
+   Instead, brand-pill and header-actions slide up individually.
+   The bottom-dock (position:fixed inside the header) uses the viewport
+   as its containing block (parent has no transform), so it stays at the
+   viewport bottom, unaffected.                                          */
+@media (max-width: 767px) {
+  /* Brand-pill and utility get their own motion budget on mobile */
+  .brand-pill,
+  .header-actions {
+    transition:
+      transform 380ms cubic-bezier(0.16, 1, 0.3, 1),
+      opacity   300ms var(--ease-out) !important;
+    will-change: transform, opacity !important;
+  }
+
+  /* Container: stays transparent, no transform (preserves dock context) */
+  .site-header.is-nav-hidden {
+    transform:      none !important;
+    opacity:        1    !important;
+    pointer-events: none !important;
+  }
+
+  /* Children slide up individually */
+  .site-header.is-nav-hidden .brand-pill,
+  .site-header.is-nav-hidden .header-actions {
+    transform:      translateY(calc(-100% - env(safe-area-inset-top) - 2rem)) !important;
+    opacity:        0 !important;
+    pointer-events: none !important;
+  }
+
+  /* Mobile dock: viewport-fixed at bottom — inherits NO stacking context */
+  .bottom-dock {
+    position:  fixed  !important;
+    top:       auto   !important;
+    right:     auto   !important;
+    bottom:    max(0.9rem, calc(env(safe-area-inset-bottom) + 0.625rem)) !important;
+    left:      50%    !important;
+    transform: translateX(-50%) !important;
+    flex:      none   !important;
+    width:     min(calc(100% - 1.5rem), 500px) !important;
+    margin:    0      !important;
+
+    /* Restore glass */
+    border-radius:           var(--radius-pill)        !important;
+    background:              var(--paper)              !important;
+    border:                  1px solid var(--line)     !important;
+    box-shadow:              var(--shadow-soft)        !important;
+    backdrop-filter:         saturate(128%) blur(14px) !important;
+    -webkit-backdrop-filter: saturate(128%) blur(14px) !important;
+    padding:                 0.38rem                   !important;
+    gap:                     0.25rem                   !important;
+    overflow-x:              auto                      !important;
+
+    /* Remain interactive even when parent has pointer-events:none */
+    pointer-events: auto !important;
+  }
+
+  /* Dock hide: slide down off viewport bottom */
+  .bottom-dock.is-dock-hidden {
+    transform:      translateX(-50%) translateY(calc(100% + env(safe-area-inset-bottom) + 1.5rem)) !important;
+    transition:     transform 200ms ease-in !important;
+    pointer-events: none !important;
+  }
+
+  /* Dock reveal: luxury spring */
+  .bottom-dock:not(.is-dock-hidden) {
+    transition:
+      background 240ms var(--ease-out),
+      transform  340ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+}
+
+/* ── §68d. LOGO SCALE — 15% REDUCTION ON MOBILE ─────────────────────────
+   Current mark: 2.8rem. 15% down = 2.38rem → 2.375rem.
+   Ensures logo never touches navbar edges and doesn't distort header
+   height, giving at minimum 12px breathing room on all sides.          */
+@media (max-width: 767px) {
+  .brand-mark {
+    width:  2.375rem !important;
+    height: 2.375rem !important;
+  }
+
+  .brand-pill__wordmark {
+    height: 16px !important;
+  }
+
+  .brand-pill {
+    padding: 0.72rem 0.88rem !important;
+    gap:     0.7rem          !important;
+  }
+
+  .brand-pill small {
+    font-size: 0.74rem !important;
+  }
+}
+
+/* ── §68e. UTILITY ZONE — CONSISTENT 12-14px ICON GAP ───────────────────
+   Target: 13px (0.8125rem) on desktop, 11px (0.6875rem) on mobile.
+   All orb-buttons same size, same optical center alignment.            */
+.header-actions {
+  gap:         0.8125rem !important;
+  align-items: center    !important;
+  flex-shrink: 0         !important;
+}
+
+@media (max-width: 767px) {
+  .header-actions {
+    gap: 0.6875rem !important;
+  }
+
+  .orb-button {
+    width:  2.7rem !important;
+    height: 2.7rem !important;
+  }
+}
+
+/* ── §68f. SUPPORT PILL — TEXT LABEL HIDDEN BY DEFAULT ──────────────────
+   Icon-only at rest. Text label expands on hover/focus interaction.
+   Keeps the pill compact and non-intrusive while still discoverable.
+   Mobile: bottom position adjusted above floating dock ecosystem.      */
+.support-pill__text {
+  display:    inline-block !important;
+  max-width:  0            !important;
+  opacity:    0            !important;
+  overflow:   hidden       !important;
+  white-space: nowrap      !important;
+  transition:
+    max-width 280ms var(--ease-out),
+    opacity   240ms var(--ease-out),
+    margin    200ms var(--ease-out) !important;
+  margin-left: 0 !important;
+}
+
+.support-pill:hover .support-pill__text,
+.support-pill:focus .support-pill__text {
+  max-width:   12rem  !important;
+  opacity:     1      !important;
+  margin-left: 0.5rem !important;
+}
+
+@media (max-width: 767px) {
+  .support-pill {
+    right:  1.1rem !important;
+    bottom: max(5.6rem, calc(env(safe-area-inset-bottom) + 5.25rem)) !important;
+  }
+}
+
+/* ── §68g. DARK MODE GLASS CONSISTENCY ──────────────────────────────────
+   All floating elements share the same dark glass language: deep
+   emerald, 8% gold border, consistent opacity.                         */
+html[data-theme="dark"] .bottom-dock {
+  background:   rgba(7, 25, 24, 0.92)       !important;
+  border-color: rgba(183, 155, 114, 0.08)   !important;
+}
+
+/* ── §68h. UNIFIED MOTION — SINGLE EASING FAMILY ────────────────────────
+   Brand-pill and orb-buttons share one motion contract:
+   spring-release transform + linear border/background fades.           */
+.brand-pill,
+.orb-button {
+  transition:
+    transform    280ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 180ms var(--ease-out),
+    background   180ms var(--ease-out),
+    box-shadow   240ms var(--ease-out) !important;
+}
+
+/* ── §68i. Z-INDEX AUDIT — STABLE LAYERING ──────────────────────────────
+   header: 60  (z-header)
+   dock:   58  (below header, above content)
+   support: 30 (z-support, bottom-right, lowest floating)
+   Prevents any floating collision or clipping on Safari.              */
+.bottom-dock {
+  z-index: calc(var(--z-header) - 2) !important;
+}
+
+.support-pill {
+  z-index: var(--z-support) !important;
+}
+
+/* ── §68j. REDUCED MOTION GUARD ─────────────────────────────────────────
+   Preserves glass quality; removes all motion for vestibular sensitivity. */
+@media (prefers-reduced-motion: reduce) {
+  .brand-pill,
+  .header-actions,
+  .site-header.is-nav-hidden .brand-pill,
+  .site-header.is-nav-hidden .header-actions {
+    transition: none      !important;
+    transform:  none      !important;
+    opacity:    1         !important;
+  }
+
+  @media (max-width: 767px) {
+    .bottom-dock,
+    .bottom-dock.is-dock-hidden {
+      transition: none           !important;
+      transform:  translateX(-50%) !important;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .site-header,
+    .site-header.is-nav-hidden {
+      transition: none !important;
+      transform:  none !important;
+      opacity:    1    !important;
+    }
+  }
+}
+
 /* ── §67l. LANDSCAPE GUARD ───────────────────────────────────────────────
    In landscape the reordering should still work but image height adjusts.*/
 @media (max-width: 767px) and (orientation: landscape) {
