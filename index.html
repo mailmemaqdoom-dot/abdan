@@ -1146,10 +1146,15 @@
 
               <!-- ── Greeting header ──────────────────────────────────── -->
               <header class="space-dash-head reveal">
-                <div class="space-dash-head__text">
-                  <p class="section-kicker" id="spaceDashKicker">Your personal space</p>
-                  <h2 class="space-heading" id="spaceDashGreeting">Your Space 💛</h2>
-                  <p class="space-auth-intro" id="spaceDashTagline">Everything you love, thoughtfully kept in one place.</p>
+                <div class="space-dash-head__identity">
+                  <div class="space-dash-avatar" id="spaceDashAvatar" aria-hidden="true">
+                    <span class="space-dash-avatar__initials" id="spaceDashInitials">✦</span>
+                  </div>
+                  <div class="space-dash-head__text">
+                    <p class="section-kicker" id="spaceDashKicker">Your personal space</p>
+                    <h2 class="space-heading" id="spaceDashGreeting">Your Space 💛</h2>
+                    <p class="space-auth-intro" id="spaceDashTagline">Everything you love, thoughtfully kept in one place.</p>
+                  </div>
                 </div>
                 <button type="button" class="space-leave-btn" id="spaceSignoutBtn">
                   Leave quietly
@@ -1157,53 +1162,21 @@
               </header>
 
               <!-- ── Gentle section navigation ──────────────────────── -->
-              <nav class="space-tabs" id="spaceTabs" aria-label="Your Space sections">
-                <button class="space-tab is-active" data-space-tab="overview" type="button">Your Space</button>
-                <button class="space-tab" data-space-tab="saved" type="button">
-                  Saved Pieces
+              <nav class="space-tabs" id="spaceTabs" aria-label="Your Space sections" role="tablist">
+                <button class="space-tab is-active" data-space-tab="overview" type="button" role="tab">Home</button>
+                <button class="space-tab" data-space-tab="saved" type="button" role="tab">
+                  Wardrobe
                   <span class="space-tab__count" id="spaceTabSavedCount" hidden></span>
                 </button>
-                <button class="space-tab" data-space-tab="journey" type="button">Your Journey</button>
-                <button class="space-tab" data-space-tab="profile" type="button">Your Profile</button>
+                <button class="space-tab" data-space-tab="lookbook" type="button" role="tab">Lookbook</button>
+                <button class="space-tab" data-space-tab="concierge" type="button" role="tab">Ask ABDAN</button>
+                <button class="space-tab" data-space-tab="profile" type="button" role="tab">Profile</button>
               </nav>
 
-              <!-- ── Panel: Your Space (overview) ───────────────────── -->
-              <div class="space-tab-panel is-active" id="spaceTabOverview">
-
-                <!-- Mood affinity strip — shown only when affinity data exists -->
-                <div class="space-mood-profile" id="spaceMoodProfile" hidden>
-                  <div class="space-mood-profile__inner">
-                    <span class="space-mood-profile__kicker">A mood remembered</span>
-                    <p class="space-mood-profile__value" id="spaceMoodValue"></p>
-                    <button type="button" class="text-link space-mood-profile__cta" id="spaceMoodExplore">Explore this mood →</button>
-                  </div>
-                </div>
-
-                <!-- Quiet privilege moments — belonging without gamification -->
-                <div class="space-privilege-row">
-                  <div class="space-privilege-card">
-                    <i data-lucide="clock" aria-hidden="true"></i>
-                    <strong>Early Access</strong>
-                    <span>Reserved selections before the collection opens</span>
-                  </div>
-                  <div class="space-privilege-card">
-                    <i data-lucide="gem" aria-hidden="true"></i>
-                    <strong>Private Releases</strong>
-                    <span>Pieces quietly held for inner circle members</span>
-                  </div>
-                  <div class="space-privilege-card">
-                    <i data-lucide="mail" aria-hidden="true"></i>
-                    <strong>Seasonal Notes</strong>
-                    <span>Thoughtful correspondence, never commercial noise</span>
-                  </div>
-                </div>
-
-                <!-- Browse invitation -->
-                <div class="space-browse-cta">
-                  <p class="space-browse-cta__text">The collection is waiting, curated with care.</p>
-                  <a class="secondary-button" href="#products">Discover something beautiful</a>
-                </div>
-
+              <!-- ── Panel: Home ────────────────────────────────────── -->
+              <div class="space-tab-panel is-active" id="spaceTabOverview" role="tabpanel">
+                <!-- §78 — Rendered by renderSpaceOverview() -->
+                <div id="spaceOverviewPanel"></div>
               </div>
 
               <!-- ── Panel: Saved Pieces ─────────────────────────────── -->
@@ -1219,9 +1192,21 @@
               </div>
 
               <!-- ── Panel: Your Profile ────────────────────────────── -->
-              <div class="space-tab-panel" id="spaceTabProfile" hidden>
-                <!-- Rendered by renderSpaceProfile() -->
+              <div class="space-tab-panel" id="spaceTabProfile" hidden role="tabpanel">
+                <!-- §78 — Rendered by renderSpaceProfile() -->
                 <div id="spaceProfilePanel"></div>
+              </div>
+
+              <!-- ── Panel: Lookbook ───────────────────────────────── -->
+              <div class="space-tab-panel" id="spaceTabLookbook" hidden role="tabpanel">
+                <!-- §78 — Rendered by renderSpaceLookbook() -->
+                <div id="spaceLookbookPanel"></div>
+              </div>
+
+              <!-- ── Panel: Ask ABDAN (Concierge) ──────────────────── -->
+              <div class="space-tab-panel" id="spaceTabConcierge" hidden role="tabpanel">
+                <!-- §78 — Rendered by renderSpaceConcierge() -->
+                <div id="spaceConciergePanel"></div>
               </div>
 
             </div>

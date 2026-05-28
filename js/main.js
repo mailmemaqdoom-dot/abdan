@@ -995,6 +995,80 @@ function handleAdminSignout() {
 const SPACE_STORAGE_KEY = "abdan-space-profiles";
 const SPACE_SESSION_KEY = "abdan-space-session";
 
+/* §78 — Phase 1 ecosystem storage keys */
+const SP_PHOTO_KEY     = "abdan-sp-photo";
+const SP_COVER_KEY     = "abdan-sp-cover";
+const SP_BIO_KEY       = "abdan-sp-bio";
+const SP_STYLE_KEY     = "abdan-sp-style";
+const SP_TAGS_KEY      = "abdan-sp-tags";
+const SP_LOYALTY_KEY   = "abdan-sp-loyalty";
+const SP_CONCIERGE_KEY = "abdan-sp-concierge";
+const SP_LOOKBOOK_KEY  = "abdan-sp-lookbook";
+
+const SP_STYLE_IDENTITIES = [
+  "Quiet Gold", "Temple Elegance", "Soft Minimal", "Monsoon Silk",
+  "Everyday Grace", "Festive Devotion", "Desert Silk", "Coastal Bloom",
+];
+const SP_MOOD_TAGS = [
+  "Soft Drapes", "Handwoven", "Festive", "Minimalist",
+  "Bold Colour", "Muted Tones", "Heritage", "Contemporary",
+];
+const SP_LOYALTY_TIERS = [
+  { name: "Quiet Admirer",    min: 0   },
+  { name: "Devoted Collector",min: 50  },
+  { name: "Inner Circle",     min: 150 },
+  { name: "House of ABDAN",   min: 300 },
+];
+const SP_BADGE_DEFS = [
+  { id: "early-believer",  label: "Early Believer",  icon: "✦",
+    desc: "Among the first to join ABDAN" },
+  { id: "quiet-collector", label: "Quiet Collector",  icon: "♡",
+    desc: "Saved 5 or more pieces" },
+  { id: "style-keeper",    label: "Style Keeper",     icon: "◈",
+    desc: "Defined a personal style identity" },
+  { id: "devotion-edit",   label: "Devotion Edit",    icon: "◇",
+    desc: "Full profile completed with care" },
+];
+
+/* §78 — per-email localStorage helpers */
+function spKey(email, key)     { return `${key}:${(email||"").toLowerCase()}`; }
+function spGet(email, key)     { try { return JSON.parse(localStorage.getItem(spKey(email,key))); } catch { return null; } }
+function spSet(email, key, v)  { try { localStorage.setItem(spKey(email,key), JSON.stringify(v)); } catch { /* quota */ } }
+
+function spGetLoyalty(email)   { return spGet(email, SP_LOYALTY_KEY) || 0; }
+function spAddLoyalty(email, pts) {
+  const cur = spGetLoyalty(email);
+  spSet(email, SP_LOYALTY_KEY, cur + pts);
+}
+function spGetTier(pts) {
+  let tier = SP_LOYALTY_TIERS[0];
+  for (const t of SP_LOYALTY_TIERS) { if (pts >= t.min) tier = t; }
+  return tier;
+}
+function spGetBadges(email) {
+  const badges = [];
+  const pts    = spGetLoyalty(email);
+  if (pts > 0 || spGet(email, SP_BIO_KEY) || spGet(email, SP_STYLE_KEY)) {
+    badges.push("early-believer");
+  }
+  const wlSize = getWishlist().size;
+  if (wlSize >= 5) badges.push("quiet-collector");
+  if (spGet(email, SP_STYLE_KEY)) badges.push("style-keeper");
+  if (spGet(email, SP_BIO_KEY) && spGet(email, SP_PHOTO_KEY) && spGet(email, SP_STYLE_KEY)) {
+    badges.push("devotion-edit");
+  }
+  return SP_BADGE_DEFS.filter(b => badges.includes(b.id));
+}
+
+function spGetConcierge(email) { return spGet(email, SP_CONCIERGE_KEY) || []; }
+function spAddMsg(email, msg)  {
+  const msgs = spGetConcierge(email);
+  msgs.push(msg);
+  spSet(email, SP_CONCIERGE_KEY, msgs);
+}
+function spGetLookbook(email)  { return spGet(email, SP_LOOKBOOK_KEY) || []; }
+function spSaveLookbook(email, items) { spSet(email, SP_LOOKBOOK_KEY, items); }
+
 function getSpaceProfiles() {
   try { return JSON.parse(localStorage.getItem(SPACE_STORAGE_KEY) || "{}"); }
   catch { return {}; }
@@ -1208,10 +1282,29 @@ function showSpaceDashboard(profile, isNew = false) {
 
   showSpaceView("spaceDashboard");
 
+  /* §78 — Update header avatar */
+  const avatarEl   = document.getElementById("spaceDashAvatar");
+  const initialsEl = document.getElementById("spaceDashInitials");
+  const email      = profile.email || "";
+  const photo      = spGet(email, SP_PHOTO_KEY);
+  if (avatarEl) {
+    if (photo) {
+      avatarEl.innerHTML = `<img src="${photo}" alt="" />`;
+    } else if (initialsEl) {
+      initialsEl.textContent = (profile.displayName || profile.fullName || "✦").charAt(0).toUpperCase();
+    }
+  }
+
+  /* §78 — Award loyalty on first entry */
+  if (isNew && spGetLoyalty(email) === 0) spAddLoyalty(email, 50);
+
   /* ── Populate all panels ─────────────────────────────────────────── */
   renderSpaceOrders(profile.phone || "");
   renderSpaceWishlist();
   renderSpaceProfile(profile.email || "");
+  renderSpaceOverview(profile);
+  renderSpaceLookbook(email);
+  renderSpaceConcierge(email);
   updateSavedPiecesCount();
 
   /* Reset to overview tab on entry */
@@ -1296,7 +1389,15 @@ function handleSpaceSignout() {
    Four panels: overview · saved · journey · profile.
    Activated via data-space-tab delegation in main init section.       */
 function showSpaceTab(tabId) {
-  const panelMap = { overview: "spaceTabOverview", saved: "spaceTabSaved", journey: "spaceTabJourney", profile: "spaceTabProfile" };
+  /* §78 — expanded panelMap: overview · saved · lookbook · concierge · profile */
+  const panelMap = {
+    overview:  "spaceTabOverview",
+    saved:     "spaceTabSaved",
+    journey:   "spaceTabJourney",
+    profile:   "spaceTabProfile",
+    lookbook:  "spaceTabLookbook",
+    concierge: "spaceTabConcierge",
+  };
   document.querySelectorAll("[data-space-tab]").forEach((t) => {
     t.classList.toggle("is-active", t.dataset.spaceTab === tabId);
     t.setAttribute("aria-selected", t.dataset.spaceTab === tabId ? "true" : "false");
@@ -1348,7 +1449,21 @@ function renderSpaceWishlist() {
       </button>
     </div>`).join("");
 
-  panel.innerHTML = `<p class="space-section-heading">Saved Pieces</p><div class="space-saved-grid">${cards}</div>`;
+  /* §78 — Wardrobe header + journey collapsible below the grid */
+  const session = getSpaceSession();
+  panel.innerHTML = `
+    <div class="sp-wardrobe-head">
+      <h3 class="sp-wardrobe-head__title">Your Wardrobe</h3>
+    </div>
+    <div class="space-saved-grid">${cards}</div>
+    <hr class="sp-section-divider" />
+    <button class="sp-journey-toggle" type="button" id="spJourneyToggle">
+      Your Journey
+      <span class="sp-journey-toggle__arrow">▾</span>
+    </button>
+    <div class="sp-journey-body" id="spJourneyBody">
+      <div id="spaceOrdersInline"></div>
+    </div>`;
 
   panel.querySelectorAll("[data-remove-saved]").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -1360,6 +1475,26 @@ function renderSpaceWishlist() {
       safeCreateIcons();
       showToast("Removed 💛");
     });
+  });
+
+  /* Journey toggle */
+  let journeyLoaded = false;
+  document.getElementById("spJourneyToggle")?.addEventListener("click", () => {
+    const body   = document.getElementById("spJourneyBody");
+    const toggle = document.getElementById("spJourneyToggle");
+    if (!body || !toggle) return;
+    const isOpen = body.classList.toggle("is-open");
+    toggle.classList.toggle("is-open", isOpen);
+    /* Lazy-render orders on first open */
+    if (isOpen && !journeyLoaded) {
+      journeyLoaded = true;
+      const inline = document.getElementById("spaceOrdersInline");
+      if (inline) {
+        const tmp = document.getElementById("spaceOrdersPanel");
+        if (tmp) inline.innerHTML = tmp.innerHTML;
+        else renderSpaceOrders(session?.phone || "");
+      }
+    }
   });
 
   safeCreateIcons();
@@ -1374,7 +1509,7 @@ function updateSavedPiecesCount() {
   else        { countEl.hidden = true; }
 }
 
-/* ── Render profile view + inline edit form ───────────────────────── */
+/* ── Render profile view + inline edit form (§78 enhanced) ────────── */
 function renderSpaceProfile(email) {
   const panel = document.getElementById("spaceProfilePanel");
   if (!panel) return;
@@ -1387,21 +1522,81 @@ function renderSpaceProfile(email) {
     : "";
   const fullDiffers = profile.fullName && profile.fullName !== profile.displayName;
 
+  /* §78 — Extra profile data */
+  const photo    = spGet(email, SP_PHOTO_KEY);
+  const cover    = spGet(email, SP_COVER_KEY);
+  const bio      = spGet(email, SP_BIO_KEY) || "";
+  const identity = spGet(email, SP_STYLE_KEY) || "";
+  const tags     = spGet(email, SP_TAGS_KEY) || [];
+
+  const avatarInner = photo
+    ? `<img src="${photo}" alt="" />
+       <input type="file" accept="image/*" id="spPhotoInput" aria-label="Change profile photo" />`
+    : `<span>${initials}</span>
+       <input type="file" accept="image/*" id="spPhotoInput" aria-label="Set profile photo" />`;
+
+  const coverStyle = cover
+    ? `background: url('${cover}') center/cover no-repeat;`
+    : "";
+
+  const styleCards = SP_STYLE_IDENTITIES.map(s =>
+    `<button class="sp-style-card${identity === s ? " is-selected" : ""}" type="button" data-style="${s}">
+       <p class="sp-style-card__name">${s}</p>
+     </button>`
+  ).join("");
+
+  const tagChips = SP_MOOD_TAGS.map(t =>
+    `<button class="sp-tag${tags.includes(t) ? " is-selected" : ""}" type="button" data-tag="${t}">${t}</button>`
+  ).join("");
+
   panel.innerHTML = `
-    <div class="space-profile-card">
-      <div class="space-profile-avatar" aria-hidden="true">
-        <span class="space-profile-initials">${initials}</span>
+    <!-- §78 Profile hero: cover + avatar -->
+    <div class="sp-profile-hero">
+      <div class="sp-profile-cover" style="${coverStyle}">
+        ${!cover ? "" : `<img src="${cover}" alt="" />`}
+        <label class="sp-profile-cover__edit">
+          <input type="file" accept="image/*" id="spCoverInput" />
+          <span>Change cover</span>
+        </label>
       </div>
-      <div class="space-profile-info">
-        <p class="space-profile-display">${profile.displayName || profile.fullName || ""}</p>
-        ${fullDiffers ? `<p class="space-profile-full-name">${profile.fullName}</p>` : ""}
-        <p class="space-profile-meta">${profile.email || ""}</p>
-        ${profile.phone ? `<p class="space-profile-meta">${profile.phone}</p>` : ""}
-        ${joinedDate ? `<p class="space-profile-joined">With ABDAN since ${joinedDate}</p>` : ""}
+      <div class="sp-profile-avatar-wrap">
+        <div class="sp-profile-avatar-lg">
+          ${avatarInner}
+        </div>
+      </div>
+      <div class="sp-profile-hero__info">
+        <p class="sp-profile-hero__name">${profile.displayName || profile.fullName || ""}</p>
+        <p class="sp-profile-hero__email">${profile.email || ""}
+          ${joinedDate ? ` · With ABDAN since ${joinedDate}` : ""}
+        </p>
       </div>
     </div>
 
-    <div class="space-profile-edit-section">
+    <!-- §78 Bio -->
+    <div class="sp-bio-section">
+      <p class="sp-bio-section__title">Your introduction</p>
+      <textarea class="sp-bio-textarea" id="spBioTextarea"
+                placeholder="A few words about your style, your world, what you love…"
+                rows="3">${bio}</textarea>
+      <button type="button" class="sp-bio-save" id="spBioSave">Save</button>
+    </div>
+
+    <!-- §78 Style identity -->
+    <div class="sp-identity-section">
+      <p class="sp-identity-section__title">Your style identity</p>
+      <p class="sp-identity-section__sub">Choose the aesthetic that feels most like you.</p>
+      <div class="sp-style-grid" id="spStyleGrid">${styleCards}</div>
+    </div>
+
+    <!-- §78 Mood tags -->
+    <div class="sp-tags-section">
+      <p class="sp-tags-section__title">Your aesthetic moods</p>
+      <p class="sp-tags-section__sub">Select everything that resonates. There are no wrong choices.</p>
+      <div class="sp-tag-row" id="spTagRow">${tagChips}</div>
+    </div>
+
+    <!-- Edit details -->
+    <div class="space-profile-edit-section" style="padding-top:1.5rem;border-top:1px solid var(--line);margin-top:1.5rem">
       <button type="button" class="space-edit-toggle" id="spaceEditToggle">Edit my details</button>
 
       <form class="space-form space-profile-form" id="spaceProfileForm" hidden novalidate>
@@ -1424,7 +1619,7 @@ function renderSpaceProfile(email) {
       </form>
     </div>
 
-    <div class="space-profile-privacy">
+    <div class="space-profile-privacy" style="margin-top:1.5rem">
       <p class="space-profile-privacy__text">Your space remains private and protected.</p>
       <ul class="space-trust-list">
         <li><i data-lucide="check-circle"></i> Private &amp; Secure</li>
@@ -1432,6 +1627,72 @@ function renderSpaceProfile(email) {
         <li><i data-lucide="check-circle"></i> Always Under Your Control</li>
       </ul>
     </div>`;
+
+  /* §78 — Profile photo upload */
+  document.getElementById("spPhotoInput")?.addEventListener("change", (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      spSet(email, SP_PHOTO_KEY, ev.target.result);
+      spAddLoyalty(email, 15);
+      renderSpaceProfile(email);
+      /* Refresh header avatar */
+      const avatarEl = document.getElementById("spaceDashAvatar");
+      if (avatarEl) avatarEl.innerHTML = `<img src="${ev.target.result}" alt="" />`;
+      showToast("Profile photo saved 💛");
+    };
+    reader.readAsDataURL(file);
+  });
+
+  /* §78 — Cover photo upload */
+  document.getElementById("spCoverInput")?.addEventListener("change", (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      spSet(email, SP_COVER_KEY, ev.target.result);
+      renderSpaceProfile(email);
+      showToast("Cover updated 💛");
+    };
+    reader.readAsDataURL(file);
+  });
+
+  /* §78 — Bio save */
+  document.getElementById("spBioSave")?.addEventListener("click", () => {
+    const bio = document.getElementById("spBioTextarea")?.value?.trim() || "";
+    const hadBio = !!spGet(email, SP_BIO_KEY);
+    spSet(email, SP_BIO_KEY, bio);
+    if (!hadBio && bio) spAddLoyalty(email, 10);
+    renderSpaceOverview(getSpaceSession() || {});
+    showToast("Bio saved 💛");
+  });
+
+  /* §78 — Style identity */
+  document.getElementById("spStyleGrid")?.addEventListener("click", (e) => {
+    const card = e.target.closest("[data-style]");
+    if (!card) return;
+    const hadIdentity = !!spGet(email, SP_STYLE_KEY);
+    spSet(email, SP_STYLE_KEY, card.dataset.style);
+    if (!hadIdentity) spAddLoyalty(email, 10);
+    /* Update selection visually */
+    document.querySelectorAll(".sp-style-card").forEach(c => {
+      c.classList.toggle("is-selected", c.dataset.style === card.dataset.style);
+    });
+    showToast(`${card.dataset.style} — your style identity saved 💛`);
+  });
+
+  /* §78 — Mood tags */
+  document.getElementById("spTagRow")?.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-tag]");
+    if (!btn) return;
+    const cur = spGet(email, SP_TAGS_KEY) || [];
+    const tag = btn.dataset.tag;
+    const idx = cur.indexOf(tag);
+    if (idx === -1) cur.push(tag); else cur.splice(idx, 1);
+    spSet(email, SP_TAGS_KEY, cur);
+    btn.classList.toggle("is-selected", cur.includes(tag));
+  });
 
   /* Toggle edit form visibility */
   document.getElementById("spaceEditToggle")?.addEventListener("click", () => {
@@ -1482,6 +1743,340 @@ function renderSpaceProfile(email) {
   });
 
   safeCreateIcons();
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   §78 — Your Space: Emotional Luxury Ecosystem — Phase 1 render functions
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── renderSpaceOverview ─────────────────────────────────────────────────── */
+function renderSpaceOverview(profile) {
+  const panel = document.getElementById("spaceOverviewPanel");
+  if (!panel) return;
+
+  const email    = profile.email || "";
+  const first    = (profile.displayName || profile.fullName || "").split(" ")[0] || "you";
+  const pts      = spGetLoyalty(email);
+  const tier     = spGetTier(pts);
+  const badges   = spGetBadges(email);
+  const photo    = spGet(email, SP_PHOTO_KEY);
+  const identity = spGet(email, SP_STYLE_KEY) || "";
+  const wlSize   = getWishlist().size;
+
+  const avatarHtml = photo
+    ? `<img src="${photo}" alt="" />`
+    : `<span>${first.charAt(0).toUpperCase()}</span>`;
+
+  const tierIcons = ["✦", "◈", "◇", "♛"];
+  const tierIdx   = SP_LOYALTY_TIERS.indexOf(tier);
+  const tierIcon  = tierIcons[tierIdx >= 0 ? tierIdx : 0];
+
+  const badgeHtml = badges.length
+    ? `<div class="sp-badges">${badges.map(b =>
+        `<span class="sp-badge"><span class="sp-badge__icon">${b.icon}</span>${b.label}</span>`
+      ).join("")}</div>`
+    : "";
+
+  const affinityMood = getAffinityMood();
+
+  panel.innerHTML = `
+    <div class="sp-home">
+
+      <div class="sp-profile-mini">
+        <div class="sp-profile-mini__avatar">${avatarHtml}</div>
+        <div class="sp-profile-mini__body">
+          <p class="sp-profile-mini__name">${profile.displayName || profile.fullName || ""}</p>
+          ${identity
+            ? `<p class="sp-profile-mini__identity">${identity}</p>`
+            : `<p class="sp-profile-mini__identity" style="opacity:.55">Set your style identity →</p>`
+          }
+        </div>
+      </div>
+
+      <div class="sp-loyalty">
+        <div class="sp-loyalty__left">
+          <span class="sp-loyalty__kicker">Your membership</span>
+          <p class="sp-loyalty__tier">${tier.name}</p>
+          <p class="sp-loyalty__pts">${pts} devotion points</p>
+        </div>
+        <span class="sp-loyalty__badge-icon">${tierIcon}</span>
+      </div>
+
+      ${badgeHtml}
+
+      <div class="sp-quick-grid">
+        <button class="sp-quick-card" type="button" onclick="showSpaceTab('saved')">
+          <span class="sp-quick-card__icon">♡</span>
+          <p class="sp-quick-card__title">Wardrobe</p>
+          <p class="sp-quick-card__sub">${wlSize} piece${wlSize !== 1 ? "s" : ""} saved</p>
+        </button>
+        <button class="sp-quick-card" type="button" onclick="showSpaceTab('lookbook')">
+          <span class="sp-quick-card__icon">◻</span>
+          <p class="sp-quick-card__title">Lookbook</p>
+          <p class="sp-quick-card__sub">Your styling moments</p>
+        </button>
+        <button class="sp-quick-card" type="button" onclick="showSpaceTab('concierge')">
+          <span class="sp-quick-card__icon">✉</span>
+          <p class="sp-quick-card__title">Ask ABDAN</p>
+          <p class="sp-quick-card__sub">Private concierge</p>
+        </button>
+        <button class="sp-quick-card" type="button" onclick="showSpaceTab('profile')">
+          <span class="sp-quick-card__icon">◈</span>
+          <p class="sp-quick-card__title">Profile</p>
+          <p class="sp-quick-card__sub">Your style identity</p>
+        </button>
+      </div>
+
+      ${affinityMood ? `
+        <div class="space-mood-profile">
+          <div class="space-mood-profile__inner">
+            <span class="space-mood-profile__kicker">A mood remembered</span>
+            <p class="space-mood-profile__value">${affinityMood}</p>
+            <button type="button" class="text-link space-mood-profile__cta" id="spaceOverviewMoodBtn">
+              Explore this mood →
+            </button>
+          </div>
+        </div>` : ""}
+
+      <div class="space-browse-cta">
+        <p class="space-browse-cta__text">The collection is waiting, curated with care.</p>
+        <a class="secondary-button" href="#products">Discover something beautiful</a>
+      </div>
+
+    </div>`;
+
+  /* Wire mood explore button */
+  document.getElementById("spaceOverviewMoodBtn")?.addEventListener("click", () => {
+    if (affinityMood) {
+      state.filter = affinityMood;
+      renderFilters();
+      renderProducts();
+      document.getElementById("products")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  });
+}
+
+/* ── renderSpaceLookbook ─────────────────────────────────────────────────── */
+function renderSpaceLookbook(email) {
+  const panel = document.getElementById("spaceLookbookPanel");
+  if (!panel) return;
+
+  const items = spGetLookbook(email);
+
+  const gridHtml = items.length
+    ? `<div class="sp-lb-grid" id="spLbGrid">
+        ${items.map((item, i) => `
+          <div class="sp-lb-item" data-lb-idx="${i}">
+            <img src="${item.src}" alt="${item.caption || ""}" loading="lazy" />
+            <p class="sp-lb-item__caption"
+               contenteditable="true"
+               data-lb-cap="${i}"
+               title="Click to edit caption">${item.caption || ""}</p>
+            <button class="sp-lb-item__del" type="button" data-lb-del="${i}" aria-label="Remove">✕</button>
+          </div>`).join("")}
+      </div>`
+    : `<div class="sp-empty">
+        <div class="sp-empty__icon">◻</div>
+        <p class="sp-empty__title">Your lookbook is waiting</p>
+        <p class="sp-empty__body">Upload outfit moments, draping inspirations, and styling memories.</p>
+      </div>`;
+
+  panel.innerHTML = `
+    <div class="sp-lookbook">
+      <div class="sp-lookbook-head">
+        <div>
+          <h3 class="sp-lookbook-head__title">Your Lookbook</h3>
+          <p class="sp-lookbook-head__sub">A private collection of beauty, yours alone.</p>
+        </div>
+      </div>
+
+      <label class="sp-upload-area" id="spLbUploadArea">
+        <input type="file" accept="image/*" multiple id="spLbFileInput" />
+        <div class="sp-upload-area__icon">◻</div>
+        <p class="sp-upload-area__title">Add to your lookbook</p>
+        <p class="sp-upload-area__sub">JPEG · PNG · WEBP — stored privately on this device</p>
+      </label>
+
+      ${gridHtml}
+    </div>`;
+
+  /* File upload */
+  document.getElementById("spLbFileInput")?.addEventListener("change", (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    let processed = 0;
+    const current = spGetLookbook(email);
+    files.forEach(file => {
+      if (!file.type.startsWith("image/")) { processed++; return; }
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        current.push({ src: ev.target.result, caption: "", addedAt: Date.now() });
+        processed++;
+        if (processed === files.length) {
+          spSaveLookbook(email, current);
+          renderSpaceLookbook(email);
+          showToast("Added to your lookbook 💛");
+          /* Award loyalty only for first upload */
+          if (current.length === files.length) spAddLoyalty(email, 10);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  /* Drag-over styling */
+  const uploadArea = document.getElementById("spLbUploadArea");
+  uploadArea?.addEventListener("dragover",  (e) => { e.preventDefault(); uploadArea.classList.add("is-dragover"); });
+  uploadArea?.addEventListener("dragleave", ()  => uploadArea.classList.remove("is-dragover"));
+  uploadArea?.addEventListener("drop",      (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove("is-dragover");
+    document.getElementById("spLbFileInput").files = e.dataTransfer.files;
+    document.getElementById("spLbFileInput").dispatchEvent(new Event("change"));
+  });
+
+  /* Delete items */
+  panel.addEventListener("click", (e) => {
+    const delBtn = e.target.closest("[data-lb-del]");
+    if (!delBtn) return;
+    const idx  = parseInt(delBtn.dataset.lbDel, 10);
+    const cur  = spGetLookbook(email);
+    cur.splice(idx, 1);
+    spSaveLookbook(email, cur);
+    renderSpaceLookbook(email);
+  });
+
+  /* Caption edits — save on blur */
+  panel.addEventListener("blur", (e) => {
+    const cap = e.target.closest("[data-lb-cap]");
+    if (!cap) return;
+    const idx = parseInt(cap.dataset.lbCap, 10);
+    const cur = spGetLookbook(email);
+    if (cur[idx]) {
+      cur[idx].caption = cap.textContent.trim();
+      spSaveLookbook(email, cur);
+    }
+  }, true);
+}
+
+/* ── renderSpaceConcierge ────────────────────────────────────────────────── */
+function renderSpaceConcierge(email) {
+  const panel = document.getElementById("spaceConciergePanel");
+  if (!panel) return;
+
+  const msgs = spGetConcierge(email);
+
+  const threadHtml = msgs.length
+    ? msgs.map(m => {
+        const imgHtml = m.imgSrc
+          ? `<img src="${m.imgSrc}" alt="" class="sp-msg__img" loading="lazy" />`
+          : "";
+        return `
+          <div class="sp-msg sp-msg--sent">
+            <div class="sp-msg__bubble">${m.text || ""}</div>
+            ${imgHtml}
+            <span class="sp-msg__meta">
+              ${m.sentAt ? new Date(m.sentAt).toLocaleDateString("en-IN",{day:"numeric",month:"short"}) : ""}
+              &nbsp;·&nbsp;
+              <a class="sp-msg__wa-link"
+                 href="https://wa.me/918760595307?text=${encodeURIComponent((m.text||"").substring(0,200))}"
+                 target="_blank" rel="noreferrer">Continue on WhatsApp ↗</a>
+            </span>
+          </div>`;
+      }).join("")
+    : `<div class="sp-empty" style="padding:1.5rem 0">
+        <div class="sp-empty__icon">✉</div>
+        <p class="sp-empty__title">A quiet line to ABDAN</p>
+        <p class="sp-empty__body">Ask about a piece, request styling guidance, or share an inspiration.</p>
+      </div>`;
+
+  panel.innerHTML = `
+    <div class="sp-concierge">
+
+      <div class="sp-concierge-intro">
+        <p class="sp-concierge-intro__kicker">Private Concierge</p>
+        <h3 class="sp-concierge-intro__title">Ask ABDAN anything</h3>
+        <p class="sp-concierge-intro__body">
+          Styling questions, fabric guidance, sourcing a specific piece —
+          your message goes directly to ABDAN via WhatsApp.
+          Personal, warm, and always thoughtful.
+        </p>
+      </div>
+
+      <div class="sp-msg-thread" id="spMsgThread">${threadHtml}</div>
+
+      <div class="sp-compose" id="spCompose">
+        <div class="sp-compose__img-preview" id="spComposeImgPrev"></div>
+        <textarea class="sp-compose__textarea"
+                  id="spComposeText"
+                  placeholder="Ask about a piece, request styling advice, share an inspiration…"
+                  rows="3"></textarea>
+        <div class="sp-compose__actions">
+          <label class="sp-compose__img-btn" title="Attach an image" aria-label="Attach image">
+            📎
+            <input type="file" accept="image/*" id="spComposeImg" style="display:none" />
+          </label>
+          <button type="button" class="sp-compose__send" id="spComposeSend">
+            Send to ABDAN
+          </button>
+        </div>
+      </div>
+      <p class="sp-compose__note">Your message will open WhatsApp — responded to personally by ABDAN.</p>
+
+    </div>`;
+
+  /* Image preview */
+  let pendingImgSrc = null;
+  document.getElementById("spComposeImg")?.addEventListener("change", (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      pendingImgSrc = ev.target.result;
+      const prev = document.getElementById("spComposeImgPrev");
+      if (prev) {
+        prev.classList.add("has-img");
+        prev.innerHTML = `<img src="${pendingImgSrc}" alt="" />
+          <span class="sp-compose__img-clear" id="spComposeImgClear">✕ Remove</span>`;
+        document.getElementById("spComposeImgClear")?.addEventListener("click", () => {
+          pendingImgSrc = null;
+          prev.classList.remove("has-img");
+          prev.innerHTML = "";
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+
+  /* Send */
+  document.getElementById("spComposeSend")?.addEventListener("click", () => {
+    const ta   = document.getElementById("spComposeText");
+    const text = ta?.value?.trim() || "";
+    if (!text && !pendingImgSrc) return;
+
+    const msg = { text, imgSrc: pendingImgSrc, sentAt: Date.now() };
+    spAddMsg(email, msg);
+
+    /* Award loyalty for first message */
+    const allMsgs = spGetConcierge(email);
+    if (allMsgs.length === 1) spAddLoyalty(email, 20);
+
+    /* Open WhatsApp with message text */
+    const waText = text
+      ? `[ABDAN Concierge] ${text}${pendingImgSrc ? "\n\n(Image attached — I'll share it in the chat)" : ""}`
+      : "[ABDAN Concierge] I've attached an inspiration image for you.";
+    window.open(`https://wa.me/918760595307?text=${encodeURIComponent(waText)}`, "_blank", "noreferrer");
+
+    /* Reset compose */
+    if (ta) ta.value = "";
+    pendingImgSrc = null;
+    const prev = document.getElementById("spComposeImgPrev");
+    if (prev) { prev.classList.remove("has-img"); prev.innerHTML = ""; }
+
+    /* Re-render thread */
+    renderSpaceConcierge(email);
+    showToast("Your message is ready — sent via WhatsApp 💛");
+  });
 }
 
 function initSpaceAuth() {
