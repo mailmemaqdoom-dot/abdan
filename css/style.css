@@ -18361,3 +18361,97 @@ html[data-theme="dark"] .bottom-dock {
     transition: none !important;
   }
 }
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   §69. MOBILE VIEWPORT CONTAINMENT SYSTEM
+   ════════════════════════════════════════════════════════════════════════
+   Root cause analysis:
+   1. Viewport meta lacked maximum-scale=1 → zoom-out exposes hidden overflow
+   2. html element had no overflow-x:hidden → Safari routes scrolling through
+      the html element, not body; body overflow-x:hidden alone is insufficient
+   3. site-header used width:calc(100vw−X) → 100vw can exceed CSS viewport
+      during Safari dynamic toolbar shifts; replaced with 100%-based inset
+   4. Toast used max-width:calc(100vw−3rem) → same 100vw risk
+   5. .luxury-shell lacked overflow-x:hidden → section-level bleeds escaped
+      containment above the body level
+   Viewport meta fix is in index.html (maximum-scale=1 added).
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* §69a — HTML/body dual containment
+   Belt: body overflow-x:hidden (already in base CSS, line 211).
+   Suspenders: html overflow-x:hidden — Safari uses the html element for
+   rubber-band scrolling. Without this, overscroll-bounce can briefly
+   expose horizontal overflow even when body clips it.                   */
+html {
+  overflow-x: hidden !important;
+  max-width:  100%   !important;
+}
+
+body {
+  max-width:  100%   !important;
+  /* overflow-x:hidden already declared in base CSS — this reinforces */
+  overflow-x: hidden !important;
+}
+
+/* §69b — Replace 100vw in site-header with percentage-based calculation
+   100vw on Safari iOS can momentarily exceed the CSS viewport width
+   when the dynamic address bar animates in/out, creating a 1-frame
+   overflow. Using 100% on a fixed element resolves to the initial
+   containing block width (= visual viewport) which stays stable.
+   left/right inset approach eliminates 100vw entirely.                  */
+.site-header {
+  /* Inset-based positioning: no 100vw calculation at all */
+  left:   max(0.75rem, env(safe-area-inset-left,  0px)) !important;
+  right:  max(0.75rem, env(safe-area-inset-right, 0px)) !important;
+  width:  auto                                           !important;
+  /* max-width retains centered pill on large screens */
+  max-width:     var(--container) !important;
+  margin-inline: auto             !important;
+}
+
+/* §69c — Toast: replace 100vw with 100% */
+.toast {
+  max-width: calc(100% - 3rem) !important;
+}
+
+/* §69d — Luxury shell: outer content wrapper overflow containment
+   Ensures no section-level paint bleeds past the main shell boundary.
+   Preserves fixed/sticky children (there are none inside luxury-shell). */
+.luxury-shell {
+  overflow-x: hidden !important;
+}
+
+/* §69e — Section-level overflow containment on mobile
+   Belt-and-suspenders at the section layer. The negative-margin carousel
+   inside .collection-section is correctly sized to viewport width, so
+   overflow-x:hidden here clips only genuine overflow, not the carousel.
+   Does NOT break the carousel because section-frame is full-viewport-wide. */
+@media (max-width: 767px) {
+  .section-frame,
+  .hero-section {
+    overflow-x: hidden !important;
+  }
+
+  /* Ensure the products carousel container never exceeds viewport */
+  .collection-section .container,
+  .products-section .container {
+    overflow-x: hidden !important;
+  }
+}
+
+/* §69f — Safari iOS overscroll stabilization
+   overscroll-behavior:none on html prevents rubber-band bounce from
+   briefly revealing horizontal overflow during gesture physics.         */
+html {
+  overscroll-behavior-x: none !important;
+}
+
+/* §69g — Transform bleed contained by overflow-x:hidden in §69d/§69e above
+   contain:layout was considered here but removed — it re-scopes position:absolute
+   children (hero glows, atm overlays) to the section box rather than the viewport,
+   breaking absolutely-positioned decorative layers. The overflow-x:hidden already
+   applied to .luxury-shell (§69d) and .hero-section / .section-frame (§69e)
+   clips transform paint bleed without any stacking-context side effects.          */
+
+/* §69h — Reduced motion: no change needed for overflow fixes */
