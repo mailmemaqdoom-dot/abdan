@@ -19509,3 +19509,430 @@ html[data-theme="dark"] .product-card.is-pressing {
     transition: none          !important;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   §75. EDITORIAL CARD SYSTEM
+   Apple-inspired cinematic promotional storytelling architecture.
+   Deployed selectively — only at high-value brand narrative moments.
+   Three zones: Craft Narrative · Seasonal Campaign · App Experience.
+   Philosophy: emotion first, commerce quiet, pacing cinematic.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* §75a — Section wrapper ─────────────────────────────────────────────── */
+.ec-section {
+  padding: var(--section-gap, 5rem) 0;
+}
+.ec-section + .ec-section {
+  padding-top: 0; /* adjacent sections share gap */
+}
+
+/* §75b — Row layout grid ─────────────────────────────────────────────── */
+.ec-row {
+  display:               grid;
+  gap:                   0.9rem;
+  grid-template-columns: 1fr;  /* mobile-first: single column */
+}
+
+/* Desktop: two-column hero split (primary 58% / secondary 42%) */
+@media (min-width: 861px) {
+  .ec-row--hero-duo {
+    grid-template-columns: 1.4fr 1fr;
+  }
+  /* Equal two-up */
+  .ec-row--2up {
+    grid-template-columns: 1fr 1fr;
+  }
+  /* Three-up */
+  .ec-row--3up {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  /* Full-width single row — no modifier needed, default 1fr */
+}
+
+/* §75c — Base card shell ─────────────────────────────────────────────── */
+.ec-card {
+  position:          relative;
+  overflow:          hidden;
+  border-radius:     1.5rem;     /* Apple large-radius language */
+  background:        #091f1e;   /* deep emerald ground */
+  min-height:        520px;
+  display:           flex;
+  flex-direction:    column;
+  justify-content:   flex-end;
+
+  /* Performance: own compositing layer */
+  contain:                     layout style;
+  -webkit-backface-visibility: hidden;
+  backface-visibility:         hidden;
+
+  /* Hover spring */
+  transition:
+    transform  400ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 400ms cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 28px rgba(1, 20, 19, 0.10);
+
+  -webkit-tap-highlight-color: transparent;
+  cursor: default;
+}
+
+@media (hover: hover) {
+  .ec-card[data-ec-link]:hover,
+  .ec-card--interactive:hover {
+    transform:  translateY(-3px) scale(1.008);
+    box-shadow: 0 16px 52px rgba(1, 20, 19, 0.20);
+  }
+  .ec-card[data-ec-link]:active,
+  .ec-card--interactive:active {
+    transform:         scale(0.992);
+    transition-duration: 80ms;
+  }
+}
+
+/* Card height variants */
+.ec-card--tall   { min-height: 580px; }
+.ec-card--cinema { min-height: 460px; }
+.ec-card--short  { min-height: 360px; }
+.ec-card--wide   { min-height: 320px; } /* landscape: min-height, natural AR */
+
+/* Colour ground variants */
+.ec-card--ivory { background: #f5f1e8; }
+.ec-card--pearl { background: #faf8f3; }
+.ec-card--night { background: #040e0e; }
+.ec-card--app   {
+  background: linear-gradient(
+    152deg,
+    #0a2825 0%,
+    #023d3a 50%,
+    #031d1c 100%
+  );
+}
+
+/* §75d — Visual layer (background image) ─────────────────────────────── */
+.ec-card__visual {
+  position: absolute;
+  inset:    0;
+  z-index:  0;
+  overflow: hidden;
+}
+.ec-card__visual img {
+  width:           100%;
+  height:          100%;
+  object-fit:      cover;
+  object-position: center 20%; /* fashion: favour upper body / face */
+  opacity:         0;
+  transition:
+    opacity    700ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform  800ms cubic-bezier(0.16, 1, 0.3, 1);
+  transform:       scale(1.0);
+}
+.ec-card__visual img.img-loaded {
+  opacity: 1;
+}
+@media (hover: hover) {
+  .ec-card[data-ec-link]:hover .ec-card__visual img,
+  .ec-card--interactive:hover  .ec-card__visual img {
+    transform: scale(1.04);
+  }
+}
+
+/* §75e — Atmospheric overlay gradients ──────────────────────────────── */
+.ec-card__overlay {
+  position:       absolute;
+  inset:          0;
+  z-index:        1;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(1, 20, 19, 0.02)  0%,
+    rgba(1, 20, 19, 0.08)  38%,
+    rgba(1, 20, 19, 0.68)  70%,
+    rgba(1, 20, 19, 0.95) 100%
+  );
+}
+/* Warm ivory: for lighter cards where text sits below */
+.ec-card__overlay--warm {
+  background: linear-gradient(
+    180deg,
+    rgba(250, 248, 243, 0.0)  0%,
+    rgba(250, 248, 243, 0.0)  38%,
+    rgba(250, 248, 243, 0.72) 68%,
+    rgba(250, 248, 243, 0.97) 100%
+  );
+}
+/* Strong: maximum cinematic depth */
+.ec-card__overlay--strong {
+  background: linear-gradient(
+    180deg,
+    rgba(1, 20, 19, 0.0)   0%,
+    rgba(1, 20, 19, 0.14)  28%,
+    rgba(1, 20, 19, 0.78)  62%,
+    rgba(1, 20, 19, 0.98) 100%
+  );
+}
+
+/* §75f — Content body ────────────────────────────────────────────────── */
+.ec-card__body {
+  position:       relative;
+  z-index:        2;
+  padding:        2.2rem 2rem 2.4rem;
+  display:        flex;
+  flex-direction: column;
+  gap:            0.42rem;
+}
+
+/* §75g — Typography system ───────────────────────────────────────────── */
+.ec-card__kicker {
+  font-family:    var(--font-body);
+  font-size:      0.6rem;
+  font-weight:    700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color:          rgba(210, 187, 140, 0.86);  /* warm gold */
+  margin:         0;
+}
+/* Ivory card override */
+.ec-card--ivory .ec-card__kicker,
+.ec-card--pearl .ec-card__kicker {
+  color: var(--emerald);
+}
+
+.ec-card__headline {
+  font-family:    var(--font-display);
+  font-size:      clamp(1.7rem, 3.8vw, 2.7rem);
+  font-weight:    400;
+  line-height:    1.08;
+  letter-spacing: -0.025em;
+  color:          rgba(255, 253, 250, 0.97);
+  margin:         0;
+}
+.ec-card--ivory .ec-card__headline,
+.ec-card--pearl .ec-card__headline {
+  color: #091f1e;
+}
+
+.ec-card__verse {
+  font-family:  var(--font-display);
+  font-style:   italic;
+  font-size:    0.9rem;
+  line-height:  1.58;
+  color:        rgba(255, 253, 250, 0.66);
+  margin:       0.08rem 0 0.15rem;
+  max-width:    34ch;
+}
+.ec-card--ivory .ec-card__verse,
+.ec-card--pearl .ec-card__verse {
+  color: rgba(9, 31, 30, 0.58);
+}
+
+/* §75h — CTA link ────────────────────────────────────────────────────── */
+.ec-card__cta {
+  display:                inline-flex;
+  align-items:            center;
+  gap:                    0;
+  font-family:            var(--font-body);
+  font-size:              0.68rem;
+  font-weight:            700;
+  letter-spacing:         0.12em;
+  text-transform:         uppercase;
+  color:                  rgba(255, 253, 250, 0.88);
+  background:             none;
+  border:                 none;
+  padding:                0;
+  cursor:                 pointer;
+  margin-top:             0.5rem;
+  text-decoration:        none;
+  transition:
+    color     220ms var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+.ec-card__cta::after {
+  content:    ' →';
+  display:    inline-block;
+  transition: transform 240ms var(--ease-spring);
+}
+.ec-card__cta:hover { color: var(--gold); }
+.ec-card__cta:hover::after { transform: translateX(4px); }
+
+.ec-card--ivory .ec-card__cta,
+.ec-card--pearl .ec-card__cta {
+  color: var(--emerald);
+}
+.ec-card--ivory .ec-card__cta:hover,
+.ec-card--pearl .ec-card__cta:hover {
+  color: color-mix(in srgb, var(--emerald) 75%, #000);
+}
+
+/* §75i — Badge chip (top-left) ───────────────────────────────────────── */
+.ec-card__badge {
+  position:       absolute;
+  top:            1.1rem;
+  left:           1.1rem;
+  z-index:        3;
+  font-family:    var(--font-body);
+  font-size:      0.56rem;
+  font-weight:    700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color:          rgba(255, 253, 250, 0.94);
+  background:     rgba(2, 61, 58, 0.60);
+  border:         1px solid rgba(255, 253, 250, 0.14);
+  border-radius:  var(--radius-pill);
+  padding:        0.26rem 0.65rem;
+  pointer-events: none;
+  white-space:    nowrap;
+}
+
+/* §75j — App card layout (wide, text-left) ───────────────────────────── */
+.ec-card--app .ec-card__body {
+  justify-content: flex-end;
+  padding-bottom:  2.8rem;
+  max-width:       44ch;
+}
+.ec-card--app .ec-card__headline {
+  font-size: clamp(2rem, 4.8vw, 3.2rem);
+}
+.ec-card--app .ec-card__kicker {
+  color: rgba(210, 187, 140, 0.72);
+}
+.ec-card--app .ec-card__verse {
+  font-size: 0.92rem;
+  max-width: 36ch;
+  color:     rgba(255, 253, 250, 0.58);
+}
+
+/* §75k — App card decorative orb (ambient glow, no image) ──────────── */
+.ec-card--app::before {
+  content:       '';
+  position:      absolute;
+  top:           -30%;
+  right:         -10%;
+  width:         70%;
+  aspect-ratio:  1;
+  border-radius: 50%;
+  background:    radial-gradient(
+    circle,
+    rgba(2, 61, 58, 0.55) 0%,
+    rgba(2, 61, 58, 0.18) 50%,
+    transparent           80%
+  );
+  z-index:       0;
+  pointer-events: none;
+}
+.ec-card--app::after {
+  content:       '';
+  position:      absolute;
+  bottom:        -20%;
+  right:         20%;
+  width:         50%;
+  aspect-ratio:  1;
+  border-radius: 50%;
+  background:    radial-gradient(
+    circle,
+    rgba(197, 161, 59, 0.12) 0%,
+    transparent              70%
+  );
+  z-index:       0;
+  pointer-events: none;
+}
+
+/* §75l — App card feature list ──────────────────────────────────────── */
+.ec-app-features {
+  display:        flex;
+  flex-direction: column;
+  gap:            0.55rem;
+  margin-top:     0.5rem;
+  list-style:     none;
+  padding:        0;
+}
+.ec-app-features li {
+  display:     flex;
+  align-items: center;
+  gap:         0.5rem;
+  font-family: var(--font-body);
+  font-size:   0.72rem;
+  color:       rgba(255, 253, 250, 0.65);
+  line-height: 1.4;
+}
+.ec-app-features li::before {
+  content:     '✦';
+  font-size:   0.5rem;
+  color:       rgba(210, 187, 140, 0.70);
+  flex-shrink: 0;
+}
+
+/* §75m — Dark-mode palette adjustments ─────────────────────────────── */
+html[data-theme="dark"] .ec-card--ivory,
+html[data-theme="dark"] .ec-card--pearl {
+  background: color-mix(in srgb, var(--card-bg) 95%, var(--emerald) 5%);
+}
+html[data-theme="dark"] .ec-card--ivory .ec-card__headline,
+html[data-theme="dark"] .ec-card--pearl .ec-card__headline {
+  color: var(--text-main);
+}
+html[data-theme="dark"] .ec-card--ivory .ec-card__verse,
+html[data-theme="dark"] .ec-card--pearl .ec-card__verse {
+  color: var(--text-soft);
+}
+html[data-theme="dark"] .ec-card--ivory .ec-card__overlay--warm,
+html[data-theme="dark"] .ec-card--pearl .ec-card__overlay--warm {
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(10, 18, 17, 0.72) 68%,
+    rgba(10, 18, 17, 0.97) 100%
+  );
+}
+html[data-theme="dark"] .ec-card--ivory .ec-card__kicker,
+html[data-theme="dark"] .ec-card--pearl .ec-card__kicker {
+  color: rgba(210, 187, 140, 0.80);
+}
+html[data-theme="dark"] .ec-card--ivory .ec-card__headline,
+html[data-theme="dark"] .ec-card--pearl .ec-card__headline {
+  color: rgba(255, 253, 250, 0.95);
+}
+html[data-theme="dark"] .ec-card--ivory .ec-card__verse,
+html[data-theme="dark"] .ec-card--pearl .ec-card__verse {
+  color: rgba(255, 253, 250, 0.60);
+}
+html[data-theme="dark"] .ec-card--ivory .ec-card__cta,
+html[data-theme="dark"] .ec-card--pearl .ec-card__cta {
+  color: rgba(210, 187, 140, 0.90);
+}
+
+/* §75n — Mobile adaptation ──────────────────────────────────────────── */
+@media (max-width: 860px) {
+  .ec-card          { min-height: 460px; }
+  .ec-card--tall    { min-height: 500px; }
+  .ec-card--cinema  { min-height: 420px; }
+  .ec-card--short   { min-height: 300px; }
+  .ec-card--wide    { min-height: 280px; }
+  .ec-card--app     { min-height: 320px; }
+
+  .ec-card__body {
+    padding: 1.6rem 1.5rem 1.8rem;
+  }
+  .ec-card__headline {
+    font-size: clamp(1.55rem, 6vw, 2.2rem);
+  }
+  .ec-card__verse {
+    font-size: 0.85rem;
+    max-width: 100%;
+  }
+  .ec-row {
+    gap: 0.75rem;
+  }
+}
+
+/* §75o — Reduced-motion guard ──────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .ec-card,
+  .ec-card__visual img {
+    transition: none !important;
+  }
+  .ec-card[data-ec-link]:hover,
+  .ec-card--interactive:hover {
+    transform:  none  !important;
+    box-shadow: none  !important;
+  }
+}

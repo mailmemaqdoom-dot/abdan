@@ -4171,6 +4171,7 @@ window.addEventListener("DOMContentLoaded", () => {
   initProductImageViewer();
   initMobileProductScroll();
   initPWA();
+  initEditorialCards(); /* §75 — editorial card images + app CTA */
 });
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -4294,7 +4295,80 @@ function initPWA() {
   }, true /* capture — fires before bubble-phase listeners */);
 })();
 
-/* ── §74 Fabric-breathe stagger: prevent synchronised GPU spike ──────────
+/* ── §75 Editorial Card System — image load + app CTA wiring ────────────
+   1. Applies img-loaded to .ec-card__visual img elements (opacity reveal)
+   2. Wires the "Add to Home Screen" CTA inside the App teaser card
+      to the same PWA install prompt captured in §73.
+   Called once after DOMContentLoaded — static HTML, no re-render needed. */
+function initEditorialCards() {
+  /* ── Image load reveal (opacity-based, same as product cards) ─────── */
+  document.querySelectorAll(".ec-card__visual img").forEach(img => {
+    if (img.complete && img.naturalWidth > 0) {
+      img.classList.add("img-loaded");
+    } else {
+      img.addEventListener("load",  () => img.classList.add("img-loaded"), { once: true });
+      img.addEventListener("error", () => img.classList.add("img-loaded"), { once: true }); /* graceful */
+    }
+  });
+
+  /* ── App CTA: wire to PWA install prompt (§73) ─────────────────────── */
+  const appCta = document.getElementById("ecAppInstallCta");
+  if (!appCta) return;
+
+  /* Update label based on whether prompt is available vs iOS */
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+  const isStandalone = window.matchMedia("(display-mode: standalone)").matches
+    || navigator.standalone === true;
+
+  if (isStandalone) {
+    /* Already installed — show a quiet confirmation */
+    appCta.textContent   = "Installed ✦";
+    appCta.style.opacity = "0.55";
+    appCta.style.cursor  = "default";
+    return;
+  }
+
+  if (isIOS) {
+    appCta.textContent = "Open in Safari to Install";
+    appCta.addEventListener("click", () => {
+      /* Scroll to and open the PWA install sheet for iOS guidance */
+      const sheet = document.getElementById("pwaSheet");
+      if (sheet) {
+        sheet.hidden = false;
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => sheet.classList.add("is-visible"))
+        );
+      }
+    });
+    return;
+  }
+
+  /* Android/Chrome: trigger native install prompt */
+  appCta.addEventListener("click", async () => {
+    if (_pwaInstallPrompt) {
+      _pwaInstallPrompt.prompt();
+      const { outcome } = await _pwaInstallPrompt.userChoice;
+      _pwaInstallPrompt = null;
+      if (outcome === "accepted") {
+        appCta.textContent   = "Installed ✦";
+        appCta.style.opacity = "0.55";
+        appCta.style.cursor  = "default";
+        localStorage.setItem("abdan-pwa-dismissed", "1");
+      }
+    } else {
+      /* No prompt available — open PWA sheet for guidance */
+      const sheet = document.getElementById("pwaSheet");
+      if (sheet) {
+        sheet.hidden = false;
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => sheet.classList.add("is-visible"))
+        );
+      }
+    }
+  });
+}
+
+/* ── §75 Fabric-breathe stagger: prevent synchronised GPU spike ──────────
    When all product cards share animation-delay: 0s, their scale keyframes
    peak and valley in unison every 4.5 s — creating a periodic compositor
    spike visible as a brief scroll stutter.

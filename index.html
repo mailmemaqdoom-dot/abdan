@@ -631,6 +631,58 @@
       </div>
 
       <!-- ═══════════════════════════════════════════════════════════════════
+           §75 — CRAFT NARRATIVE ZONE
+           Cinematic 2-card editorial storytelling between collection & Her Story.
+           Left: full-bleed fabric craftsmanship scene.
+           Right: Festive Devotion Edit — seasonal campaign card.
+           ═══════════════════════════════════════════════════════════════════ -->
+      <section class="ec-section" aria-label="Craft narrative">
+        <div class="container">
+          <div class="ec-row ec-row--hero-duo">
+
+            <!-- Primary: The Quiet Craft — artisan storytelling -->
+            <article class="ec-card ec-card--tall reveal" style="--reveal-delay:0ms">
+              <div class="ec-card__visual">
+                <img
+                  src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=1200&q=80"
+                  alt="Draped fabric, artisan hand-finished"
+                  loading="lazy"
+                />
+              </div>
+              <div class="ec-card__overlay ec-card__overlay--strong"></div>
+              <span class="ec-card__badge">Artisan Crafted</span>
+              <div class="ec-card__body">
+                <p class="ec-card__kicker">Fabric &amp; Craft</p>
+                <h3 class="ec-card__headline">The Quiet<br>Craft</h3>
+                <p class="ec-card__verse">4,500 years of block print. Present in every fold. Made by hands that understand devotion.</p>
+                <button class="ec-card__cta" type="button" onclick="document.getElementById('products')?.scrollIntoView({behavior:'smooth'})">Explore the Collection</button>
+              </div>
+            </article>
+
+            <!-- Secondary: Festive Devotion Edit — seasonal -->
+            <article class="ec-card ec-card--tall reveal" style="--reveal-delay:100ms">
+              <div class="ec-card__visual">
+                <img
+                  src="./assets/embroidered-festive-dupatta.jpg"
+                  alt="Embroidered festive dupatta, ABDAN"
+                  loading="lazy"
+                />
+              </div>
+              <div class="ec-card__overlay"></div>
+              <span class="ec-card__badge">Festive Edit</span>
+              <div class="ec-card__body">
+                <p class="ec-card__kicker">Seasonal</p>
+                <h3 class="ec-card__headline">Devotion,<br>Embroidered</h3>
+                <p class="ec-card__verse">For celebrations that deserve something beautifully remembered.</p>
+                <button class="ec-card__cta" type="button" onclick="document.querySelector('[data-filter=\'Festive Glow\']')?.click(); document.getElementById('products')?.scrollIntoView({behavior:'smooth'})">Shop Festive Glow</button>
+              </div>
+            </article>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════════════════
            HER STORY — Three editorial cards, warm white on ivory.
            Redesigned: solid white cards with soft shadow, generous padding,
            large emoji icons, serif titles, and italic body copy.
@@ -788,25 +840,62 @@
             </p>
           </header>
 
-          <div class="teaser-grid">
-            <article class="teaser-card reveal" data-teaser="loyalty">
-              <span class="teaser-emoji">💎</span>
-              <h3>ABDAN Loyalty Circle</h3>
-              <p>
-                Early access, remembered preferences, quieter first looks, and thoughtful touches for
-                women who return because the experience feels like theirs.
-              </p>
-              <button type="button" class="text-link">Explore the Circle</button>
+          <!-- §75 — Cinematic editorial cards replace legacy teaser-grid -->
+          <div class="ec-row ec-row--3up">
+
+            <!-- Card 1: Loyalty Circle -->
+            <article class="ec-card ec-card--cinema reveal" data-teaser="loyalty" style="--reveal-delay:0ms">
+              <div class="ec-card__visual">
+                <img
+                  src="https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=900&q=80"
+                  alt="ABDAN Loyalty Circle — women who return"
+                  loading="lazy"
+                />
+              </div>
+              <div class="ec-card__overlay ec-card__overlay--strong"></div>
+              <span class="ec-card__badge">Coming Soon</span>
+              <div class="ec-card__body">
+                <p class="ec-card__kicker">Loyalty Circle</p>
+                <h3 class="ec-card__headline">Made for<br>Women<br>Who Return</h3>
+                <p class="ec-card__verse">Early access, quiet first looks, and remembered preferences.</p>
+                <button type="button" class="ec-card__cta" onclick="document.getElementById('account')?.scrollIntoView({behavior:'smooth'})">Explore the Circle</button>
+              </div>
             </article>
-            <article class="teaser-card reveal" data-teaser="community">
-              <span class="teaser-emoji">🌸</span>
-              <h3>ABDAN Community</h3>
-              <p>
-                A warm space to share outfit stories, ask for opinions, celebrate style, and feel seen
-                among women who understand your world.
-              </p>
-              <button type="button" class="text-link">Join the Community</button>
+
+            <!-- Card 2: Community -->
+            <article class="ec-card ec-card--cinema reveal" data-teaser="community" style="--reveal-delay:100ms">
+              <div class="ec-card__visual">
+                <img
+                  src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80"
+                  alt="ABDAN community — women who feel seen"
+                  loading="lazy"
+                />
+              </div>
+              <div class="ec-card__overlay"></div>
+              <span class="ec-card__badge">Coming Soon</span>
+              <div class="ec-card__body">
+                <p class="ec-card__kicker">Her Community</p>
+                <h3 class="ec-card__headline">Wear It.<br>Share It.<br>Feel Seen.</h3>
+                <p class="ec-card__verse">A warm space for outfit stories, quiet opinions, and style celebrated together.</p>
+                <button type="button" class="ec-card__cta" onclick="document.getElementById('account')?.scrollIntoView({behavior:'smooth'})">Join the Community</button>
+              </div>
             </article>
+
+            <!-- Card 3: App Experience -->
+            <article class="ec-card ec-card--cinema ec-card--app reveal" data-teaser="app" style="--reveal-delay:200ms">
+              <div class="ec-card__body">
+                <p class="ec-card__kicker">Native App</p>
+                <h3 class="ec-card__headline">Your Space,<br>On Your<br>Screen</h3>
+                <p class="ec-card__verse">Install ABDAN for a native luxury browsing experience — offline-ready, instant, and yours.</p>
+                <ul class="ec-app-features" aria-label="App features">
+                  <li>Instant load, even offline</li>
+                  <li>Fullscreen editorial browsing</li>
+                  <li>Your Space always within reach</li>
+                </ul>
+                <button type="button" class="ec-card__cta" id="ecAppInstallCta">Add to Home Screen</button>
+              </div>
+            </article>
+
           </div>
         </div>
       </section>
