@@ -1004,8 +1004,6 @@ const SP_TAGS_KEY      = "abdan-sp-tags";
 const SP_LOYALTY_KEY   = "abdan-sp-loyalty";
 const SP_CONCIERGE_KEY = "abdan-sp-concierge";
 const SP_LOOKBOOK_KEY  = "abdan-sp-lookbook";
-const SP_JOURNAL_KEY   = "abdan-sp-journal";   /* §80 */
-const SP_THEME_KEY     = "abdan-sp-theme";     /* §80 */
 
 const SP_STYLE_IDENTITIES = [
   "Quiet Gold", "Temple Elegance", "Soft Minimal", "Monsoon Silk",
@@ -1030,44 +1028,6 @@ const SP_BADGE_DEFS = [
     desc: "Defined a personal style identity" },
   { id: "devotion-edit",   label: "Devotion Edit",    icon: "◇",
     desc: "Full profile completed with care" },
-];
-
-/* §80 — Style Journal data */
-const SP_JOURNAL_MOODS = [
-  { sym: "◇", label: "Calm"        },
-  { sym: "✦", label: "Inspired"    },
-  { sym: "♡", label: "Loved"       },
-  { sym: "◈", label: "Thoughtful"  },
-  { sym: "✧", label: "Joyful"      },
-];
-const SP_JOURNAL_OCCASIONS = [
-  "Festive", "Wedding", "Everyday", "Gifting", "Travel", "Just Because",
-];
-
-/* §80 — Profile themes (unlocked by loyalty pts) */
-const SP_THEME_DEFS = [
-  { id: "",              name: "Classic",       minPts: 0,   unlock: "",
-    swatch: "linear-gradient(135deg,rgba(250,248,242,1),rgba(220,210,190,1))" },
-  { id: "temple-gold",   name: "Temple Gold",   minPts: 50,  unlock: "Devoted Collector",
-    swatch: "linear-gradient(135deg,rgba(210,178,110,1),rgba(183,150,72,1))" },
-  { id: "ivory-calm",    name: "Ivory Calm",    minPts: 50,  unlock: "Devoted Collector",
-    swatch: "linear-gradient(135deg,rgba(255,252,240,1),rgba(235,222,200,1))" },
-  { id: "emerald-night", name: "Emerald Night", minPts: 150, unlock: "Inner Circle",
-    swatch: "linear-gradient(135deg,rgba(2,61,58,1),rgba(0,78,65,1))" },
-  { id: "quiet-rose",    name: "Quiet Rose",    minPts: 150, unlock: "Inner Circle",
-    swatch: "linear-gradient(135deg,rgba(200,162,152,1),rgba(178,128,128,1))" },
-  { id: "monsoon-silk",  name: "Monsoon Silk",  minPts: 300, unlock: "House of ABDAN",
-    swatch: "linear-gradient(135deg,rgba(88,98,138,1),rgba(68,78,118,1))" },
-];
-
-/* §80 — Inner Circle editorial cards */
-const SP_IC_CARDS = [
-  { label: "Members Only",    title: "Early Preview — The Monsoon Edit",
-    body:  "A quiet glimpse into the next collection, before it opens to the world.", minPts: 150, unlock: "Inner Circle" },
-  { label: "Private Resource", title: "Draping Guide — Summer Silk",
-    body:  "Six silhouettes, thoughtfully illustrated. Reserved for our devoted collectors.", minPts: 150, unlock: "Inner Circle" },
-  { label: "From the Founder", title: "A Handwritten Note from ABDAN",
-    body:  "Personal. Quiet. A message written only for those who truly belong to the house.", minPts: 300, unlock: "House of ABDAN" },
 ];
 
 /* §78 — per-email localStorage helpers */
@@ -1108,12 +1068,6 @@ function spAddMsg(email, msg)  {
 }
 function spGetLookbook(email)  { return spGet(email, SP_LOOKBOOK_KEY) || []; }
 function spSaveLookbook(email, items) { spSet(email, SP_LOOKBOOK_KEY, items); }
-
-/* §80 — Journal + theme helpers */
-function spGetJournal(email)           { return spGet(email, SP_JOURNAL_KEY) || []; }
-function spSaveJournal(email, entries) { spSet(email, SP_JOURNAL_KEY, entries); }
-function spGetTheme(email)             { return spGet(email, SP_THEME_KEY) || ""; }
-function spSetTheme(email, theme)      { spSet(email, SP_THEME_KEY, theme); }
 
 function getSpaceProfiles() {
   try { return JSON.parse(localStorage.getItem(SPACE_STORAGE_KEY) || "{}"); }
@@ -1358,13 +1312,7 @@ function showSpaceDashboard(profile, isNew = false) {
   renderSpaceOverview(profile);
   renderSpaceLookbook(email);
   renderSpaceConcierge(email);
-  renderSpaceJournal(email);               /* §80 */
   updateSavedPiecesCount();
-
-  /* §80 — Apply saved profile theme to dashboard shell */
-  const savedTheme80 = spGetTheme(email);
-  const dashEl80 = document.getElementById("spaceDashboard");
-  if (dashEl80) dashEl80.dataset.spTheme = savedTheme80 || "";
 
   /* Reset to overview tab on entry */
   showSpaceTab("overview");
@@ -1439,29 +1387,9 @@ async function handleSpaceCreate(event) {
 }
 
 function handleSpaceSignout() {
-  /* §80 — Cinematic farewell veil before sign-out */
-  const veil = document.createElement("div");
-  veil.className = "sp-farewell-veil";
-  veil.innerHTML = `
-    <span class="sp-farewell-veil__icon">◇</span>
-    <p class="sp-farewell-veil__title">Resting for now</p>
-    <p class="sp-farewell-veil__body">Your space is safe, quietly waiting for your return. 💛</p>
-  `;
-  document.body.appendChild(veil);
-  /* Double rAF ensures transition plays */
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    veil.classList.add("is-visible");
-  }));
-  setTimeout(() => {
-    clearSpaceSession();
-    /* Remove theme from dashboard shell */
-    const dashEl = document.getElementById("spaceDashboard");
-    if (dashEl) dashEl.dataset.spTheme = "";
-    showSpaceView("spaceEntry");
-    showToast("Your space will be here when you return. 💛");
-    veil.classList.remove("is-visible");
-    setTimeout(() => veil.remove(), 420);
-  }, 1500);
+  clearSpaceSession();
+  showSpaceView("spaceEntry");
+  showToast("Your space will be here when you return. 💛");
 }
 
 /* ── Space tab navigation ────────────────────────────────────────────
@@ -1476,7 +1404,6 @@ function showSpaceTab(tabId) {
     profile:   "spaceTabProfile",
     lookbook:  "spaceTabLookbook",
     concierge: "spaceTabConcierge",
-    journal:   "spaceTabJournal",   /* §80 */
   };
   document.querySelectorAll("[data-space-tab]").forEach((t) => {
     t.classList.toggle("is-active", t.dataset.spaceTab === tabId);
@@ -1629,21 +1556,6 @@ function renderSpaceProfile(email) {
     `<button class="sp-tag${tags.includes(t) ? " is-selected" : ""}" type="button" data-tag="${t}">${t}</button>`
   ).join("");
 
-  /* §80 — Profile theme cards */
-  const pts80        = spGetLoyalty(email);
-  const currentTheme80 = spGetTheme(email) || "";
-  const themeCards80 = SP_THEME_DEFS.map(th => {
-    const locked   = pts80 < th.minPts;
-    const selected = th.id === currentTheme80;
-    return `
-      <button class="sp-theme-card${locked ? " is-locked" : ""}${selected ? " is-selected" : ""}"
-              type="button" data-theme-id="${th.id}"${locked ? " disabled" : ""}>
-        <div class="sp-theme-swatch" style="background:${th.swatch}"></div>
-        <p class="sp-theme-card__name">${th.name}</p>
-        ${locked ? `<p class="sp-theme-card__unlock">${th.unlock}</p>` : ""}
-      </button>`;
-  }).join("");
-
   panel.innerHTML = `
     <!-- §78 Profile hero: cover + avatar -->
     <div class="sp-profile-hero">
@@ -1688,13 +1600,6 @@ function renderSpaceProfile(email) {
       <p class="sp-tags-section__title">Your aesthetic moods</p>
       <p class="sp-tags-section__sub">Select everything that resonates. There are no wrong choices.</p>
       <div class="sp-tag-row" id="spTagRow">${tagChips}</div>
-    </div>
-
-    <!-- §80 Profile themes -->
-    <div class="sp-theme-section" id="spThemeSection">
-      <p class="sp-theme-section__title">Your Space atmosphere</p>
-      <p class="sp-theme-section__sub">Choose a tone that feels like yours. Themes unlock as your devotion deepens.</p>
-      <div class="sp-theme-grid" id="spThemeGrid">${themeCards80}</div>
     </div>
 
     <!-- Edit details -->
@@ -1796,23 +1701,6 @@ function renderSpaceProfile(email) {
     btn.classList.toggle("is-selected", cur.includes(tag));
   });
 
-  /* §80 — Profile theme selection */
-  document.getElementById("spThemeGrid")?.addEventListener("click", (e) => {
-    const card = e.target.closest("[data-theme-id]");
-    if (!card || card.disabled) return;
-    const themeId = card.dataset.themeId;
-    spSetTheme(email, themeId);
-    /* Apply theme to dashboard shell immediately */
-    const dashEl = document.getElementById("spaceDashboard");
-    if (dashEl) dashEl.dataset.spTheme = themeId;
-    /* Update selection visuals */
-    document.querySelectorAll(".sp-theme-card").forEach(c => {
-      c.classList.toggle("is-selected", c.dataset.themeId === themeId);
-    });
-    const themeName = SP_THEME_DEFS.find(t => t.id === themeId)?.name || "Classic";
-    showToast(`${themeName} — atmosphere applied 💛`);
-  });
-
   /* Toggle edit form visibility */
   document.getElementById("spaceEditToggle")?.addEventListener("click", () => {
     const form   = document.getElementById("spaceProfileForm");
@@ -1910,18 +1798,6 @@ function renderSpaceOverview(profile) {
 
   const affinityMood = getAffinityMood();
 
-  /* §80 — Inner Circle editorial cards */
-  const icCardsHtml80 = SP_IC_CARDS.map(card => {
-    const unlocked = pts >= card.minPts;
-    return `
-      <div class="sp-ic-card ${unlocked ? "sp-ic-card--unlocked" : "sp-ic-card--locked"}">
-        <p class="sp-ic-card__label">${card.label}</p>
-        <p class="sp-ic-card__title">${card.title}</p>
-        <p class="sp-ic-card__body">${card.body}</p>
-        ${!unlocked ? `<span class="sp-ic-card__lock">Unlock at ${card.unlock}</span>` : ""}
-      </div>`;
-  }).join("");
-
   panel.innerHTML = `
     <div class="sp-home">
 
@@ -1989,11 +1865,6 @@ function renderSpaceOverview(profile) {
             </button>
           </div>
         </div>` : ""}
-
-      <div class="sp-ic-section">
-        <p class="sp-ic-section__kicker">The Inner Circle</p>
-        <div class="sp-ic-cards">${icCardsHtml80}</div>
-      </div>
 
       <div class="space-browse-cta">
         <p class="space-browse-cta__text">The collection is waiting, curated with care.</p>
@@ -2162,16 +2033,6 @@ function renderSpaceConcierge(email) {
 
       <div class="sp-msg-thread" id="spMsgThread">${threadHtml}</div>
 
-      <div class="sp-occ-row" id="spConciergeOccRow">
-        <span class="sp-occ-row__label">Quick starts</span>
-        <button class="sp-occ-chip" type="button" data-cocc="Festive occasion — I'm looking for styling guidance for a festive occasion.">Festive occasion</button>
-        <button class="sp-occ-chip" type="button" data-cocc="Wedding styling — I'm attending a wedding and would love your guidance on the perfect saree.">Wedding styling</button>
-        <button class="sp-occ-chip" type="button" data-cocc="Everyday grace — I'm looking for something beautiful I can wear every day.">Everyday grace</button>
-        <button class="sp-occ-chip" type="button" data-cocc="A gift for someone special — Could you help me choose a thoughtful piece?">A gift</button>
-        <button class="sp-occ-chip" type="button" data-cocc="I'm interested in a custom piece. Could you tell me more about your bespoke process?">Custom piece</button>
-        <button class="sp-occ-chip" type="button" data-cocc="I'd love guidance on fabric — what would you recommend for">Fabric guidance</button>
-      </div>
-
       <div class="sp-compose" id="spCompose">
         <div class="sp-compose__img-preview" id="spComposeImgPrev"></div>
         <textarea class="sp-compose__textarea"
@@ -2243,140 +2104,6 @@ function renderSpaceConcierge(email) {
     /* Re-render thread */
     renderSpaceConcierge(email);
     showToast("Your message is ready — sent via WhatsApp 💛");
-  });
-
-  /* §80 — Occasion quick-start chips pre-fill the compose textarea */
-  document.getElementById("spConciergeOccRow")?.addEventListener("click", (e) => {
-    const chip = e.target.closest("[data-cocc]");
-    if (!chip) return;
-    const ta = document.getElementById("spComposeText");
-    if (ta) {
-      ta.value = chip.dataset.cocc;
-      ta.focus();
-      ta.setSelectionRange(ta.value.length, ta.value.length);
-    }
-  });
-}
-
-/* ── §80 renderSpaceJournal ──────────────────────────────────────────────── */
-function renderSpaceJournal(email) {
-  const panel = document.getElementById("spaceJournalPanel");
-  if (!panel) return;
-
-  const entries = spGetJournal(email);
-
-  const entryHtml = entries.length
-    ? [...entries].reverse().map(e => {
-        const dateStr = e.createdAt
-          ? new Date(e.createdAt).toLocaleDateString("en-IN",
-              { day: "numeric", month: "short", year: "numeric" })
-          : "";
-        const safeText = (e.text || "")
-          .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        return `
-          <div class="sp-j-entry" data-entry-id="${e.id}">
-            <div class="sp-j-entry__head">
-              <span class="sp-j-entry__mood">${e.mood || "◇"}</span>
-              <span class="sp-j-entry__meta">${dateStr}</span>
-              ${e.occasion ? `<span class="sp-j-entry__occ">${e.occasion}</span>` : ""}
-            </div>
-            <p class="sp-j-entry__body">${safeText}</p>
-            <button class="sp-j-entry__del" type="button"
-                    data-del-entry="${e.id}" aria-label="Delete journal entry">✕</button>
-          </div>`;
-      }).join("")
-    : `<div class="sp-empty">
-        <div class="sp-empty__icon">✦</div>
-        <p class="sp-empty__title">A quiet place for your thoughts</p>
-        <p class="sp-empty__body">Write about a moment, a feeling, or a look that stayed with you.</p>
-      </div>`;
-
-  const moodBtns = SP_JOURNAL_MOODS.map((m, i) =>
-    `<button class="sp-j-mood-btn${i === 0 ? " is-selected" : ""}" type="button"
-             data-jmood="${m.sym}" title="${m.label}" aria-label="${m.label}">${m.sym}</button>`
-  ).join("");
-
-  const occChips = SP_JOURNAL_OCCASIONS.map(o =>
-    `<button class="sp-j-occ-chip" type="button" data-jocc="${o}">${o}</button>`
-  ).join("");
-
-  panel.innerHTML = `
-    <div class="sp-journal">
-
-      <div class="sp-journal-head">
-        <p class="sp-journal-head__kicker">Style Journal</p>
-        <h3 class="sp-journal-head__title">Your private fashion diary</h3>
-        <p class="sp-journal-head__sub">A quiet place to capture styling thoughts, outfit ideas, and fashion moments that matter only to you.</p>
-      </div>
-
-      <div class="sp-journal-compose" id="spJournalCompose">
-        <p class="sp-journal-compose__label">How are you feeling?</p>
-        <div class="sp-j-mood-row" id="spJournalMoodRow">${moodBtns}</div>
-        <p class="sp-journal-compose__label">Occasion</p>
-        <div class="sp-j-occ-row" id="spJournalOccRow">${occChips}</div>
-        <textarea class="sp-journal-textarea" id="spJournalText"
-                  placeholder="Write about a look you loved, a styling idea, or a moment to remember…"
-                  rows="3"></textarea>
-        <button type="button" class="sp-journal-save" id="spJournalSave">Save to journal</button>
-      </div>
-
-      <div class="sp-j-list" id="spJournalList">${entryHtml}</div>
-
-    </div>`;
-
-  /* Mood selection */
-  let selectedMood = SP_JOURNAL_MOODS[0].sym;
-  document.getElementById("spJournalMoodRow")?.addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-jmood]");
-    if (!btn) return;
-    selectedMood = btn.dataset.jmood;
-    document.querySelectorAll(".sp-j-mood-btn").forEach(b => {
-      b.classList.toggle("is-selected", b.dataset.jmood === selectedMood);
-    });
-  });
-
-  /* Occasion selection */
-  let selectedOcc = "";
-  document.getElementById("spJournalOccRow")?.addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-jocc]");
-    if (!btn) return;
-    const occ = btn.dataset.jocc;
-    selectedOcc = selectedOcc === occ ? "" : occ;
-    document.querySelectorAll(".sp-j-occ-chip").forEach(b => {
-      b.classList.toggle("is-selected", b.dataset.jocc === selectedOcc);
-    });
-  });
-
-  /* Save entry */
-  document.getElementById("spJournalSave")?.addEventListener("click", () => {
-    const ta   = document.getElementById("spJournalText");
-    const text = ta?.value?.trim() || "";
-    if (!text) { showToast("Write a little something first 💛"); return; }
-    const entry = {
-      id:        Date.now().toString(36),
-      text,
-      mood:      selectedMood,
-      occasion:  selectedOcc,
-      createdAt: Date.now(),
-    };
-    const allEntries = spGetJournal(email);
-    allEntries.push(entry);
-    spSaveJournal(email, allEntries);
-    /* Award loyalty for first journal entry */
-    if (allEntries.length === 1) spAddLoyalty(email, 10);
-    renderSpaceJournal(email);
-    showToast("Saved to your journal 💛");
-  });
-
-  /* Delete entry */
-  document.getElementById("spJournalList")?.addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-del-entry]");
-    if (!btn) return;
-    const id       = btn.dataset.delEntry;
-    const filtered = spGetJournal(email).filter(en => en.id !== id);
-    spSaveJournal(email, filtered);
-    renderSpaceJournal(email);
-    showToast("Entry removed 💛");
   });
 }
 
