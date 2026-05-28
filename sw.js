@@ -6,7 +6,7 @@
 
 'use strict';
 
-const CACHE_VERSION = 'abdan-shell-v1';
+const CACHE_VERSION = 'abdan-shell-v5';   /* §81 — force re-cache after §78–§80 JS/CSS overhaul */
 
 /* Core UI shell — cached on install for instant offline presence */
 const SHELL_ASSETS = [
@@ -60,12 +60,18 @@ self.addEventListener('fetch', event => {
   if (request.method !== 'GET') return;
   if (url.pathname.startsWith('/chrome-extension')) return;
 
-  /* HTML navigation: network-first, serve cached shell on failure */
+  /* HTML navigation: network-first, serve cached shell on failure or server error */
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
-        .catch(() => caches.match('/'))
-        .then(response => response || caches.match('/'))
+        .then(response => {
+          /* §81 — Don't serve server errors (5xx) to the user; fall back to cache */
+          if (!response.ok && response.status >= 500) {
+            return caches.match('/').then(cached => cached || response);
+          }
+          return response;
+        })
+        .catch(() => caches.match('/').then(cached => cached || new Response('Offline', { status: 503 })))
     );
     return;
   }
