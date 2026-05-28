@@ -1520,26 +1520,41 @@ function renderProducts() {
               <div class="product-card__media">
                 <img src="${product.image}" alt="${product.name}" loading="lazy" />
                 <div class="product-card__overlay"></div>
+                <span class="product-card__badge">${product.primaryTag}</span>
+                <span class="product-card__index">${String(index + 1).padStart(2, "0")}</span>
               </div>
-              <button class="product-card__save${saved ? " is-saved" : ""}"
-                      type="button"
-                      data-wishlist="${product.id}"
-                      aria-label="${saved ? "Remove from wishlist" : "Save to wishlist"}">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                </svg>
-              </button>
               <div class="product-card__content">
-                <div class="product-card__header">
-                  <p class="section-kicker">${product.primaryTag}</p>
-                  <span class="product-card__index">${String(index + 1).padStart(2, "0")}</span>
-                </div>
                 <h3 class="product-card__title">${product.name}</h3>
                 <p class="product-card__description">${buildEditorialExcerpt(product)}</p>
-                <p class="product-card__meta">${product.secondaryTags.occasion}</p>
+                <div class="product-card__stats">
+                  <div class="product-card__stat">
+                    <span class="product-card__stat-value">${product.priceLabel}</span>
+                    <span class="product-card__stat-label">Price</span>
+                  </div>
+                  <div class="product-card__stat-sep" aria-hidden="true"></div>
+                  <div class="product-card__stat">
+                    <span class="product-card__stat-value">${product.secondaryTags.emotion}</span>
+                    <span class="product-card__stat-label">Feel</span>
+                  </div>
+                  <div class="product-card__stat-sep" aria-hidden="true"></div>
+                  <div class="product-card__stat">
+                    <span class="product-card__stat-value">${product.secondaryTags.style}</span>
+                    <span class="product-card__stat-label">Style</span>
+                  </div>
+                </div>
                 <div class="product-card__footer">
-                  <span class="product-card__price">${product.priceLabel}</span>
-                  <button class="text-link" type="button" data-preview="${product.id}">Discover more</button>
+                  <button class="product-card__cta" type="button" data-preview="${product.id}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    Discover More
+                  </button>
+                  <button class="product-card__save${saved ? " is-saved" : ""}"
+                          type="button"
+                          data-wishlist="${product.id}"
+                          aria-label="${saved ? "Remove from wishlist" : "Save to wishlist"}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                  </button>
                 </div>
               </div>
             </article>

@@ -209,7 +209,7 @@ body {
   margin: 0;
   min-height: 100vh;
   overflow-x: hidden;
-  overscroll-behavior-y: none; /* prevents pull-to-refresh — app-like containment */
+  overscroll-behavior-y: auto; /* §70: restored — none was freezing touch scroll at page boundaries */
   background: var(--bg);
   color: var(--text-main);
   font-family: var(--font-body);
@@ -2999,6 +2999,8 @@ html[data-theme="dark"] .testimonial-card--featured {
     scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch;      /* native iOS momentum physics */
     overscroll-behavior-x: contain;         /* prevent lateral page scroll */
+    touch-action: pan-x;                    /* §70: tell browser x-only — eliminates scroll-direction ambiguity freeze */
+    will-change: scroll-position;           /* §70: promote carousel to own compositor layer */
     scrollbar-width: none;
     gap: 0.95rem;
     padding: 0.5rem 1.2rem 1.4rem 0.7rem;  /* trailing 1.2rem = space after last card */
@@ -4961,10 +4963,12 @@ html[data-theme="dark"] .teaser-modal::before {
   background: rgba(0, 0, 0, 0.52);
 }
 
-/* ── 8. Overscroll — no rubber-band break at page edges ──────────────
-   Prevents elastic bounce that undercuts the sense of editorial weight. */
+/* ── 8. Overscroll — §70: removed overscroll-behavior-y:none from html.
+   Setting none on the scroll root killed touch physics on iOS/Android.
+   Vertical bounce at page edges is expected native behaviour — suppress
+   only horizontal (done on body via §69f). */
 html {
-  overscroll-behavior-y: none;
+  overscroll-behavior-y: auto;
 }
 /* Allow scroll chain inside scroll containers */
 .drawer-body,
@@ -16687,10 +16691,7 @@ html[data-theme="dark"] .support-pill__icon {
     touch-action: manipulation;
   }
 
-  /* iOS-style overscroll containment on the main body */
-  body {
-    overscroll-behavior-y: none; /* prevents chrome URL bar collapse bounce at top */
-  }
+  /* iOS overscroll: x-only block (§69f) — y remains auto so scroll never freezes */
 
   /* Larger, more ergonomic primary CTA on mobile */
   .primary-button {
@@ -18009,22 +18010,12 @@ html[data-theme="dark"] .site-header.is-scrolled .orb-button {
   }
 }
 
-/* ── §67k. SCROLL BEHAVIOUR — SMOOTH CINEMATIC INERTIA ──────────────────
-   overscroll-behavior: none prevents elastic bounce on sections that
-   should feel continuous. The story and collection sections scroll
-   horizontally or vertically in a linear, cinematic path.              */
-@media (max-width: 767px) {
-  .luxury-shell {
-    scroll-behavior: smooth;
-  }
-
-  /* Ensure cards that don't scroll don't create accidental bounce */
-  .story-card,
-  .feature-card,
-  .testimonial-card {
-    overscroll-behavior: none;
-  }
-}
+/* ── §67k. SCROLL BEHAVIOUR ──────────────────────────────────────────────
+   §70: scroll-behavior:smooth removed from .luxury-shell — CSS smooth scroll
+   on the shell fights ongoing touch input, causing the mid-scroll freeze.
+   html-level smooth scroll (line 204) handles anchor navigation correctly.
+   overscroll-behavior:none removed from non-scrolling cards — setting this
+   on elements that don't scroll is a no-op at best, confuses hit-testing. */
 
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -18458,3 +18449,289 @@ body {
    clips transform paint bleed without any stacking-context side effects.          */
 
 /* §69h — Reduced motion: no change needed for overflow fixes */
+
+/* ════════════════════════════════════════════════════════════════════════
+   §70. TOUCH SCROLL — APPLE-LEVEL PHYSICS
+   Root causes fixed above (overscroll-behavior-y:none on html/body,
+   scroll-behavior on shell, overscroll on non-scrolling cards).
+   This block adds the remaining compositor-layer declarations.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* §70a — Vertical page scroll: explicit pan-y on body prevents iOS from
+   mis-classifying touch-start on interactive children as non-scroll.    */
+body {
+  touch-action: pan-y pinch-zoom;
+}
+
+/* §70b — Horizontal carousel touch clarity already in mobile media query
+   above (touch-action: pan-x on .products-grid). Filter row mirror:     */
+@media (max-width: 767px) {
+  .filter-row {
+    touch-action: pan-x;
+    will-change: scroll-position;
+  }
+  /* Cards inside the carousel: allow pan-x to propagate to parent */
+  .products-grid .product-card {
+    touch-action: pan-x;
+  }
+}
+
+/* §70c — Momentum scrollers: ensure -webkit-overflow-scrolling is set
+   consistently on every scrollable container (belt + suspenders).       */
+.products-grid,
+.filter-row,
+.trust-rail__inner,
+.drawer-body,
+.product-sheet__panel {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* §70d — Reduced motion: touch-action is safe to keep regardless */
+
+/* ════════════════════════════════════════════════════════════════════════
+   §71. PRODUCT CARD — EDITORIAL PROFILE REDESIGN
+   Reference: large photo / stats row / dual CTA pill architecture.
+   All product content (name, price, description, tags) is preserved —
+   only the visual hierarchy and layout are updated.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* §71a — Stronger cinematic gradient on image bottom */
+.product-card__overlay {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0)    40%,
+    rgba(0, 0, 0, 0.10) 65%,
+    rgba(0, 0, 0, 0.38) 100%
+  ) !important;
+}
+
+/* §71b — Category badge: floats on image top-left */
+.product-card__badge {
+  position: absolute;
+  top:  0.72rem;
+  left: 0.72rem;
+  z-index: 2;
+  font-family:     var(--font-body);
+  font-size:       0.62rem;
+  font-weight:     700;
+  letter-spacing:  0.13em;
+  text-transform:  uppercase;
+  color:           rgba(255, 253, 250, 0.96);
+  background:      rgba(2, 61, 58, 0.70);
+  border:          1px solid rgba(255, 253, 250, 0.16);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius:   var(--radius-pill);
+  padding:         0.28rem 0.62rem;
+  line-height:     1;
+  pointer-events:  none;
+  white-space:     nowrap;
+}
+
+/* §71c — Index numeral: now lives on image (top-right), not in content */
+.product-card__index {
+  position:       absolute !important;
+  top:            0.72rem  !important;
+  right:          0.72rem  !important;
+  left:           auto     !important;
+  font-family:    var(--font-display);
+  font-size:      1.05rem;
+  font-weight:    400;
+  line-height:    1;
+  letter-spacing: -0.02em;
+  color:          rgba(255, 253, 250, 0.65);
+  pointer-events: none;
+  z-index:        2;
+}
+
+/* §71d — Content zone: tighter padding, pure column */
+.product-card__content {
+  padding:    1.1rem 1.15rem 1.2rem !important;
+  gap:        0                     !important;
+  flex:       1;
+  display:    flex;
+  flex-direction: column;
+}
+
+/* §71e — Title: no top margin (header row gone), slightly compact */
+.product-card__title {
+  margin:    0 0 0.55rem !important;
+}
+
+/* §71f — Description: 2-line clamp to keep card height consistent */
+.product-card__description {
+  margin:             0 0 0.95rem !important;
+  min-height:         unset       !important;
+  display:            -webkit-box !important;
+  -webkit-line-clamp: 2           !important;
+  -webkit-box-orient: vertical    !important;
+  overflow:           hidden      !important;
+}
+
+/* §71g — Stats row: Price | Feel | Style with hairline separators */
+.product-card__stats {
+  display:       flex;
+  align-items:   stretch;
+  margin:        0 0 1rem;
+  padding:       0.8rem 0;
+  border-top:    1px solid color-mix(in srgb, var(--line) 80%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+}
+
+.product-card__stat {
+  flex:           1;
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  gap:            0.22rem;
+  text-align:     center;
+  padding:        0 0.2rem;
+}
+
+.product-card__stat-value {
+  font-family:    var(--font-display);
+  font-size:      0.78rem;
+  font-weight:    500;
+  line-height:    1.25;
+  letter-spacing: -0.01em;
+  color:          var(--text-main);
+  word-break:     break-word;
+}
+
+.product-card__stat-label {
+  font-size:      0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color:          var(--text-dim);
+  font-weight:    600;
+}
+
+.product-card__stat-sep {
+  width:       1px;
+  flex-shrink: 0;
+  background:  color-mix(in srgb, var(--line) 90%, transparent);
+  align-self:  stretch;
+  margin:      0.05rem 0;
+}
+
+/* §71h — Footer: primary CTA pill + save pill side by side */
+.product-card__footer {
+  display:     flex        !important;
+  align-items: center      !important;
+  gap:         0.55rem     !important;
+  margin-top:  auto        !important;
+  padding-top: 0           !important;
+  border-top:  none        !important;
+}
+
+/* §71i — Primary "Discover More" pill */
+.product-card__cta {
+  flex:            1;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             0.42rem;
+  height:          2.7rem;
+  padding:         0 1rem;
+  background:      var(--emerald);
+  color:           #fff;
+  border:          none;
+  border-radius:   var(--radius-pill);
+  font-family:     var(--font-body);
+  font-size:       0.75rem;
+  font-weight:     700;
+  letter-spacing:  0.07em;
+  text-transform:  uppercase;
+  cursor:          pointer;
+  transition:
+    background 220ms var(--ease-out),
+    transform  220ms var(--ease-spring),
+    box-shadow 220ms var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.product-card__cta:hover {
+  background: color-mix(in srgb, var(--emerald) 86%, #000 14%);
+  box-shadow: 0 4px 16px rgba(2, 61, 58, 0.24);
+  transform:  translateY(-1px);
+}
+.product-card__cta:active {
+  transform:         scale(0.97);
+  transition-duration: 60ms;
+}
+.product-card__cta svg {
+  flex-shrink:    0;
+  pointer-events: none;
+}
+html[data-theme="dark"] .product-card__cta {
+  background: color-mix(in srgb, var(--emerald) 90%, var(--gold) 10%);
+}
+
+/* §71j — Save pill: moved from absolute overlay into footer */
+.product-card__save {
+  position:        static          !important;
+  top:             auto            !important;
+  right:           auto            !important;
+  flex-shrink:     0               !important;
+  width:           2.7rem          !important;
+  height:          2.7rem          !important;
+  border-radius:   var(--radius-pill) !important;
+  background:      color-mix(in srgb, var(--emerald) 7%, transparent) !important;
+  border:          1px solid color-mix(in srgb, var(--emerald) 20%, transparent) !important;
+  display:         flex            !important;
+  align-items:     center          !important;
+  justify-content: center          !important;
+  box-shadow:      none            !important;
+}
+.product-card__save svg {
+  width:  1rem !important;
+  height: 1rem !important;
+}
+.product-card__save:hover {
+  transform:  scale(1.08)  !important;
+  background: color-mix(in srgb, var(--emerald) 14%, transparent) !important;
+  box-shadow: 0 3px 10px rgba(2, 61, 58, 0.14) !important;
+}
+html[data-theme="dark"] .product-card__save {
+  background:   rgba(8, 27, 26, 0.55)    !important;
+  border-color: rgba(183, 155, 114, 0.14) !important;
+}
+html[data-theme="dark"] .product-card__save:hover {
+  background: rgba(10, 35, 33, 0.88) !important;
+}
+
+/* §71k — Dark mode: stats separator tint */
+html[data-theme="dark"] .product-card__stat-sep {
+  background: rgba(183, 155, 114, 0.11);
+}
+html[data-theme="dark"] .product-card__stat-value {
+  color: var(--text-main);
+}
+
+/* §71l — Mobile fine-tuning */
+@media (max-width: 767px) {
+  .product-card__content {
+    padding: 0.95rem 1rem 1rem !important;
+  }
+  .product-card__cta {
+    font-size: 0.7rem  !important;
+    height:    2.55rem !important;
+  }
+  .product-card__save {
+    width:  2.55rem !important;
+    height: 2.55rem !important;
+  }
+  .product-card__stat-value {
+    font-size: 0.72rem;
+  }
+  .product-card__badge {
+    font-size: 0.58rem;
+  }
+}
+
+/* §71m — Reduced motion: CTA transition collapsed */
+@media (prefers-reduced-motion: reduce) {
+  .product-card__cta {
+    transition: none !important;
+  }
+}
