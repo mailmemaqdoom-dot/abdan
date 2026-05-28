@@ -17778,3 +17778,266 @@ html[data-theme="dark"] .site-header.is-scrolled .orb-button {
 @media (prefers-reduced-motion: reduce) {
   .hero-section { transition: none !important; }
 }
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   §67. MOBILE VISUAL ORCHESTRATION — CINEMATIC COMPOSITION
+   ──────────────────────────────────────────────────────────────────────
+   Not layout. Not spacing. Composition.
+   What the eye lands on first. What it reads second. What it feels.
+   Every change here is about emotional focal hierarchy on mobile.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── §67a. HERO COMPOSITION — IMAGE AS PRIMARY FOCAL POINT ──────────────
+   Current layout: text (row 1) → image (row 2).
+   Result: text is the first thing the eye lands on. Editorial fashion
+   should lead with emotion — the model, the fabric, the light — not
+   with a headline.
+
+   Fix: image (row 1) → text (row 2). The slideshow becomes the emotional
+   entrance. The headline is discovered below it — a caption to the image,
+   not an announcement above it.
+
+   Image height: 58svh — occupies 58% of the mobile viewport, giving the
+   model cinematic presence without overwhelming the text that follows.    */
+@media (max-width: 767px) {
+  .hero-cinematic {
+    grid-template-rows: 58svh auto auto !important;
+  }
+
+  /* Image: move to row 1 — primary emotional focal point */
+  .hero-col--center {
+    grid-row:    1 !important;
+    min-height:  unset !important;
+    height:      100% !important;
+  }
+  .hero-col--center .hero-slideshow {
+    height:      100% !important;
+    min-height:  100% !important;
+  }
+  /* Face positioning: slightly higher crop for portrait-dominant mobile */
+  .hero-col--center .hero-slide img {
+    object-position: center 12% !important;
+  }
+
+  /* Text: move to row 2 — secondary focal point, below the image */
+  .hero-col--left {
+    grid-row:      2 !important;
+    padding:       1.5rem 1.5rem 1.75rem !important;
+    border-top:    1px solid rgba(253, 250, 245, 0.07) !important;
+    border-bottom: none !important;
+  }
+
+  /* Meta strip: remains row 3 */
+  .hero-meta-strip {
+    grid-row: 3 !important;
+  }
+}
+
+/* ── §67b. HERO TYPOGRAPHY — OPTICAL CALIBRATION ────────────────────────
+   The three-line mixed-weight headline needs optical sizing on mobile.
+   hch-heavy already has white-space: nowrap (prevents wrapping).
+   hch-thin and hch-serif benefit from text-wrap: balance (no orphans).
+
+   Scale: reduce hch-serif — the gold italic "emotional resolution" line
+   was competing with hch-heavy for prominence. It should whisper, not
+   announce.                                                              */
+@media (max-width: 767px) {
+  .hch-thin  { font-size: clamp(0.875rem, 4vw,   1.3rem) !important; }
+  .hch-heavy { font-size: clamp(2.0rem,   9vw,   3.0rem) !important; }
+  .hch-serif { font-size: clamp(1.1rem,   5.5vw, 1.7rem) !important; }
+
+  /* Optical line balance: prevents orphan words on thin/serif lines */
+  .hch-thin, .hch-serif { text-wrap: balance; }
+
+  .hero-cinematic-h1 {
+    margin-bottom: 1.25rem !important;
+    gap:           0.05em  !important;
+  }
+}
+
+/* ── §67c. HERO EYEBROW — QUIETER BRAND MARKER ──────────────────────────
+   The gold eyebrow label sits above the headline. After reordering
+   (image above, text below), the eyebrow is the first text the eye reads.
+   It should be a quiet orienter, not a competing focal point.            */
+@media (max-width: 767px) {
+  .hero-eyebrow {
+    margin-bottom: 0.7rem  !important;
+    opacity:       0.72    !important;
+  }
+  .hero-eyebrow__text {
+    font-size:      0.57rem !important;
+    letter-spacing: 0.16em  !important;
+  }
+  .hero-eyebrow__line {
+    opacity: 0.6 !important;
+  }
+}
+
+/* ── §67d. HERO CTA — RESTRAINED, NOT DOMINANT ──────────────────────────
+   CTAs are tertiary in the focal hierarchy. On mobile, they should feel
+   like a natural invitation — not a commercial call-to-action.          */
+@media (max-width: 767px) {
+  .hero-actions--cinematic {
+    gap:           0.6rem !important;
+    margin-bottom: 0.85rem !important;
+  }
+  .hero-actions--cinematic .primary-button {
+    padding:   0.875rem 1.35rem !important;
+    font-size: 0.8125rem        !important;
+  }
+  .hero-actions--cinematic .secondary-button {
+    padding:   0.75rem 1.1rem !important;
+    font-size: 0.78rem        !important;
+  }
+}
+
+/* ── §67e. HERO TAGLINE MARK — QUIET BRAND SIGNATURE ────────────────────
+   "Where devotion meets style." — the closing brand statement under the
+   CTAs. Should feel like a signature, not a slogan.                     */
+@media (max-width: 767px) {
+  .hero-tagline-mark {
+    font-size:      0.65rem !important;
+    opacity:        0.42    !important;
+    letter-spacing: 0.08em  !important;
+    margin-top:     0.55rem !important;
+  }
+}
+
+/* ── §67f. SECTION HEADINGS — OPTICAL BALANCE ───────────────────────────
+   text-wrap: balance prevents orphan words across all editorial headings.
+   Applied to mobile only — desktop headings have more room to breathe.  */
+@media (max-width: 767px) {
+  .section-heading h2,
+  .editorial-campaign__headline,
+  .hero-copy h1 {
+    text-wrap: balance;
+  }
+
+  /* Promise band: blockquote should balance over its two lines */
+  .promise-band__inner blockquote {
+    text-wrap: balance;
+  }
+}
+
+/* ── §67g. TRUST MINI — SECONDARY SUPPORT SIGNAL ────────────────────────
+   The hero trust mini ("Personalised service · Verified quality · …")
+   appears below the CTAs. Should whisper quality, not announce it.     */
+@media (max-width: 767px) {
+  .trust-mini {
+    margin-top:  0.9rem !important;
+    padding-top: 0.85rem !important;
+  }
+  .trust-mini p {
+    font-size:   0.8125rem !important;
+    line-height: 1.65      !important;
+    color:       rgba(253, 250, 245, 0.50) !important;
+  }
+}
+
+/* ── §67h. TOUCH INTERACTION — NATIVE-APP RESPONSE ──────────────────────
+   touch-action: manipulation removes the 300ms delay on mobile taps.
+   -webkit-tap-highlight-color: transparent removes the grey flash.
+   Together these make buttons feel native and instant.                  */
+@media (max-width: 767px) {
+  .primary-button,
+  .secondary-button,
+  .dock-link,
+  .orb-button,
+  .support-pill,
+  .brand-pill,
+  .filter-chip,
+  .option-chip,
+  .product-card,
+  .campaign-chip {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Active state: immediate tactile depth on touch-down */
+  .primary-button:active,
+  .secondary-button:active {
+    transform:         scale(0.97) !important;
+    transition-duration: 60ms      !important;
+  }
+}
+
+/* ── §67i. FLOATING ECOSYSTEM — VISUAL SILENCE ───────────────────────────
+   The support pill and the bottom dock should feel part of the same
+   visual system: same glass depth, same opacity contract.
+   Reduce support pill visual weight on mobile — it should be present
+   but not demanding attention during content scroll.                    */
+@media (max-width: 767px) {
+  /* Support pill: quieter at rest */
+  .support-pill {
+    opacity: 0.85 !important;
+  }
+  /* Restore full opacity on interaction */
+  .support-pill:hover,
+  .support-pill:focus {
+    opacity: 1 !important;
+  }
+}
+
+/* ── §67j. VISUAL SILENCE — REDUCE SIMULTANEOUS COMPETITION ─────────────
+   On mobile, several elements compete for attention simultaneously:
+   - The section kicker (gold caps)
+   - The section heading h2
+   - The section subtext
+   - The section card visual
+
+   Create clear focal ladder: kicker whispers → heading speaks → image lands.*/
+@media (max-width: 767px) {
+  /* Section kicker: quieter lead-in */
+  .section-kicker {
+    opacity: 0.7 !important;
+  }
+
+  /* Section subtext: slight opacity recession */
+  .section-heading > p {
+    opacity: 0.50 !important;
+  }
+
+  /* Story card: border-bottom as quiet visual beat between entries */
+  .story-card {
+    padding-bottom: clamp(1.4rem, 2.5vh, 2rem) !important;
+  }
+
+  /* Testimonial featured card: quiet interior */
+  .testimonial-card--featured {
+    opacity: 0.96 !important;
+  }
+}
+
+/* ── §67k. SCROLL BEHAVIOUR — SMOOTH CINEMATIC INERTIA ──────────────────
+   overscroll-behavior: none prevents elastic bounce on sections that
+   should feel continuous. The story and collection sections scroll
+   horizontally or vertically in a linear, cinematic path.              */
+@media (max-width: 767px) {
+  .luxury-shell {
+    scroll-behavior: smooth;
+  }
+
+  /* Ensure cards that don't scroll don't create accidental bounce */
+  .story-card,
+  .feature-card,
+  .testimonial-card {
+    overscroll-behavior: none;
+  }
+}
+
+/* ── §67l. LANDSCAPE GUARD ───────────────────────────────────────────────
+   In landscape the reordering should still work but image height adjusts.*/
+@media (max-width: 767px) and (orientation: landscape) {
+  .hero-cinematic {
+    grid-template-rows: 50dvh auto auto !important;
+  }
+}
+
+/* ── §67m. REDUCED MOTION GUARD ─────────────────────────────────────────*/
+@media (prefers-reduced-motion: reduce) {
+  .hero-col--center,
+  .hero-col--left {
+    transition: none !important;
+  }
+}
