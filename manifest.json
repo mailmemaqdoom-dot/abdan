@@ -1,0 +1,40 @@
+{
+  "name": "ABDAN",
+  "short_name": "ABDAN",
+  "description": "Luxury modest fashion — where devotion meets style. Thoughtfully curated for the woman who moves through her days with grace and intention.",
+  "start_url": "/?utm_source=pwa",
+  "id": "/?utm_source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#023D3A",
+  "theme_color": "#023D3A",
+  "lang": "en-IN",
+  "dir": "ltr",
+  "categories": ["shopping", "lifestyle"],
+  "icons": [
+    {
+      "src": "assets/abdan-icon.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/abdan-icon.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=390&h=844&q=80",
+      "sizes": "390x844",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "ABDAN luxury fashion — editorial browsing experience"
+    }
+  ],
+  "prefer_related_applications": false
+}

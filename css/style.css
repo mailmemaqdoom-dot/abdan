@@ -19095,3 +19095,270 @@ html[data-theme="dark"] .product-pause-card {
     transition: none !important;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   §73. PWA — NATIVE APP ARCHITECTURE
+   Progressive Web App infrastructure: standalone display, safe-area
+   refinements, View Transitions, install sheet, gesture polish.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* §73a — Standalone / installed app mode ─────────────────────────────── */
+@media (display-mode: standalone) {
+  /* Deepen status-bar clearance in standalone (no browser chrome above) */
+  .site-header {
+    top: max(1.05rem, calc(env(safe-area-inset-top) + 0.55rem)) !important;
+  }
+  /* Bottom dock: extra breathing room above home indicator */
+  .bottom-dock {
+    bottom: max(1.15rem, calc(env(safe-area-inset-bottom) + 0.8rem)) !important;
+  }
+  /* Support pill: clear the dock + home indicator */
+  @media (max-width: 767px) {
+    .support-pill {
+      bottom: max(5.9rem, calc(env(safe-area-inset-bottom) + 5.6rem)) !important;
+    }
+  }
+  /* Standalone: ensure hero extends fully to edges */
+  .hero-section {
+    padding-left:  max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+}
+
+/* §73b — View Transitions: smooth product-sheet open/close ─────────────
+   Wrapping openProduct() with document.startViewTransition() provides
+   a native-feel cross-dissolve instead of an abrupt DOM change.         */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: 180ms ease-out both vt-bg-dim;
+  }
+  ::view-transition-new(root) {
+    animation: 340ms cubic-bezier(0.16, 1, 0.3, 1) both vt-bg-rise;
+  }
+  @keyframes vt-bg-dim {
+    to { opacity: 0.7; transform: scale(0.985); }
+  }
+  @keyframes vt-bg-rise {
+    from { opacity: 0; transform: scale(1.012); }
+  }
+}
+
+/* §73c — PWA Install Sheet ───────────────────────────────────────────── */
+.pwa-sheet {
+  position:    fixed;
+  inset:       0;
+  z-index:     calc(var(--z-header) + 20);
+  display:     flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.pwa-sheet[hidden] { display: none; }
+
+/* Backdrop */
+.pwa-sheet__backdrop {
+  position:   absolute;
+  inset:      0;
+  background: rgba(1, 18, 17, 0.55);
+  backdrop-filter:         blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity:    0;
+  transition: opacity 380ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.pwa-sheet.is-visible .pwa-sheet__backdrop {
+  opacity: 1;
+}
+
+/* Card */
+.pwa-sheet__card {
+  position:        relative;
+  width:           100%;
+  max-width:       480px;
+  background:      color-mix(in srgb, var(--paper) 96%, var(--emerald) 4%);
+  border:          1px solid color-mix(in srgb, var(--emerald) 14%, transparent);
+  border-bottom:   none;
+  border-radius:   1.5rem 1.5rem 0 0;
+  padding:         1.6rem 1.4rem calc(1.6rem + env(safe-area-inset-bottom, 0px));
+  box-shadow:      0 -8px 48px rgba(1, 24, 22, 0.18),
+                   0 -2px 12px rgba(1, 24, 22, 0.08);
+  transform:       translateY(100%);
+  transition:      transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change:     transform;
+}
+.pwa-sheet.is-visible .pwa-sheet__card {
+  transform: translateY(0);
+}
+
+html[data-theme="dark"] .pwa-sheet__card {
+  background:  rgba(6, 22, 21, 0.97);
+  border-color: rgba(183, 155, 114, 0.10);
+  box-shadow:  0 -8px 48px rgba(0, 0, 0, 0.5);
+}
+
+/* Grip handle */
+.pwa-sheet__grip {
+  width:         2.8rem;
+  height:        4px;
+  background:    color-mix(in srgb, var(--line) 60%, transparent);
+  border-radius: 2px;
+  margin:        0 auto 1.4rem;
+}
+
+/* Identity row */
+.pwa-sheet__identity {
+  display:     flex;
+  align-items: center;
+  gap:         1rem;
+  margin-bottom: 1rem;
+}
+.pwa-sheet__icon {
+  width:         3.25rem;
+  height:        3.25rem;
+  border-radius: 0.85rem;
+  object-fit:    cover;
+  flex-shrink:   0;
+  border:        1px solid color-mix(in srgb, var(--line) 60%, transparent);
+}
+.pwa-sheet__brand {
+  flex: 1;
+  min-width: 0;
+}
+.pwa-sheet__name {
+  font-family:    var(--font-display);
+  font-size:      1.18rem;
+  font-weight:    500;
+  letter-spacing: -0.01em;
+  color:          var(--text-main);
+  margin:         0 0 0.12rem;
+}
+.pwa-sheet__tagline {
+  font-size:      0.73rem;
+  color:          var(--text-soft);
+  margin:         0;
+  letter-spacing: 0.02em;
+}
+.pwa-sheet__close {
+  width:           2.1rem;
+  height:          2.1rem;
+  border-radius:   50%;
+  background:      color-mix(in srgb, var(--line) 40%, transparent);
+  border:          none;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  cursor:          pointer;
+  color:           var(--text-soft);
+  flex-shrink:     0;
+  transition:      background 180ms var(--ease-out), transform 180ms var(--ease-spring);
+}
+.pwa-sheet__close:hover {
+  background:  color-mix(in srgb, var(--line) 70%, transparent);
+  transform:   scale(1.08);
+}
+
+/* Body copy */
+.pwa-sheet__copy {
+  font-size:   0.83rem;
+  line-height: 1.65;
+  color:       var(--text-soft);
+  margin:      0 0 1.25rem;
+}
+
+/* iOS guidance steps */
+.pwa-sheet__ios {
+  display:       flex;
+  flex-direction: column;
+  gap:           0.75rem;
+  margin-bottom: 0.6rem;
+}
+.pwa-ios-step {
+  display:     flex;
+  align-items: center;
+  gap:         0.75rem;
+  padding:     0.75rem 0.95rem;
+  background:  color-mix(in srgb, var(--emerald) 5%, transparent);
+  border:      1px solid color-mix(in srgb, var(--emerald) 10%, transparent);
+  border-radius: var(--radius-md);
+}
+.pwa-ios-step__num {
+  width:           1.55rem;
+  height:          1.55rem;
+  border-radius:   50%;
+  background:      var(--emerald);
+  color:           #fff;
+  font-size:       0.7rem;
+  font-weight:     700;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  flex-shrink:     0;
+}
+.pwa-ios-step__text {
+  font-size:   0.8rem;
+  line-height: 1.5;
+  color:       var(--text-main);
+}
+.pwa-ios-step__text strong {
+  font-weight: 600;
+  color:       var(--emerald);
+}
+.pwa-ios-share {
+  display:        inline;
+  vertical-align: middle;
+  stroke:         var(--emerald);
+  margin-inline:  2px;
+}
+
+/* Android install button */
+.pwa-sheet__install-btn {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             0.5rem;
+  width:           100%;
+  height:          3rem;
+  background:      var(--emerald);
+  color:           #fff;
+  border:          none;
+  border-radius:   var(--radius-pill);
+  font-family:     var(--font-body);
+  font-size:       0.82rem;
+  font-weight:     700;
+  letter-spacing:  0.07em;
+  text-transform:  uppercase;
+  cursor:          pointer;
+  transition:      background 220ms var(--ease-out), transform 220ms var(--ease-spring);
+}
+.pwa-sheet__install-btn:hover {
+  background: color-mix(in srgb, var(--emerald) 88%, #000);
+  transform:  translateY(-1px);
+}
+.pwa-sheet__install-btn:active {
+  transform: scale(0.97);
+}
+
+/* §73d — Touch & gesture polish: native-app inertia feel ─────────────── */
+html {
+  /* Smooth rendering on high-DPI — prevents blurry text in standalone */
+  -webkit-font-smoothing:  antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering:          optimizeLegibility;
+}
+
+/* Prevent pull-to-refresh on Android (interferes with luxury pacing) */
+@media (max-width: 767px) {
+  body {
+    overscroll-behavior-y: contain;
+  }
+}
+
+/* §73e — Reduced motion: collapse all PWA transitions */
+@media (prefers-reduced-motion: reduce) {
+  .pwa-sheet__card,
+  .pwa-sheet__backdrop {
+    transition: none !important;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+}

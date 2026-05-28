@@ -4170,4 +4170,126 @@ function initMobileProductScroll() {
 window.addEventListener("DOMContentLoaded", () => {
   initProductImageViewer();
   initMobileProductScroll();
+  initPWA();
 });
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   §73 — PWA NATIVE APP ARCHITECTURE
+   Service worker registration, install sheet, View Transitions.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Capture Android install prompt before DOMContentLoaded ─────────────
+   Must be assigned at script parse time — beforeinstallprompt fires early. */
+let _pwaInstallPrompt = null;
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  _pwaInstallPrompt = e;
+});
+
+function initPWA() {
+  /* ── 1. Service worker registration ─────────────────────────────────── */
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/sw.js", { scope: "/" })
+      .catch(() => { /* silent — SW is enhancement, not requirement */ });
+  }
+
+  /* ── 2. Install sheet ───────────────────────────────────────────────── */
+  const sheet      = document.getElementById("pwaSheet");
+  const backdrop   = document.getElementById("pwaBackdrop");
+  const closeBtn   = document.getElementById("pwaClose");
+  const iosGuide   = document.getElementById("pwaIosGuide");
+  const installBtn = document.getElementById("pwaInstallBtn");
+  if (!sheet) return;
+
+  /* Skip if already running as installed PWA */
+  const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    navigator.standalone === true;
+  if (isStandalone) return;
+
+  /* Skip if user previously dismissed */
+  if (localStorage.getItem("abdan-pwa-dismissed")) return;
+
+  /* Detect platform */
+  const isIOS =
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isAndroid  = /Android/.test(navigator.userAgent);
+  const isMobile   = isIOS || isAndroid;
+  if (!isMobile) return; /* install sheet is mobile-only */
+
+  /* Show iOS guide or Android button */
+  if (isIOS && iosGuide) {
+    iosGuide.hidden = false;
+  } else if (_pwaInstallPrompt && installBtn) {
+    installBtn.hidden = false;
+  } else {
+    return; /* nothing to show */
+  }
+
+  /* Reveal after user scrolls ≈ 40% — they're engaged */
+  let sheetShown = false;
+  const maybeShow = () => {
+    if (sheetShown) return;
+    const ratio = window.scrollY / Math.max(1, document.body.scrollHeight - window.innerHeight);
+    if (ratio < 0.4) return;
+    sheetShown = true;
+    window.removeEventListener("scroll", maybeShow);
+    sheet.hidden = false;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => sheet.classList.add("is-visible"));
+    });
+  };
+  window.addEventListener("scroll", maybeShow, { passive: true });
+
+  /* Dismiss helpers */
+  const dismissSheet = () => {
+    sheet.classList.remove("is-visible");
+    sheet.addEventListener("transitionend", () => { sheet.hidden = true; }, { once: true });
+    localStorage.setItem("abdan-pwa-dismissed", "1");
+  };
+
+  closeBtn?.addEventListener("click", dismissSheet);
+  backdrop?.addEventListener("click", dismissSheet);
+
+  /* Android: trigger native install prompt */
+  installBtn?.addEventListener("click", async () => {
+    if (!_pwaInstallPrompt) return;
+    _pwaInstallPrompt.prompt();
+    const { outcome } = await _pwaInstallPrompt.userChoice;
+    _pwaInstallPrompt = null;
+    dismissSheet();
+    if (outcome === "accepted") {
+      localStorage.setItem("abdan-pwa-dismissed", "1");
+    }
+  });
+}
+
+/* ── §73 View Transitions: smooth product-sheet open ────────────────────
+   Patches the products grid click handler with startViewTransition so
+   opening a product detail sheet feels native rather than a hard DOM cut.
+   Wraps openProduct() only — closeProduct() already has its own animation. */
+(function patchProductTransitions() {
+  if (!document.startViewTransition) return; /* progressive enhancement */
+
+  /* Re-wire the grid click to use View Transitions */
+  const grid = document.getElementById("productsGrid");
+  if (!grid) return;
+
+  /* Add a capturing listener that intercepts data-preview clicks first */
+  grid.addEventListener("click", (event) => {
+    const saveBtn = event.target.closest("[data-wishlist]");
+    if (saveBtn) return; /* wishlist handled by original listener */
+
+    const previewButton = event.target.closest("[data-preview]");
+    const card          = event.target.closest("[data-product-card]");
+    const productId     = previewButton?.dataset.preview || card?.dataset.productCard;
+    if (!productId) return;
+
+    /* Prevent the original (non-VT) handler from firing */
+    event.stopImmediatePropagation();
+
+    /* Soft cross-dissolve — background dims, sheet rises naturally */
+    document.startViewTransition(() => openProduct(productId));
+  }, true /* capture — fires before bubble-phase listeners */);
+})();
