@@ -1131,6 +1131,11 @@ function setSpaceSession(profile) {
     displayName: profile.displayName,
     fullName: profile.fullName,
   }));
+  /* S83 — remember last member for returning user portal experience */
+  try { localStorage.setItem("abdan-sp-last", JSON.stringify({
+    email: profile.email,
+    name:  profile.displayName || profile.fullName || "",
+  })); } catch {}
 }
 
 function clearSpaceSession() {
@@ -1877,6 +1882,14 @@ function renderSpaceOverview(profile) {
   const tier     = spGetTier(pts);
   const badges   = spGetBadges(email);
   const photo    = spGet(email, SP_PHOTO_KEY);
+  /* S83 — member since + recently viewed */
+  const joinedYear83 = (() => {
+    const p = getSpaceProfiles()[(email || "").toLowerCase()] || {};
+    return p.createdAt ? new Date(p.createdAt).getFullYear() : null;
+  })();
+  const mem83 = readMemory();
+  const recentIds83 = (Array.isArray(mem83.lastViewedIds) ? mem83.lastViewedIds : []).slice(0, 3);
+  const recentProducts83 = recentIds83.map(id => PRODUCTS.find(p => p.id === id)).filter(Boolean);
   const identity = spGet(email, SP_STYLE_KEY) || "";
   const wlSize   = getWishlist().size;
 
@@ -1931,6 +1944,7 @@ function renderSpaceOverview(profile) {
             ? `<p class="sp-profile-mini__identity">${identity}</p>`
             : `<p class="sp-profile-mini__identity" style="opacity:.55">Set your style identity →</p>`
           }
+          ${joinedYear83 ? `<p class="sp-profile-mini__since">Member since ${joinedYear83}</p>` : ""}
         </div>
       </div>
 
@@ -1975,6 +1989,16 @@ function renderSpaceOverview(profile) {
           <p class="sp-quick-card__title">Profile</p>
           <p class="sp-quick-card__sub">Your style identity</p>
         </button>
+        <button class="sp-quick-card" type="button" onclick="showSpaceTab('journal')">
+          <span class="sp-quick-card__icon">◇</span>
+          <p class="sp-quick-card__title">Journal</p>
+          <p class="sp-quick-card__sub">Your style diary</p>
+        </button>
+        <button class="sp-quick-card" type="button" onclick="showSpaceTab('journey')">
+          <span class="sp-quick-card__icon">✦</span>
+          <p class="sp-quick-card__title">Orders</p>
+          <p class="sp-quick-card__sub">Your journey</p>
+        </button>
       </div>
 
       ${affinityMood ? `
@@ -1993,6 +2017,21 @@ function renderSpaceOverview(profile) {
         <p class="sp-ic-section__kicker">The Inner Circle</p>
         <div class="sp-ic-cards">${icCardsHtml80}</div>
       </div>
+
+      ${recentProducts83.length > 0 ? `
+      <div class="sp-recently">
+        <p class="sp-recently__kicker">Continue Your Journey</p>
+        <div class="sp-recently__list">
+          ${recentProducts83.map(p => `
+            <button type="button" class="sp-recently__item" onclick="openProduct('${p.id}')">
+              <div class="sp-recently__thumb">
+                <img src="${p.image}" alt="${p.name}" loading="lazy" />
+              </div>
+              <p class="sp-recently__name">${p.name}</p>
+              <p class="sp-recently__price">${p.priceLabel || ""}</p>
+            </button>`).join("")}
+        </div>
+      </div>` : ""}
 
       <div class="space-browse-cta">
         <p class="space-browse-cta__text">The collection is waiting, curated with care.</p>
@@ -5352,22 +5391,52 @@ function staggerFabricBreathe() {
 function showSpacePortal() {
   const portal = document.getElementById("spaceAuthPortal");
   if (!portal) return;
-  const profiles = getSpaceProfiles();
+
+  const profiles    = getSpaceProfiles();
   const hasProfiles = Object.keys(profiles).length > 0;
-  const h1 = document.getElementById("spPortalH1");
-  const sub = document.getElementById("spPortalSub");
+  const h1          = document.getElementById("spPortalH1");
+  const sub         = document.getElementById("spPortalSub");
   const continueBtn = document.getElementById("spPortalContinue");
-  if (h1 && sub) {
-    if (hasProfiles) {
-      h1.textContent = "Welcome Back";
-      sub.textContent = "Your stories, inspirations, purchases and cherished moments await.";
-      if (continueBtn) continueBtn.textContent = "Continue";
-    } else {
-      h1.textContent = "Your Space";
-      sub.textContent = "A personal place to save pieces you love and feel at home with ABDAN.";
-      if (continueBtn) continueBtn.textContent = "Create Your Space";
+  const createBtn   = document.getElementById("spPortalCreate");
+  const memberBlock = document.getElementById("spPortalMember");
+  const memberAv    = document.getElementById("spPortalAvatar");
+  const memberNm    = document.getElementById("spPortalMemberName");
+
+  /* S83 — detect last signed-in member for returning user experience */
+  let lastMember = null;
+  try { lastMember = JSON.parse(localStorage.getItem("abdan-sp-last") || "null"); } catch {}
+  const isKnownReturn = hasProfiles && lastMember && profiles[(lastMember.email || "").toLowerCase()];
+
+  if (isKnownReturn) {
+    /* Returning user: show identity + personalised copy */
+    if (h1)          h1.textContent          = "Welcome Back";
+    if (sub)         sub.textContent         = "Continue Your Story";
+    if (continueBtn) continueBtn.textContent = "Continue to Your Space";
+    if (createBtn)   createBtn.textContent   = "Switch Account";
+    if (memberBlock) { memberBlock.hidden = false; memberBlock.removeAttribute("aria-hidden"); }
+    if (memberNm)    memberNm.textContent = lastMember.name || "";
+    if (memberAv) {
+      const photo = lastMember.email ? spGet(lastMember.email, SP_PHOTO_KEY) : null;
+      memberAv.innerHTML = photo
+        ? `<img src="${photo}" alt="" />`
+        : `<span>${(lastMember.name || "?").charAt(0).toUpperCase()}</span>`;
     }
+  } else if (hasProfiles) {
+    /* Has profiles but no named last session */
+    if (h1)          h1.textContent          = "Welcome Back";
+    if (sub)         sub.textContent         = "Your stories, inspirations, purchases and cherished moments await.";
+    if (continueBtn) continueBtn.textContent = "Continue to Your Space";
+    if (createBtn)   createBtn.textContent   = "Switch Account";
+    if (memberBlock) { memberBlock.hidden = true; memberBlock.setAttribute("aria-hidden", "true"); }
+  } else {
+    /* New user */
+    if (h1)          h1.textContent          = "Welcome to Your Space";
+    if (sub)         sub.textContent         = "A private place for the pieces, memories and inspirations that stay with you.";
+    if (continueBtn) continueBtn.textContent = "Create Your Space";
+    if (createBtn)   createBtn.textContent   = "Sign In";
+    if (memberBlock) { memberBlock.hidden = true; memberBlock.setAttribute("aria-hidden", "true"); }
   }
+
   portal.hidden = false;
   requestAnimationFrame(() => requestAnimationFrame(() => portal.classList.add("is-open")));
   document.body.classList.add("is-locked");
@@ -5396,9 +5465,16 @@ document.getElementById("spPortalContinue")?.addEventListener("click", () => {
   }
 });
 document.getElementById("spPortalCreate")?.addEventListener("click", () => {
-  hideSpacePortal(() => { scrollToSection("account"); setTimeout(() => showSpaceView("spaceCreate"), 350); });
+  /* S83: "Sign In" for new users, "Switch Account" for returning — both → spaceSignin */
+  const hasProfiles = Object.keys(getSpaceProfiles()).length > 0;
+  if (hasProfiles) {
+    hideSpacePortal(() => { scrollToSection("account"); setTimeout(() => showSpaceView("spaceSignin"), 350); });
+  } else {
+    hideSpacePortal(() => { scrollToSection("account"); setTimeout(() => showSpaceView("spaceSignin"), 350); });
+  }
 });
-document.getElementById("spPortalClose")?.addEventListener("click", () => hideSpacePortal());
+/* S83: back button replaces X close */
+document.getElementById("spPortalBack")?.addEventListener("click", () => hideSpacePortal());
 
 /* Intercept "Your Space" dock nav click — capture phase fires before existing listener */
 document.getElementById("bottomDock")?.addEventListener("click", (e) => {
