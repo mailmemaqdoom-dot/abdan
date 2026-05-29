@@ -80,9 +80,12 @@
 
       <div class="lx-entry__inner">
 
-        <!-- Brand wordmark — materialises from darkness via scale + opacity.
-             Always shows CSS text on the dark cinematic background.
-             .lx-entry__glint is a single CSS keyframe sweep — no JS after trigger. -->
+        <!-- S82 — Luxury app emblem: always-emerald splash, gold-bordered icon -->
+        <div class="lx-entry__emblem" aria-hidden="true">
+          <img src="./assets/abdan-icon.jpg" alt="" draggable="false" />
+        </div>
+
+        <!-- Brand wordmark — materialises from darkness via scale + opacity. -->
         <div class="lx-entry__wordmark" aria-label="ABDAN">
           <img class="lx-entry__wordmark-img"
                src="./assets/logo/abdan-wordmark-full.jpeg"
@@ -921,6 +924,16 @@
            ═══════════════════════════════════════════════════════════════════ -->
       <section class="account-section section-frame" id="account">
         <div class="container">
+
+          <!-- S82 — Your Space top bar (shown only in your-space route) -->
+          <div class="ys-topbar" id="ysTopbar" aria-hidden="true">
+            <button type="button" class="ys-topbar__back" id="ysBackBtn" aria-label="Back to ABDAN storefront">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+              <span>ABDAN</span>
+            </button>
+            <p class="ys-topbar__title abdan-calligraph" aria-hidden="true">Your Space</p>
+            <div class="ys-topbar__spacer" aria-hidden="true"></div>
+          </div>
 
           <!-- ── VIEW: Entry ────────────────────────────────────────────── -->
           <div class="space-view" id="spaceEntry">

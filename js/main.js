@@ -1334,6 +1334,7 @@ function showSpaceDashboard(profile, isNew = false) {
   }
 
   showSpaceView("spaceDashboard");
+  if (typeof enterYourSpaceRoute === "function") enterYourSpaceRoute(); /* S82 */
 
   /* §78 — Update header avatar */
   const avatarEl   = document.getElementById("spaceDashAvatar");
@@ -1455,6 +1456,7 @@ function handleSpaceSignout() {
     clearSpaceSession();
     const dashEl = document.getElementById("spaceDashboard");
     if (dashEl) dashEl.dataset.spTheme = "";
+    if (typeof exitYourSpaceRoute === "function") exitYourSpaceRoute(); /* S82 */
     showSpaceView("spaceEntry");
     showToast("Your space will be here when you return. 💛");
     veil.classList.remove("is-visible");
@@ -5401,9 +5403,14 @@ document.getElementById("spPortalClose")?.addEventListener("click", () => hideSp
 /* Intercept "Your Space" dock nav click — capture phase fires before existing listener */
 document.getElementById("bottomDock")?.addEventListener("click", (e) => {
   const btn = e.target.closest('[data-target="account"]');
-  if (btn && !getSpaceSession()) {
+  if (!btn) return;
+  const sess = getSpaceSession();
+  if (!sess) {
     e.stopPropagation();
     showSpacePortal();
+  } else {
+    e.stopPropagation();
+    if (typeof enterYourSpaceRoute === "function") enterYourSpaceRoute(); /* S82 */
   }
 }, { capture: true });
 
@@ -5457,3 +5464,61 @@ function renderShareCard(product) {
   card.hidden = false;
   card.removeAttribute("aria-hidden");
 }
+
+/* S82 — Your Space dedicated route (Issue 3) */
+
+function enterYourSpaceRoute() {
+  dom.html.setAttribute("data-route", "your-space");
+  const topbar = document.getElementById("ysTopbar");
+  if (topbar) { topbar.hidden = false; topbar.removeAttribute("aria-hidden"); }
+  window.scrollTo({ top: 0, behavior: "instant" });
+  if (window.history && window.location.hash !== "#your-space") {
+    history.pushState({ ysRoute: true }, "", "#your-space");
+  }
+}
+
+function exitYourSpaceRoute() {
+  dom.html.setAttribute("data-route", "storefront");
+  const topbar = document.getElementById("ysTopbar");
+  if (topbar) { topbar.hidden = true; topbar.setAttribute("aria-hidden", "true"); }
+  if (history.state?.ysRoute) history.back();
+}
+
+/* ys back button */
+document.getElementById("ysBackBtn")?.addEventListener("click", () => {
+  exitYourSpaceRoute();
+  setTimeout(() => scrollToSection("products"), 80);
+});
+
+/* browser back closes Your Space route */
+window.addEventListener("popstate", (e) => {
+  if (dom.html.dataset.route === "your-space" && !e.state?.ysRoute) {
+    dom.html.setAttribute("data-route", "storefront");
+    const topbar = document.getElementById("ysTopbar");
+    if (topbar) { topbar.hidden = true; topbar.setAttribute("aria-hidden", "true"); }
+  }
+});
+
+/* S82 — lx-entry emblem animation (Issue 2): wire emblem to show with wordmark */
+(function wireEntryEmblem() {
+  const emblem = document.querySelector(".lx-entry__emblem");
+  if (!emblem) return;
+  const wordmark = document.querySelector(".lx-entry__wordmark");
+  if (wordmark) {
+    const observer = new MutationObserver(() => {
+      if (wordmark.classList.contains("is-visible")) {
+        emblem.classList.add("is-visible");
+      } else {
+        emblem.classList.remove("is-visible");
+      }
+    });
+    observer.observe(wordmark, { attributes: true, attributeFilter: ["class"] });
+  }
+})();
+
+/* S82 — trigger emblem before wordmark for proper splash sequence */
+document.addEventListener("DOMContentLoaded", () => {
+  if (document.documentElement.dataset.entrySkip) return;
+  const emblem = document.querySelector(".lx-entry__emblem");
+  if (emblem) setTimeout(() => emblem.classList.add("is-visible"), 60);
+}, { once: true });
