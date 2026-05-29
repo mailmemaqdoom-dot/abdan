@@ -15854,3 +15854,183 @@ html[data-theme="dark"] .sp-occ-chip:hover {
   .sp-occ-chip,
   .sp-theme-card { transition: none !important; }
 }
+.brand-mark img { mix-blend-mode: multiply; }
+.footer-mark img { mix-blend-mode: multiply; }
+.pwa-sheet__icon { mix-blend-mode: multiply; }
+html[data-theme="dark"] .brand-mark img,
+html[data-theme="dark"] .footer-mark img { mix-blend-mode: screen; }
+html[data-theme="dark"] .pwa-sheet__icon { mix-blend-mode: screen; }
+.sp-portal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 420ms cubic-bezier(0.16,1,0.3,1);
+}
+.sp-portal.is-open {
+  opacity: 1;
+  pointer-events: all;
+}
+.sp-portal__bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg,#012f2c 0%,#011a18 100%);
+}
+.sp-portal__stage {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 3rem 2rem 2.5rem;
+  max-width: 420px;
+  width: 100%;
+  transform: translateY(24px);
+  transition: transform 520ms cubic-bezier(0.16,1,0.3,1);
+}
+.sp-portal.is-open .sp-portal__stage { transform: translateY(0); }
+.sp-portal__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 2.5rem;
+}
+.sp-portal__icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1.5px solid rgba(197,161,59,0.45);
+  background: rgba(0,0,0,0.25);
+  flex-shrink: 0;
+}
+.sp-portal__icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  mix-blend-mode: screen;
+  opacity: 0.92;
+}
+.sp-portal__name {
+  font-size: 1.15rem;
+  letter-spacing: 0.3em;
+  color: #c5a13b;
+  text-transform: uppercase;
+}
+.sp-portal__h1 {
+  font-family: var(--font-display,"Libre Baskerville",Georgia,serif);
+  font-size: clamp(1.9rem,5vw,2.5rem);
+  font-weight: 400;
+  color: #f8f5ec;
+  line-height: 1.15;
+  margin: 0 0 0.875rem;
+}
+.sp-portal__sub {
+  font-size: 0.875rem;
+  color: rgba(248,245,236,0.62);
+  line-height: 1.65;
+  max-width: 300px;
+  margin: 0 auto;
+}
+.sp-portal__headline { margin-bottom: 2.25rem; }
+.sp-portal__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 280px;
+  margin-bottom: 1.5rem;
+}
+.sp-portal__btn-continue {
+  background: #c5a13b !important;
+  color: #fff !important;
+  border-color: transparent !important;
+  letter-spacing: 0.04em;
+}
+.sp-portal__btn-create {
+  background: transparent;
+  border: 1px solid rgba(248,245,236,0.22);
+  color: rgba(248,245,236,0.8);
+  font-family: var(--font-body,"Open Sans",sans-serif);
+  font-size: 0.875rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: border-color 200ms,color 200ms;
+}
+.sp-portal__btn-create:hover {
+  border-color: rgba(197,161,59,0.55);
+  color: #c5a13b;
+}
+.sp-portal__trust {
+  font-size: 0.65rem;
+  color: rgba(248,245,236,0.28);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.sp-portal__close {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  background: transparent;
+  border: none;
+  color: rgba(248,245,236,0.4);
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 50%;
+  line-height: 0;
+  transition: color 200ms;
+}
+.sp-portal__close:hover { color: rgba(248,245,236,0.85); }
+.share-preview {
+  background: linear-gradient(135deg,#023d3a,#012f2c);
+  border-radius: 0.875rem;
+  padding: 1rem 1.125rem;
+  margin-bottom: 0.875rem;
+  display: flex;
+  gap: 0.875rem;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(197,161,59,0.15);
+}
+.share-preview__img {
+  width: 68px;
+  height: 68px;
+  border-radius: 0.5rem;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.share-preview__body { flex: 1; min-width: 0; }
+.share-preview__brand {
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #c5a13b;
+  margin-bottom: 0.2rem;
+}
+.share-preview__name {
+  font-family: var(--font-display,"Libre Baskerville",Georgia,serif);
+  font-size: 0.88rem;
+  color: #f8f5ec;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0.15rem;
+}
+.share-preview__price {
+  font-size: 0.75rem;
+  color: rgba(248,245,236,0.6);
+}
+.share-preview__descriptor {
+  font-size: 0.65rem;
+  color: rgba(197,161,59,0.75);
+  font-style: italic;
+  margin-top: 0.2rem;
+}

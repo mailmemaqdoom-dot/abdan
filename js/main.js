@@ -2742,6 +2742,8 @@ function openProduct(productId) {
   dom.selectedColorLabel.textContent = state.selectedColor || "Select";
   dom.productCheckoutPanel.hidden = true;
   renderShareButtons(product);
+  renderShareCard(product);      /* S81 — branded share preview card */
+  updateProductOG(product);      /* S81 — dynamic OG meta tags */
   renderEmotionalRecommendations(product); /* emotionally adjacent pieces */
 
   /* Reset scroll so every open starts from the top of the content area */
@@ -5342,3 +5344,116 @@ function staggerFabricBreathe() {
 })();
 
 /* §90 probe */
+
+/* S81 — Your Space Auth Portal (Task 2) */
+
+function showSpacePortal() {
+  const portal = document.getElementById("spaceAuthPortal");
+  if (!portal) return;
+  const profiles = getSpaceProfiles();
+  const hasProfiles = Object.keys(profiles).length > 0;
+  const h1 = document.getElementById("spPortalH1");
+  const sub = document.getElementById("spPortalSub");
+  const continueBtn = document.getElementById("spPortalContinue");
+  if (h1 && sub) {
+    if (hasProfiles) {
+      h1.textContent = "Welcome Back";
+      sub.textContent = "Your stories, inspirations, purchases and cherished moments await.";
+      if (continueBtn) continueBtn.textContent = "Continue";
+    } else {
+      h1.textContent = "Your Space";
+      sub.textContent = "A personal place to save pieces you love and feel at home with ABDAN.";
+      if (continueBtn) continueBtn.textContent = "Create Your Space";
+    }
+  }
+  portal.hidden = false;
+  requestAnimationFrame(() => requestAnimationFrame(() => portal.classList.add("is-open")));
+  document.body.classList.add("is-locked");
+  if (window.history && window.location.hash !== "#your-space") {
+    history.pushState({ spPortal: true }, "", "#your-space");
+  }
+}
+
+function hideSpacePortal(then) {
+  const portal = document.getElementById("spaceAuthPortal");
+  if (!portal) { then?.(); return; }
+  portal.classList.remove("is-open");
+  document.body.classList.remove("is-locked");
+  if (history.state?.spPortal) history.back();
+  setTimeout(() => { portal.hidden = true; then?.(); }, 440);
+}
+
+/* Portal button wiring */
+document.getElementById("spPortalContinue")?.addEventListener("click", () => {
+  const profiles = getSpaceProfiles();
+  const hasProfiles = Object.keys(profiles).length > 0;
+  if (hasProfiles) {
+    hideSpacePortal(() => { scrollToSection("account"); setTimeout(() => showSpaceView("spaceSignin"), 350); });
+  } else {
+    hideSpacePortal(() => { scrollToSection("account"); setTimeout(() => showSpaceView("spaceCreate"), 350); });
+  }
+});
+document.getElementById("spPortalCreate")?.addEventListener("click", () => {
+  hideSpacePortal(() => { scrollToSection("account"); setTimeout(() => showSpaceView("spaceCreate"), 350); });
+});
+document.getElementById("spPortalClose")?.addEventListener("click", () => hideSpacePortal());
+
+/* Intercept "Your Space" dock nav click — capture phase fires before existing listener */
+document.getElementById("bottomDock")?.addEventListener("click", (e) => {
+  const btn = e.target.closest('[data-target="account"]');
+  if (btn && !getSpaceSession()) {
+    e.stopPropagation();
+    showSpacePortal();
+  }
+}, { capture: true });
+
+/* Handle browser back closing portal */
+window.addEventListener("popstate", () => {
+  const portal = document.getElementById("spaceAuthPortal");
+  if (portal && portal.classList.contains("is-open")) {
+    portal.classList.remove("is-open");
+    document.body.classList.remove("is-locked");
+    setTimeout(() => { portal.hidden = true; }, 440);
+  }
+});
+
+/* S81 — Premium Share Card + OG (Task 3) */
+
+function updateProductOG(product) {
+  const shareUrl = buildShareUrl(product);
+  const title    = `${product.name} — ABDAN`;
+  const desc     = product.curationLine || product.description || "Thoughtfully curated modest fashion.";
+  const imgUrl   = product.image?.startsWith("http") ? product.image : "";
+  [
+    ["og:title",           title,   "property"],
+    ["og:description",     desc,    "property"],
+    ["og:url",             shareUrl,"property"],
+    ["twitter:title",      title,   "name"],
+    ["twitter:description",desc,    "name"],
+  ].forEach(([key, val, attr]) => {
+    const el = document.querySelector(`meta[${attr}="${key}"]`);
+    if (el) el.content = val;
+  });
+  if (imgUrl) {
+    const ogImg = document.querySelector('meta[property="og:image"]');
+    const twImg = document.querySelector('meta[name="twitter:image"]');
+    if (ogImg) ogImg.content = imgUrl;
+    if (twImg) twImg.content = imgUrl;
+  }
+}
+
+function renderShareCard(product) {
+  const card = document.getElementById("sharePreviewCard");
+  if (!card) return;
+  const imgSrc = product.image || "";
+  card.innerHTML = `
+    <img class="share-preview__img" src="${imgSrc}" alt="${product.name}" loading="lazy" />
+    <div class="share-preview__body">
+      <p class="share-preview__brand">Personally Curated by ABDAN</p>
+      <p class="share-preview__name">${product.name}</p>
+      <p class="share-preview__price">${product.priceLabel || ""}</p>
+      <p class="share-preview__descriptor">${product.curationLine || "Where devotion meets style."}</p>
+    </div>`;
+  card.hidden = false;
+  card.removeAttribute("aria-hidden");
+}

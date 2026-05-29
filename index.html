@@ -1525,6 +1525,7 @@
 
             <div class="share-row">
               <p class="share-row__label">Share this style <span class="share-row__hint">— tell someone who would love it</span></p>
+              <div id="sharePreviewCard" class="share-preview" hidden aria-hidden="true"></div>
               <div id="shareButtons" class="share-buttons" role="list" aria-label="Share this product"></div>
             </div>
 
@@ -1833,5 +1834,30 @@
          Responsive: mobile bottom dock + desktop pill nav both validated
          Dark mode: compatible · Typography: consistent across all nav items
          Build: static HTML/CSS/JS · Cloudflare Pages compatible -->
+  <!-- S81 — Your Space Auth Portal -->
+  <div id="spaceAuthPortal" class="sp-portal" role="dialog" aria-modal="true" aria-label="Your Space" hidden>
+    <div class="sp-portal__bg" aria-hidden="true"></div>
+    <div class="sp-portal__stage">
+      <button type="button" class="sp-portal__close" id="spPortalClose" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="sp-portal__brand">
+        <div class="sp-portal__icon" aria-hidden="true">
+          <img src="./assets/abdan-icon.jpg" alt="" draggable="false" />
+        </div>
+        <p class="sp-portal__name abdan-calligraph" aria-label="ABDAN">ABDAN</p>
+      </div>
+      <div class="sp-portal__headline">
+        <h1 class="sp-portal__h1" id="spPortalH1">Welcome Back</h1>
+        <p class="sp-portal__sub" id="spPortalSub">Your stories, inspirations, purchases and cherished moments await.</p>
+      </div>
+      <div class="sp-portal__actions">
+        <button type="button" class="primary-button sp-portal__btn-continue" id="spPortalContinue">Continue</button>
+        <button type="button" class="sp-portal__btn-create" id="spPortalCreate">Create Your Space</button>
+      </div>
+      <p class="sp-portal__trust">Private. Secure. Always yours.</p>
+    </div>
+  </div>
+
   </body>
 </html>
