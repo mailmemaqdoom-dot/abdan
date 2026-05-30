@@ -16419,3 +16419,20 @@ html[data-theme="dark"] .space-tabs-wrap::after{background:linear-gradient(to ri
 .sp-req-complete__sub{font-size:.78rem;color:var(--muted);margin-bottom:.75rem;line-height:1.5}
 .sp-req-complete__cta{background:transparent;border:1px solid var(--emerald);color:var(--emerald);font-size:.78rem;padding:.45rem 1rem;border-radius:999px;cursor:pointer;transition:all 180ms}
 .sp-req-complete__cta:hover{background:var(--emerald);color:#f8f5ec}
+.sp-wardrobe-section{margin-bottom:.75rem}
+.sp-wardrobe-section__label{font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:.2rem}
+.sp-wardrobe-section__sub{font-size:.75rem;color:var(--muted);opacity:.7;margin-bottom:.75rem}
+.sp-rec-cols{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-top:.5rem}
+.sp-rec-col{display:flex;flex-direction:column;align-items:flex-start;gap:.2rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:.875rem;padding:.875rem;cursor:pointer;text-align:left;transition:transform 200ms,box-shadow 200ms}
+.sp-rec-col:active{transform:scale(.97)}
+.sp-rec-col__icon{font-size:1.1rem;color:var(--gold);opacity:.7}
+.sp-rec-col__title{font-family:var(--font-display,"Libre Baskerville",serif);font-size:.85rem;color:var(--text)}
+.sp-rec-col__desc{font-size:.68rem;color:var(--muted)}
+html[data-theme="dark"] .sp-req-upload-btn{border-color:rgba(248,245,236,.15);color:rgba(248,245,236,.5)}
+html[data-theme="dark"] .sp-req-form,html[data-theme="dark"] .sp-moments-form{background:rgba(248,245,236,.04)}
+html[data-theme="dark"] .sp-moments-cat,html[data-theme="dark"] .sp-moments-title,html[data-theme="dark"] .sp-moments-note,html[data-theme="dark"] .sp-req-desc,html[data-theme="dark"] .sp-req-occ,html[data-theme="dark"] .sp-req-budget{background:rgba(248,245,236,.06);border-color:rgba(248,245,236,.12);color:rgba(248,245,236,.9)}
+html[data-theme="dark"] .sp-req-item,html[data-theme="dark"] .sp-moment-item{background:rgba(248,245,236,.05)}
+html[data-theme="dark"] .sp-tier-display{background:linear-gradient(135deg,rgba(197,161,59,.08),rgba(248,245,236,.03))}
+html[data-theme="dark"] .sp-ic-preview{background:rgba(248,245,236,.04);border-color:rgba(248,245,236,.1)}
+html[data-theme="dark"] .sp-action-card{background:rgba(248,245,236,.05);border-color:rgba(248,245,236,.08)}
+html[data-theme="dark"] .sp-rec-col{background:rgba(248,245,236,.05);border-color:rgba(248,245,236,.08)}

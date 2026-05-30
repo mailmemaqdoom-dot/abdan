@@ -6540,3 +6540,209 @@ function renderSpaceMessages(email) {
     history.replaceState({}, "", window.location.pathname);
   } catch { /* invalid param — ignore */ }
 })();
+
+/* Sprint D — Audit Closure */
+
+/* D-03 — Personal Quote key */
+const SP_QUOTE_KEY = "abdan-sp-quote";
+
+/* D-05 — Tab badge updater */
+function updateSpaceTabBadges(email) {
+  /* Requests: count non-completed requests */
+  try {
+    const global = JSON.parse(localStorage.getItem(SP_GLOBAL_REQS_KEY)||"[]");
+    const mine   = global.filter(r=>(r.email||"").toLowerCase()===email.toLowerCase());
+    const pending = mine.filter(r=>r.status!=="Completed").length;
+    const reqBadge = document.getElementById("spaceTabRequestsCount");
+    if (reqBadge) { reqBadge.textContent=pending; reqBadge.hidden=pending===0; }
+  } catch {}
+  /* Messages: count ABDAN messages not yet acknowledged */
+  try {
+    const seenKey = `abdan-sp-msgs-seen:${email.toLowerCase()}`;
+    const seenTs  = parseInt(localStorage.getItem(seenKey)||"0",10);
+    const msgs    = JSON.parse(localStorage.getItem(`abdan-sp-concierge:${email.toLowerCase()}`)||"[]");
+    const unread  = msgs.filter(m=>m.from==="abdan"&&(m.sentAt||m.ts||0)>seenTs).length;
+    const msgBadge = document.getElementById("spaceTabMessagesCount");
+    if (msgBadge) { msgBadge.textContent=unread; msgBadge.hidden=unread===0; }
+  } catch {}
+}
+
+/* Mark messages as seen when Messages tab is opened */
+(function() {
+  const orig = window.showSpaceTab;
+  if (typeof orig === "function") {
+    window.showSpaceTab = function(tabId) {
+      orig(tabId);
+      if (tabId === "messages") {
+        const sess = typeof getSpaceSession === "function" ? getSpaceSession() : null;
+        if (sess?.email) {
+          try { localStorage.setItem(`abdan-sp-msgs-seen:${sess.email.toLowerCase()}`, String(Date.now())); } catch {}
+          const msgBadge = document.getElementById("spaceTabMessagesCount");
+          if (msgBadge) { msgBadge.textContent="0"; msgBadge.hidden=true; }
+        }
+      }
+    };
+  }
+})();
+
+/* D-02 — My Wardrobe correction: differentiate purchases vs saved pieces */
+function renderSpaceWishlist() {
+  const panel = document.getElementById("spaceWishlistPanel");
+  if (!panel) return;
+
+  const wishlistIds = getWishlist();
+  const saved       = PRODUCTS.filter(p => wishlistIds.has(String(p.id)));
+
+  /* Get purchases from orders (using phone in session) */
+  const sess    = getSpaceSession();
+  const phone   = (() => {
+    if (!sess?.email) return "";
+    const profiles = getSpaceProfiles();
+    const p = profiles[(sess.email||"").toLowerCase()] || {};
+    return (p.phone||"").replace(/\D/g,"");
+  })();
+  const orders    = (() => { try { return JSON.parse(localStorage.getItem("abdan-studio-orders")||"[]"); } catch { return []; } })();
+  const myOrders  = phone ? orders.filter(o=>String(o.customerPhone||"").replace(/\D/g,"")===phone) : [];
+  const delivered = myOrders.filter(o=>o.status==="delivered");
+
+  /* Purchase section */
+  const purchaseHtml = delivered.length
+    ? `<div class="sp-wardrobe-section">
+        <p class="sp-wardrobe-section__label">My ABDAN Pieces</p>
+        <p class="sp-wardrobe-section__sub">Pieces you have brought home from ABDAN.</p>
+        <div class="space-saved-grid">
+          ${delivered.map(o=>`
+            <div class="space-saved-card">
+              <div class="space-saved-card__body" style="padding:1rem">
+                <p class="space-saved-card__name">${o.product||o.productName||"ABDAN Piece"}</p>
+                <p class="space-saved-card__price">${o.total?`₹${o.total}`:"—"}</p>
+                <p style="font-size:.68rem;color:var(--gold,#c5a13b);margin-top:.25rem">Delivered 💛</p>
+              </div>
+            </div>`).join("")}
+        </div>
+      </div>`
+    : `<div class="sp-wardrobe-section">
+        <p class="sp-wardrobe-section__label">My ABDAN Pieces</p>
+        <div class="space-saved-empty" style="padding:1rem 0">
+          <p style="font-size:.82rem;color:var(--muted)">Your ABDAN purchases will appear here once delivered.</p>
+          <a class="secondary-button" href="#products" style="margin-top:.75rem;display:inline-block">Browse the Collection</a>
+        </div>
+      </div>`;
+
+  /* Saved pieces section */
+  const savedHtml = saved.length
+    ? `<div class="space-saved-grid">
+        ${saved.map(p=>`
+          <div class="space-saved-card">
+            <div class="space-saved-card__img" aria-hidden="true">
+              ${p.image ? `<img src="${p.image}" alt="" loading="lazy" />` : `<div class="space-saved-card__img-placeholder"></div>`}
+            </div>
+            <div class="space-saved-card__body">
+              <p class="space-saved-card__name">${p.name}</p>
+              <p class="space-saved-card__price">${p.priceLabel||""}</p>
+            </div>
+            <button class="space-saved-card__remove" data-remove-saved="${p.id}"
+                    type="button" aria-label="Remove ${p.name} from saved pieces">
+              <i data-lucide="x" aria-hidden="true"></i>
+            </button>
+          </div>`).join("")}
+      </div>`
+    : `<p style="font-size:.82rem;color:var(--muted);padding:.5rem 0">Nothing saved yet — tap the heart on any piece to save it here.</p>`;
+
+  panel.innerHTML = `
+    <div class="sp-wardrobe-head">
+      <h3 class="sp-wardrobe-head__title">My Wardrobe</h3>
+    </div>
+    ${purchaseHtml}
+    <hr class="sp-section-divider" style="margin:1.25rem 0" />
+    <div class="sp-wardrobe-section">
+      <p class="sp-wardrobe-section__label">Saved Pieces</p>
+      <p class="sp-wardrobe-section__sub">Pieces you love — saved for when the moment is right.</p>
+      ${savedHtml}
+    </div>`;
+
+  panel.querySelectorAll("[data-remove-saved]").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const wl=getWishlist(); wl.delete(btn.dataset.removeSaved); saveWishlist(wl);
+      renderSpaceWishlist(); updateSavedPiecesCount(); safeCreateIcons();
+    });
+  });
+  safeCreateIcons();
+}
+
+/* D-03 — Profile quote: add to renderSpaceProfile override */
+(function patchProfileQuote() {
+  const origRenderProfile = window.renderSpaceProfile || function(){};
+  /* We patch renderSpaceProfile in showSpaceDashboard context — use the
+     existing function and append the quote field after it renders. */
+  const _orig = window.renderSpaceProfile;
+  if (typeof _orig !== "function") return;
+  window.renderSpaceProfile = function(email) {
+    _orig(email);
+    /* Inject quote field after bio section if not already present */
+    const panel = document.getElementById("spaceProfilePanel");
+    if (!panel || panel.querySelector("#spQuoteField")) return;
+    const quote = spGet(email, SP_QUOTE_KEY) || "";
+    /* Find the save button area and insert before it */
+    const editToggle = panel.querySelector("#spaceEditToggle");
+    if (!editToggle) return;
+    const quoteDiv = document.createElement("div");
+    quoteDiv.className = "sp-quote-field";
+    quoteDiv.id = "spQuoteField";
+    quoteDiv.innerHTML = `
+      <p class="sp-section-kicker" style="margin-bottom:.4rem">Personal Quote</p>
+      <p style="font-size:.72rem;color:var(--muted);margin-bottom:.6rem">A phrase that feels like you.</p>
+      <input type="text" id="spQuoteInput" value="${(quote).replace(/"/g,"&quot;")}"
+             placeholder="Grace lives in the details."
+             maxlength="80"
+             style="width:100%;padding:.65rem .9rem;background:rgba(2,61,58,.03);border:1px solid var(--line);border-radius:.5rem;font-family:var(--font-display,'Libre Baskerville',serif);font-size:.92rem;font-style:italic;color:var(--text);box-sizing:border-box" />
+      <button type="button" id="spQuoteSave" class="secondary-button" style="margin-top:.5rem;font-size:.78rem;padding:.4rem 1rem">Save Quote</button>`;
+    editToggle.parentNode?.insertBefore(quoteDiv, editToggle);
+    panel.querySelector("#spQuoteSave")?.addEventListener("click",()=>{
+      const val = panel.querySelector("#spQuoteInput")?.value.trim()||"";
+      spSet(email, SP_QUOTE_KEY, val);
+      showToast("Quote saved. 💛");
+    });
+  };
+})();
+
+/* D-04 — Recommended Collections in overview */
+(function patchOverviewCollections() {
+  const COLLECTIONS = [
+    { label:"Festive Glow",   filter:"Festive",       desc:"Pieces for the days that glow.",      icon:"✦" },
+    { label:"Everyday Grace", filter:"Everyday Grace",desc:"Worn with intention, every day.",      icon:"◇" },
+    { label:"Soft Minimal",   filter:"Soft Statement",desc:"Quiet pieces that speak volumes.",     icon:"◈" },
+    { label:"Wedding Season", filter:"Festive",       desc:"For your most cherished moments.",     icon:"♡" },
+  ];
+
+  const _orig = window.renderSpaceOverview;
+  if (typeof _orig !== "function") return;
+  window.renderSpaceOverview = function(profile) {
+    _orig(profile);
+    /* Inject Recommended Collections after the Reserved For You section */
+    const panel = document.getElementById("spaceOverviewPanel");
+    if (!panel) return;
+    const browseCta = panel.querySelector(".space-browse-cta");
+    if (!browseCta || panel.querySelector("#spRecCollections")) return;
+    const identity = spGet(profile.email||"", SP_STYLE_KEY)||"";
+    const mood     = getAffinityMood()||"";
+    /* Filter collections relevant to this customer */
+    const relevant = COLLECTIONS.filter(c=>
+      !identity || c.label.toLowerCase().includes(identity.toLowerCase().split(" ")[0]) ||
+      c.filter.toLowerCase().includes(mood.toLowerCase()) || true
+    ).slice(0,3);
+    const colHtml = relevant.map(c=>`
+      <button type="button" class="sp-rec-col" onclick="state.filter='${c.filter}';renderFilters?.();renderProducts?.();exitYourSpaceRoute?.();scrollToSection?.('products')">
+        <span class="sp-rec-col__icon">${c.icon}</span>
+        <span class="sp-rec-col__title">${c.label}</span>
+        <span class="sp-rec-col__desc">${c.desc}</span>
+      </button>`).join("");
+    const div = document.createElement("div");
+    div.id = "spRecCollections";
+    div.className = "sp-recently";
+    div.innerHTML = `<p class="sp-recently__kicker">Recommended Collections</p><div class="sp-rec-cols">${colHtml}</div>`;
+    browseCta.parentNode?.insertBefore(div, browseCta);
+    /* Also update badges */
+    if (profile.email) updateSpaceTabBadges(profile.email);
+  };
+})();
