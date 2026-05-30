@@ -2024,9 +2024,72 @@ function renderSpaceOverview(profile) {
         </div>
       </div>` : ""}
 
+      ${(() => {
+        /* S88 — Recently Saved: products in wishlist */
+        const wl = getWishlist();
+        const saved = PRODUCTS.filter(p => wl.has(String(p.id))).slice(0, 3);
+        if (!saved.length) return "";
+        return `<div class="sp-recently">
+          <p class="sp-recently__kicker">Recently Saved</p>
+          <div class="sp-recently__list">
+            ${saved.map(p => `
+              <button type="button" class="sp-recently__item" onclick="openProduct('${p.id}')">
+                <div class="sp-recently__thumb"><img src="${p.image}" alt="${p.name}" loading="lazy" /></div>
+                <p class="sp-recently__name">${p.name}</p>
+                <p class="sp-recently__price">${p.priceLabel || ""}</p>
+              </button>`).join("")}
+          </div>
+        </div>`;
+      })()}
+
+      ${(() => {
+        /* S88 — Inspired By Your Style: affinity-filtered products */
+        const mood = getAffinityMood() || "";
+        const styleId = spGet(email, SP_STYLE_KEY) || "";
+        const inspired = PRODUCTS
+          .filter(p => {
+            if (!mood && !styleId) return false;
+            const haystack = [p.name, p.primaryTag, ...(p.moods || []), p.description].join(" ").toLowerCase();
+            return (mood && haystack.includes(mood.toLowerCase())) ||
+                   (styleId && haystack.includes(styleId.toLowerCase().split(" ")[0]));
+          })
+          .filter(p => !recentIds83.includes(p.id))
+          .slice(0, 3);
+        if (!inspired.length) return "";
+        return `<div class="sp-recently">
+          <p class="sp-recently__kicker">Inspired By Your Style</p>
+          <div class="sp-recently__list">
+            ${inspired.map(p => `
+              <button type="button" class="sp-recently__item" onclick="openProduct('${p.id}')">
+                <div class="sp-recently__thumb"><img src="${p.image}" alt="${p.name}" loading="lazy" /></div>
+                <p class="sp-recently__name">${p.name}</p>
+                <p class="sp-recently__price">${p.priceLabel || ""}</p>
+              </button>`).join("")}
+          </div>
+        </div>`;
+      })()}
+
+      ${(() => {
+        /* S88 — Reserved For You: curated picks not yet viewed */
+        const seenIds = new Set([...recentIds83, ...getWishlist()]);
+        const reserved = PRODUCTS.filter(p => !seenIds.has(String(p.id))).slice(0, 3);
+        if (!reserved.length) return "";
+        return `<div class="sp-recently">
+          <p class="sp-recently__kicker">Reserved For You</p>
+          <div class="sp-recently__list">
+            ${reserved.map(p => `
+              <button type="button" class="sp-recently__item" onclick="openProduct('${p.id}')">
+                <div class="sp-recently__thumb"><img src="${p.image}" alt="${p.name}" loading="lazy" /></div>
+                <p class="sp-recently__name">${p.name}</p>
+                <p class="sp-recently__price">${p.priceLabel || ""}</p>
+              </button>`).join("")}
+          </div>
+        </div>`;
+      })()}
+
       <div class="space-browse-cta">
         <p class="space-browse-cta__text">The collection is waiting, curated with care.</p>
-        <a class="secondary-button" href="#products">Discover something beautiful</a>
+        <a class="secondary-button" href="#products">Continue Browsing</a>
       </div>
 
     </div>`;
@@ -5716,7 +5779,7 @@ function renderSpaceSavedMoments(email) {
   const panel = document.getElementById("spaceSavedMomentsPanel");
   if (!panel) return;
   const moments = spGet(email, SP_MOMENTS_KEY) || [];
-  const cats = ["Wedding","Festival","Gift","Favourite Outfit","Special Occasion"];
+  const cats = ["Wedding Saree","Festival Look","Gift Memory","Favourite Outfit","Special Occasion"];
   const catOpts = cats.map(c=>`<option value="${c}">${c}</option>`).join("");
   const listHtml = moments.length === 0
     ? `<p class="sp-empty-note">Your moments will be kept here, quietly and beautifully.</p>`
@@ -6146,4 +6209,86 @@ function renderSpaceConcierge(email) {
     renderSpaceConcierge(email);
     showToast("Your message is ready — sent via WhatsApp 💛");
   });
+}
+
+/* S88 — Upgraded membership: emotional, prominent, exact IC benefits */
+const SP_IC_BENEFITS = [
+  { icon: "◇", label: "Private Launches",     desc: "First look at new collections before they open to the world." },
+  { icon: "✦", label: "Early Access",          desc: "Reserve pieces before they are announced publicly." },
+  { icon: "✉", label: "Priority Concierge",    desc: "Your requests are answered first, always." },
+  { icon: "♡", label: "Founder Notes",         desc: "Personal letters from ABDAN, written only for you." },
+  { icon: "◈", label: "Limited Collections",   desc: "Access to pieces made in small quantities, only for members." },
+  { icon: "✧", label: "Reserved Pieces",       desc: "Select pieces held quietly until you are ready." },
+];
+
+function renderSpaceMembership(profile) {
+  const panel = document.getElementById("spaceMembershipPanel");
+  if (!panel) return;
+
+  const email     = profile.email || "";
+  const pts       = spGetLoyalty(email);
+  const tier      = spGetTier(pts);
+  const tierIdx   = SP_LOYALTY_TIERS.indexOf(tier);
+  const next      = SP_LOYALTY_TIERS[tierIdx + 1];
+  const ptsToNext = next ? next.min - pts : 0;
+  const pct       = next ? Math.min(100, Math.round(((pts - tier.min) / (next.min - tier.min)) * 100)) : 100;
+  const tierIcons = ["✦","◈","◇","♛"];
+  const tierIcon  = tierIcons[Math.max(0, tierIdx)];
+
+  /* IC cards (existing §80 content — locked/unlocked by points) */
+  const icCardsHtml = SP_IC_CARDS.map(card => {
+    const u = pts >= card.minPts;
+    return `<div class="sp-ic-card ${u?"sp-ic-card--unlocked":"sp-ic-card--locked"}">
+      <p class="sp-ic-card__label">${card.label}</p>
+      <p class="sp-ic-card__title">${card.title}</p>
+      <p class="sp-ic-card__body">${card.body}</p>
+      ${!u ? `<span class="sp-ic-card__lock">Unlock at ${card.unlock}</span>` : ""}
+    </div>`;
+  }).join("");
+
+  /* IC benefits preview */
+  const benefitsHtml = SP_IC_BENEFITS.map(b => `
+    <div class="sp-ic-benefit">
+      <span class="sp-ic-benefit__icon">${b.icon}</span>
+      <div class="sp-ic-benefit__body">
+        <p class="sp-ic-benefit__label">${b.label}</p>
+        <p class="sp-ic-benefit__desc">${b.desc}</p>
+      </div>
+    </div>`).join("");
+
+  panel.innerHTML = `
+    <div class="sp-section-wrap">
+
+      <!-- Tier display: prominent, emotional -->
+      <div class="sp-tier-display">
+        <span class="sp-tier-display__icon">${tierIcon}</span>
+        <p class="sp-tier-display__kicker">Your membership</p>
+        <h2 class="sp-tier-display__name">${tier.name}</h2>
+        <p class="sp-tier-display__pts">${pts} Devotion Points</p>
+        ${next ? `
+          <p class="sp-tier-display__next">${ptsToNext} points until <strong>${next.name}</strong></p>
+          <div class="sp-membership-bar" style="margin-top:.75rem">
+            <div class="sp-membership-bar__fill" style="width:${pct}%"></div>
+          </div>` : `
+          <p class="sp-tier-display__next" style="color:var(--gold)">You have reached the highest tier. Thank you. 💛</p>`}
+      </div>
+
+      <!-- Inner Circle preview -->
+      <div class="sp-ic-preview">
+        <p class="sp-ic-preview__kicker">The Inner Circle</p>
+        <p class="sp-ic-preview__tagline">A private world within ABDAN — reserved for those who stay.</p>
+        <div class="sp-ic-benefits">${benefitsHtml}</div>
+        ${pts < 150 ? `
+          <div class="sp-ic-preview__lock">
+            <p class="sp-ic-preview__lock-note">The Inner Circle unlocks at 150 Devotion Points. You are ${150-pts} points away.</p>
+          </div>` : ""}
+      </div>
+
+      <!-- Existing §80 IC content cards -->
+      <div class="sp-ic-section" style="margin-top:1.5rem">
+        <p class="sp-ic-section__kicker">Your Exclusive Access</p>
+        <div class="sp-ic-cards">${icCardsHtml}</div>
+      </div>
+
+    </div>`;
 }
