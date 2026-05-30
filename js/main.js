@@ -5769,8 +5769,9 @@ document.addEventListener("DOMContentLoaded", () => {
 }, { once: true });
 
 /* S84 localStorage keys */
-const SP_MOMENTS_KEY  = "abdan-sp-moments";
-const SP_REQUESTS_KEY = "abdan-sp-requests";
+const SP_MOMENTS_KEY       = "abdan-sp-moments";
+const SP_REQUESTS_KEY      = "abdan-sp-requests";
+const SP_GLOBAL_REQS_KEY   = "abdan-global-requests"; /* shared with admin */
 const SP_REQUEST_STATUSES  = ["Submitted","Reviewing","Sourcing","Options Found","Completed"];
 const SP_REQUEST_OCCASIONS = ["Festive","Wedding","Everyday","Gift","Travel","Just Because","Other"];
 const SP_REQUEST_BUDGETS   = ["Under 3k","3k to 8k","8k to 20k","20k to 50k","Above 50k"];
@@ -6292,3 +6293,250 @@ function renderSpaceMembership(profile) {
 
     </div>`;
 }
+
+/* S89 — Workflow: override renderSpaceRequests with global-store integration */
+function renderSpaceRequests(email) {
+  const panel = document.getElementById("spaceRequestsPanel");
+  if (!panel) return;
+
+  /* Merge: prefer global-store (admin may have updated status/replies) */
+  const localReqs  = spGet(email, SP_REQUESTS_KEY) || [];
+  const globalReqs = (() => {
+    try { return JSON.parse(localStorage.getItem(SP_GLOBAL_REQS_KEY)||"[]"); } catch { return []; }
+  })().filter(r => (r.email||"").toLowerCase() === email.toLowerCase());
+
+  /* Build merged list: global wins for status/updatedAt */
+  const reqs = localReqs.map(lr => {
+    const gr = globalReqs.find(r => r.ts === lr.ts);
+    return gr ? { ...lr, status: gr.status, updatedAt: gr.updatedAt, statusHistory: gr.statusHistory||[] } : lr;
+  });
+  /* Append any global requests not in local (edge case) */
+  globalReqs.forEach(gr => { if (!reqs.find(r=>r.ts===gr.ts)) reqs.unshift(gr); });
+  reqs.sort((a,b)=>(b.ts||0)-(a.ts||0));
+
+  const occOpts = SP_REQUEST_OCCASIONS.map(o=>`<option>${o}</option>`).join("");
+  const bdgOpts = SP_REQUEST_BUDGETS.map(b=>`<option>${b}</option>`).join("");
+
+  const reqCards = reqs.length === 0
+    ? `<div class="sp-req-empty">
+         <p class="sp-req-empty__icon">◇</p>
+         <p class="sp-req-empty__title">No requests yet</p>
+         <p class="sp-req-empty__sub">Share an inspiration and ABDAN will personally source something for you.</p>
+       </div>`
+    : reqs.map(r => {
+        const doneIdx = SP_REQUEST_STATUSES.indexOf(r.status);
+        const isComplete = r.status === "Completed";
+        const updatedStr = r.updatedAt
+          ? `Last updated ${new Date(r.updatedAt).toLocaleDateString("en-IN",{day:"numeric",month:"short"})}`
+          : "";
+        const tl = SP_REQUEST_STATUSES.map((s,i) => `
+          <div class="sp-req-tl-step${i<=doneIdx?" is-done":""}${i===doneIdx?" is-current":""}">
+            <div class="sp-req-tl-dot"></div>
+            ${i<SP_REQUEST_STATUSES.length-1?'<div class="sp-req-tl-line"></div>':''}
+            <span class="sp-req-tl-label">${s}</span>
+          </div>`).join("");
+        const completeBanner = isComplete ? `
+          <div class="sp-req-complete">
+            <p class="sp-req-complete__title">ABDAN Found Options For You 💛</p>
+            <p class="sp-req-complete__sub">Check your conversations — ABDAN has sent recommendations.</p>
+            <button type="button" class="sp-req-complete__cta" onclick="showSpaceTab('messages')">View Recommendations →</button>
+          </div>` : "";
+        return `
+          <div class="sp-req-item">
+            <div class="sp-req-item__head">
+              <span class="sp-req-status${isComplete?' sp-req-status--done':''}">${r.status}</span>
+              <span class="sp-req-date">${new Date(r.ts).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}</span>
+            </div>
+            ${updatedStr ? `<p style="font-size:.65rem;color:var(--gold,#c5a13b);margin-bottom:.4rem">${updatedStr}</p>` : ""}
+            ${r.img ? `<img class="sp-req-img" src="${r.img}" alt="" loading="lazy" />` : ""}
+            <p class="sp-req-desc-text">${r.desc}</p>
+            <p class="sp-req-meta">${r.occasion} · ${r.budget}</p>
+            <div class="sp-req-tl">${tl}</div>
+            ${completeBanner}
+          </div>`;
+      }).join("");
+
+  panel.innerHTML = `
+    <div class="sp-section-wrap">
+      <p class="sp-section-kicker">My Requests</p>
+      <p class="sp-section-sub">Can ABDAN source something similar? Share your inspiration — we will find it for you.</p>
+      <div class="sp-req-form">
+        <div class="sp-req-upload-row">
+          <label class="sp-req-upload-btn" for="spReqImg">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <span id="spReqImgLabel">Upload Image</span>
+            <input type="file" id="spReqImg" accept="image/*" style="display:none" />
+          </label>
+          <label class="sp-req-upload-btn" for="spReqShot">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="3 9 9 9 9 3"/><polyline points="21 15 15 15 15 21"/></svg>
+            <span id="spReqShotLabel">Upload Screenshot</span>
+            <input type="file" id="spReqShot" accept="image/*" style="display:none" />
+          </label>
+        </div>
+        <div class="sp-req-img-prev" id="spReqImgPrev" hidden></div>
+        <label class="sp-portal__field"><span>Product Description</span>
+          <textarea style="width:100%;padding:.7rem .9rem;background:rgba(2,61,58,.03);border:1px solid var(--line);border-radius:.5rem;font-family:inherit;font-size:.875rem;box-sizing:border-box;resize:vertical;min-height:4rem" id="spReqDesc" placeholder="Describe what you are looking for — fabric, colour, occasion, style…" rows="3" maxlength="500"></textarea>
+        </label>
+        <label class="sp-portal__field"><span>Occasion</span>
+          <select class="sp-moments-cat" id="spReqOcc">${occOpts}</select>
+        </label>
+        <label class="sp-portal__field"><span>Budget Range</span>
+          <select class="sp-moments-cat" id="spReqBudget">${bdgOpts}</select>
+        </label>
+        <button type="button" class="primary-button" id="spReqSubmit">Submit Request</button>
+      </div>
+      <div class="sp-req-list">${reqCards}</div>
+    </div>`;
+
+  let pendingReqImg = "";
+  const attachUpload = (inputId, labelId) => {
+    const inp = panel.querySelector(`#${inputId}`);
+    inp?.addEventListener("change", () => {
+      const file = inp.files?.[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        pendingReqImg = ev.target.result;
+        panel.querySelector(`#${labelId}`).textContent = file.name;
+        const prev = panel.querySelector("#spReqImgPrev");
+        if (prev) {
+          prev.hidden = false;
+          prev.innerHTML = `<img src="${pendingReqImg}" alt="Preview" /><button type="button" id="spReqImgClear">Remove</button>`;
+          prev.querySelector("#spReqImgClear")?.addEventListener("click",()=>{
+            pendingReqImg=""; prev.hidden=true; prev.innerHTML="";
+            panel.querySelector(`#${labelId}`).textContent = inputId==="spReqImg"?"Upload Image":"Upload Screenshot";
+          });
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+  attachUpload("spReqImg","spReqImgLabel");
+  attachUpload("spReqShot","spReqShotLabel");
+
+  panel.querySelector("#spReqSubmit")?.addEventListener("click", () => {
+    const desc = panel.querySelector("#spReqDesc")?.value.trim();
+    if (!desc) return showToast("Please describe what you are looking for.");
+    const sess = getSpaceSession();
+    const req  = {
+      desc,
+      img:       pendingReqImg,
+      occasion:  panel.querySelector("#spReqOcc")?.value||"",
+      budget:    panel.querySelector("#spReqBudget")?.value||"",
+      status:    "Submitted",
+      ts:        Date.now(),
+      updatedAt: Date.now(),
+      statusHistory: [{ status:"Submitted", ts: Date.now() }],
+    };
+    /* Write to customer-local store */
+    spSet(email, SP_REQUESTS_KEY, [req, ...(spGet(email,SP_REQUESTS_KEY)||[])]);
+    /* Write to global store for admin visibility */
+    try {
+      const global = JSON.parse(localStorage.getItem(SP_GLOBAL_REQS_KEY)||"[]");
+      global.unshift({ ...req, email, name: sess?.displayName||sess?.fullName||email });
+      localStorage.setItem(SP_GLOBAL_REQS_KEY, JSON.stringify(global));
+    } catch { /* quota */ }
+    /* System message to concierge thread */
+    try {
+      const key = `abdan-sp-concierge:${email.toLowerCase()}`;
+      const msgs = JSON.parse(localStorage.getItem(key)||"[]");
+      msgs.push({ from:"system", text:`Sourcing request submitted: "${desc.substring(0,60)}${desc.length>60?"…":""}". ABDAN will be in touch shortly.`, sentAt:Date.now(), ts:Date.now(), category:"Sourcing Request" });
+      localStorage.setItem(key, JSON.stringify(msgs));
+    } catch { /* quota */ }
+    showToast("Request submitted. ABDAN will review it personally. 💛");
+    renderSpaceRequests(email);
+  });
+}
+
+/* S89 — Override renderSpaceMessages with two-way conversation display */
+function renderSpaceMessages(email) {
+  const panel = document.getElementById("spaceMessagesPanel");
+  if (!panel) return;
+  const threads = spGetConcierge(email);
+
+  if (!threads.length) {
+    panel.innerHTML = `
+      <div class="sp-section-wrap">
+        <p class="sp-section-kicker">My Conversations</p>
+        <div class="sp-req-empty">
+          <p class="sp-req-empty__icon">✉</p>
+          <p class="sp-req-empty__title">No conversations yet</p>
+          <p class="sp-req-empty__sub">Your styling guidance, sourcing discussions and personal conversations with ABDAN will appear here.</p>
+        </div>
+        <button type="button" class="secondary-button" onclick="showSpaceTab('concierge')" style="margin-top:1.25rem">Start a Conversation</button>
+      </div>`;
+    return;
+  }
+
+  /* Group by category */
+  const groups = {};
+  threads.forEach(m => {
+    const key = m.category || "Conversation";
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(m);
+  });
+
+  const groupHtml = Object.entries(groups).map(([cat, msgs]) => `
+    <div class="sp-conv-group">
+      <p class="sp-conv-group__label">${cat}</p>
+      <div class="sp-conv-group__msgs">
+        ${msgs.slice(-5).map(m => {
+          const isAbdan  = m.from === "abdan";
+          const isSystem = m.from === "system";
+          const cls = isAbdan ? "sp-msg-hist-item--abdan" : isSystem ? "sp-msg-hist-item--system" : "sp-msg-hist-item--customer";
+          return `
+            <div class="sp-msg-hist-item ${cls}">
+              ${isAbdan ? '<span class="sp-msg-hist-sender">ABDAN</span>' : isSystem ? '' : ''}
+              <p class="sp-msg-hist-text">${m.text||""}</p>
+              ${m.imgSrc ? `<img src="${m.imgSrc}" alt="" class="sp-conv-bubble__img" loading="lazy" />` : ""}
+              ${m.voiceSrc ? `<audio controls src="${m.voiceSrc}" class="sp-conv-bubble__audio"></audio>` : ""}
+              <span class="sp-msg-hist-time">${new Date(m.sentAt||m.ts||Date.now()).toLocaleDateString("en-IN",{day:"numeric",month:"short"})}</span>
+            </div>`;
+        }).join("")}
+      </div>
+      <a class="sp-conv-group__wa"
+         href="https://wa.me/918760595307?text=${encodeURIComponent(`[ABDAN ${cat}] ${msgs[msgs.length-1]?.text||""}`.substring(0,200))}"
+         target="_blank" rel="noreferrer">Continue on WhatsApp ↗</a>
+    </div>`).join("");
+
+  panel.innerHTML = `
+    <div class="sp-section-wrap">
+      <p class="sp-section-kicker">My Conversations</p>
+      <p class="sp-section-sub">Your styling guidance, sourcing discussions and personal concierge conversations.</p>
+      <div class="sp-conv-list">${groupHtml}</div>
+      <button type="button" class="secondary-button" onclick="showSpaceTab('concierge')" style="margin-top:1rem">Ask ABDAN Something New</button>
+    </div>`;
+}
+
+/* S89 — URL-based request status update (cross-device admin sync) */
+(function checkReqUpdateUrl() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("req_update");
+    if (!raw) return;
+    const data = JSON.parse(atob(raw));
+    if (!data.email || !data.ts || !data.status) return;
+    const email = data.email.toLowerCase();
+    /* Update global store */
+    const global = JSON.parse(localStorage.getItem(SP_GLOBAL_REQS_KEY)||"[]");
+    const idx = global.findIndex(r=>r.email===email&&r.ts===+data.ts);
+    if (idx>=0) {
+      global[idx].status    = data.status;
+      global[idx].updatedAt = Date.now();
+      if (!global[idx].statusHistory) global[idx].statusHistory=[];
+      global[idx].statusHistory.push({status:data.status, ts:Date.now()});
+      localStorage.setItem(SP_GLOBAL_REQS_KEY, JSON.stringify(global));
+    }
+    /* Update local customer store */
+    const localKey = `abdan-sp-requests:${email}`;
+    const local = JSON.parse(localStorage.getItem(localKey)||"[]");
+    const lidx  = local.findIndex(r=>r.ts===+data.ts);
+    if (lidx>=0) { local[lidx].status=data.status; local[lidx].updatedAt=Date.now(); localStorage.setItem(localKey, JSON.stringify(local)); }
+    /* Add system message to concierge */
+    const ckey  = `abdan-sp-concierge:${email}`;
+    const cmsgs = JSON.parse(localStorage.getItem(ckey)||"[]");
+    cmsgs.push({from:"system",text:`Your request status has been updated to: <strong>${data.status}</strong>.${data.note?` ${data.note}`:""}`,sentAt:Date.now(),ts:Date.now(),category:"Sourcing Request"});
+    localStorage.setItem(ckey, JSON.stringify(cmsgs));
+    /* Clean URL */
+    history.replaceState({}, "", window.location.pathname);
+  } catch { /* invalid param — ignore */ }
+})();

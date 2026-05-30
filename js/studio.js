@@ -79,6 +79,8 @@ const STUDIO_VIEWS = [
   { id: "customers",   label: "Her Circle 💛",       icon: "users",            group: "Her Circle"   },
   { id: "messaging",   label: "Circle Updates",     icon: "send",             group: "Her Circle"   },
   { id: "reviews",     label: "Reviews",            icon: "star",             group: "Her Circle"   },
+  { id: "requests",    label: "Sourcing Requests",  icon: "search",           group: "Her Circle"   },
+  { id: "concierge",   label: "Concierge Queue",    icon: "message-circle",   group: "Her Circle"   },
 
   /* ── INTELLIGENCE ────────────────────────────────────────── */
   { id: "analytics",   label: "Analytics",          icon: "bar-chart-2",      group: "Intelligence" },
@@ -98,7 +100,8 @@ const STORAGE = {
   collections: "abdan-studio-collections",
   homepage:    "abdan-studio-homepage",
   social:      "abdan-studio-social",
-  customers:   "abdan-space-profiles",
+  customers:        "abdan-space-profiles",
+  globalRequests:   "abdan-global-requests",
   offers:      "abdan-studio-offers",
   reviews:     "abdan-studio-reviews",
   campaigns:   "abdan-studio-campaigns",
@@ -390,6 +393,8 @@ function renderView(id) {
     legal:       renderLegal,
     offers:      renderOffers,
     reviews:     renderReviews,
+    requests:    renderRequests,
+    concierge:   renderConciergeQueue,
     campaigns:   renderCampaigns,
     founder:     renderFounder,
     analytics:   renderAnalytics,
@@ -2636,4 +2641,290 @@ if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", init);
 } else {
   init();
+}
+
+/* ── Sourcing Requests ──────────────────────────────────────── */
+const REQ_STATUSES = ["Submitted","Reviewing","Sourcing","Options Found","Completed"];
+
+function renderRequests() {
+  setTitle("Sourcing Requests");
+  const all    = load(STORAGE.globalRequests, []);
+  const sorted = [...all].sort((a, b) => (b.ts||0) - (a.ts||0));
+
+  dom.content.innerHTML = `
+    <div class="s-filter-bar">
+      <div class="s-search">
+        <i data-lucide="search" class="s-icon"></i>
+        <input id="sReqSearch" type="search" placeholder="Search by name or description…" class="s-field__input" />
+      </div>
+      <select id="sReqFilter" class="s-field__select">
+        <option value="">All statuses</option>
+        ${REQ_STATUSES.map(s=>`<option value="${s}">${s}</option>`).join("")}
+      </select>
+    </div>
+    <div id="sReqList" class="s-list">
+      ${sorted.length ? sorted.map(reqRow).join("") : empty("No sourcing requests yet","search")}
+    </div>`;
+
+  function filterReqs() {
+    const q   = document.getElementById("sReqSearch")?.value.toLowerCase()||"";
+    const st  = document.getElementById("sReqFilter")?.value||"";
+    const filtered = sorted.filter(r=>
+      (!q  || (r.name||"").toLowerCase().includes(q)||(r.desc||"").toLowerCase().includes(q)||(r.email||"").toLowerCase().includes(q)) &&
+      (!st || r.status===st)
+    );
+    document.getElementById("sReqList").innerHTML = filtered.length
+      ? filtered.map(reqRow).join("")
+      : empty("No matching requests","search");
+    initLucide();
+    bindReqActions();
+  }
+
+  document.getElementById("sReqSearch")?.addEventListener("input", filterReqs);
+  document.getElementById("sReqFilter")?.addEventListener("change", filterReqs);
+  bindReqActions();
+}
+
+function reqRow(r) {
+  const stColors = {
+    "Submitted":"s-badge--amber","Reviewing":"s-badge--blue",
+    "Sourcing":"s-badge--gold","Options Found":"s-badge--emerald","Completed":"s-badge--green"
+  };
+  const cls = stColors[r.status]||"s-badge--amber";
+  const date = r.ts ? new Date(r.ts).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"}) : "—";
+  return `
+    <div class="s-list-item s-req-row" data-req-ts="${r.ts}">
+      <div class="s-list-item__main">
+        <strong>${esc(r.name||"Anonymous")}</strong>
+        <span class="s-list-item__sub">${esc(r.email||"")} · ${date}</span>
+        <span class="s-list-item__sub">${esc(r.desc||"").substring(0,80)}${(r.desc||"").length>80?"…":""}</span>
+        <span class="s-list-item__sub">${esc(r.occasion||"")} · ${esc(r.budget||"")}</span>
+      </div>
+      <div class="s-list-item__actions" style="flex-direction:column;align-items:flex-end;gap:.4rem">
+        <span class="s-badge ${cls}">${esc(r.status)}</span>
+        <button class="s-btn s-btn--primary s-btn--sm" data-req-manage="${r.ts}">Manage</button>
+      </div>
+    </div>`;
+}
+
+function bindReqActions() {
+  dom.content.querySelectorAll("[data-req-manage]").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const ts = +btn.dataset.reqManage;
+      const all = load(STORAGE.globalRequests,[]);
+      const req = all.find(r=>r.ts===ts);
+      if (!req) return;
+      openReqPanel(req);
+    });
+  });
+}
+
+function openReqPanel(req) {
+  const statusOpts = REQ_STATUSES.map(s=>`<option value="${s}"${req.status===s?" selected":""}>${s}</option>`).join("");
+  const imgHtml = req.img ? `<img src="${req.img}" alt="Reference" style="width:100%;max-height:180px;object-fit:cover;border-radius:.5rem;margin-bottom:1rem" />` : "";
+  const histHtml = (req.statusHistory||[]).map(h=>`
+    <div style="font-size:.75rem;color:var(--s-text-dim);padding:.3rem 0;border-bottom:1px solid var(--s-border)">
+      <strong>${esc(h.status)}</strong> — ${new Date(h.ts).toLocaleString("en-IN",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}
+    </div>`).join("");
+
+  openPanel(`Request: ${esc(req.name||"Customer")}`, `
+    <div class="s-field-group">
+      <div style="background:var(--s-surface);border-radius:.75rem;padding:1rem;margin-bottom:1rem">
+        ${imgHtml}
+        <p style="font-size:.85rem;margin-bottom:.4rem"><strong>Description:</strong> ${esc(req.desc||"—")}</p>
+        <p style="font-size:.85rem;margin-bottom:.4rem"><strong>Occasion:</strong> ${esc(req.occasion||"—")}</p>
+        <p style="font-size:.85rem;margin-bottom:.4rem"><strong>Budget:</strong> ${esc(req.budget||"—")}</p>
+        <p style="font-size:.85rem"><strong>Customer:</strong> ${esc(req.email||"—")}</p>
+      </div>
+      <div class="s-field">
+        <label class="s-field__label">Update Status</label>
+        <select class="s-field__select" id="sPanelReqStatus">${statusOpts}</select>
+      </div>
+      <div class="s-field">
+        <label class="s-field__label">Reply to Customer (appears in their My Conversations)</label>
+        <textarea class="s-field__textarea" id="sPanelReqReply" placeholder="Send a message to this customer about their request…" rows="4"></textarea>
+      </div>
+      <div class="s-field">
+        <label class="s-field__label">Generate Status Update Link (for customers on different devices)</label>
+        <p style="font-size:.75rem;color:var(--s-text-dim);margin-bottom:.5rem">Copy and send this link via WhatsApp. When customer opens it, their status updates automatically.</p>
+        <button class="s-btn s-btn--secondary s-btn--sm" id="sPanelGenLink">Generate Link</button>
+        <p class="s-field__hint" id="sPanelLinkOut" style="word-break:break-all;margin-top:.5rem"></p>
+      </div>
+      ${histHtml ? `<div class="s-field"><label class="s-field__label">Status History</label><div style="border-radius:.5rem;overflow:hidden;border:1px solid var(--s-border)">${histHtml}</div></div>` : ""}
+    </div>`, () => {
+    /* Save callback */
+    const newStatus = document.getElementById("sPanelReqStatus")?.value;
+    const reply     = document.getElementById("sPanelReqReply")?.value.trim();
+    if (!newStatus) return;
+
+    /* Update global request store */
+    const all = load(STORAGE.globalRequests,[]);
+    const idx = all.findIndex(r=>r.ts===req.ts);
+    if (idx>=0) {
+      const now = Date.now();
+      all[idx].status    = newStatus;
+      all[idx].updatedAt = now;
+      if (!all[idx].statusHistory) all[idx].statusHistory = [];
+      if (!all[idx].statusHistory.find(h=>h.status===newStatus)) {
+        all[idx].statusHistory.push({status:newStatus, ts:now});
+      }
+      save(STORAGE.globalRequests, all);
+    }
+
+    /* Write admin reply + system status update to customer's concierge thread */
+    if (req.email) {
+      const key  = `abdan-sp-concierge:${req.email.toLowerCase()}`;
+      const msgs = JSON.parse(localStorage.getItem(key)||"[]");
+      /* System status message */
+      msgs.push({
+        from: "system",
+        text: `Your sourcing request has been updated to: <strong>${newStatus}</strong>.`,
+        sentAt: Date.now(), ts: Date.now(),
+        category: "Sourcing Request"
+      });
+      /* Admin reply if provided */
+      if (reply) {
+        msgs.push({
+          from: "abdan",
+          text: reply,
+          sentAt: Date.now(), ts: Date.now(),
+          category: "Sourcing Request"
+        });
+      }
+      localStorage.setItem(key, JSON.stringify(msgs));
+    }
+
+    toast(`Status updated to "${newStatus}"`);
+    closePanel();
+    renderRequests();
+  });
+
+  /* Generate link button */
+  setTimeout(()=>{
+    document.getElementById("sPanelGenLink")?.addEventListener("click",()=>{
+      const newStatus = document.getElementById("sPanelReqStatus")?.value||req.status;
+      const data = btoa(JSON.stringify({email:req.email,ts:req.ts,status:newStatus,note:document.getElementById("sPanelReqReply")?.value.trim()||""}));
+      const link = `${window.location.origin}/?req_update=${data}`;
+      document.getElementById("sPanelLinkOut").textContent = link;
+      navigator.clipboard?.writeText(link).then(()=>toast("Link copied to clipboard"));
+    });
+  },100);
+}
+
+/* ── Concierge Queue ────────────────────────────────────────── */
+function renderConciergeQueue() {
+  setTitle("Concierge Queue");
+  const profiles = load(STORAGE.customers, {});
+  const convs = [];
+
+  /* Gather all customer concierge threads */
+  Object.entries(profiles).forEach(([email, profile]) => {
+    const key  = `abdan-sp-concierge:${email}`;
+    const msgs = JSON.parse(localStorage.getItem(key)||"[]");
+    if (!msgs.length) return;
+    const customerMsgs = msgs.filter(m=>m.from==="customer");
+    const lastMsg      = msgs[msgs.length-1];
+    convs.push({
+      email,
+      name:      profile.displayName || profile.fullName || email,
+      phone:     profile.phone || "",
+      msgs,
+      lastTs:    lastMsg.sentAt || lastMsg.ts || 0,
+      total:     msgs.length,
+      unread:    customerMsgs.length,
+      lastText:  (lastMsg.text||"").substring(0,60),
+    });
+  });
+
+  /* Also pull from global requests for sourcing context */
+  const reqCounts = {};
+  load(STORAGE.globalRequests,[]).forEach(r=>{ reqCounts[r.email] = (reqCounts[r.email]||0)+1; });
+
+  convs.sort((a,b)=>b.lastTs-a.lastTs);
+
+  const newConvs  = convs.filter(c=>c.msgs[c.msgs.length-1]?.from==="customer");
+  const openConvs = convs.filter(c=>c.msgs[c.msgs.length-1]?.from!=="customer");
+
+  function queueSection(label, items) {
+    if (!items.length) return `<p style="font-size:.82rem;color:var(--s-text-dim);padding:.5rem 0">${label}: none</p>`;
+    return `
+      <p class="s-nav-group__label" style="padding:.5rem 0 .25rem;font-size:.65rem">${label}</p>
+      ${items.map(c=>`
+        <div class="s-list-item">
+          <div class="s-list-item__main">
+            <strong>${esc(c.name)}</strong>
+            <span class="s-list-item__sub">${esc(c.email)} ${c.phone?`· ${esc(c.phone)}`:""}</span>
+            <span class="s-list-item__sub" style="font-style:italic">"${esc(c.lastText)}${c.lastText.length>=60?"…":""}"</span>
+          </div>
+          <div class="s-list-item__actions" style="flex-direction:column;align-items:flex-end;gap:.4rem">
+            <span class="s-badge s-badge--blue">${c.total} msg${c.total!==1?"s":""}</span>
+            ${reqCounts[c.email]?`<span class="s-badge s-badge--amber">${reqCounts[c.email]} req</span>`:""}
+            <button class="s-btn s-btn--primary s-btn--sm" data-reply-to="${encodeURIComponent(c.email)}">Reply</button>
+          </div>
+        </div>`).join("")}`;
+  }
+
+  dom.content.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem">
+      <div class="s-stat-card">
+        <p class="s-stat-card__val">${convs.length}</p>
+        <p class="s-stat-card__label">Total Conversations</p>
+      </div>
+      <div class="s-stat-card">
+        <p class="s-stat-card__val">${newConvs.length}</p>
+        <p class="s-stat-card__label">Awaiting Reply</p>
+      </div>
+    </div>
+    <div class="s-list">
+      ${queueSection("Awaiting Your Reply", newConvs)}
+      ${queueSection("Open Conversations", openConvs)}
+      ${!convs.length ? empty("No concierge conversations yet","message-circle") : ""}
+    </div>`;
+
+  dom.content.querySelectorAll("[data-reply-to]").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const email = decodeURIComponent(btn.dataset.replyTo);
+      const profile = profiles[email]||{};
+      const key  = `abdan-sp-concierge:${email}`;
+      const msgs = JSON.parse(localStorage.getItem(key)||"[]");
+      openConvPanel(email, profile.displayName||profile.fullName||email, msgs);
+    });
+  });
+}
+
+function openConvPanel(email, name, msgs) {
+  const thread = msgs.map(m=>{
+    const side = m.from==="abdan"?"right":m.from==="system"?"center":"left";
+    const bg   = m.from==="abdan"?"var(--s-surface)":m.from==="system"?"rgba(197,161,59,.08)":"var(--s-bg)";
+    const date = new Date(m.sentAt||m.ts||Date.now()).toLocaleString("en-IN",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+    return `<div style="display:flex;justify-content:${side};margin-bottom:.6rem">
+      <div style="background:${bg};border-radius:.6rem;padding:.5rem .75rem;max-width:80%;font-size:.8rem">
+        <p style="margin:0">${m.text||""}</p>
+        <p style="margin:0;font-size:.65rem;color:var(--s-text-dim);margin-top:.2rem">${m.from==="abdan"?"ABDAN":m.from==="system"?"System":"Customer"} · ${date}</p>
+      </div>
+    </div>`;
+  }).join("");
+
+  openPanel(`${esc(name)}`, `
+    <div style="max-height:300px;overflow-y:auto;padding:.5rem;background:var(--s-bg);border-radius:.5rem;margin-bottom:1rem;border:1px solid var(--s-border)">${thread||"<p style='font-size:.82rem;color:var(--s-text-dim)'>No messages yet</p>"}</div>
+    <div class="s-field"><label class="s-field__label">Reply</label>
+      <textarea class="s-field__textarea" id="sPanelConvReply" placeholder="Your response to ${esc(name)}…" rows="4"></textarea>
+    </div>
+    <div class="s-field"><label class="s-field__label">Category</label>
+      <select class="s-field__select" id="sPanelConvCat">
+        <option>Styling Advice</option><option>Product Sourcing</option><option>Gift Recommendation</option>
+        <option>Fabric Question</option><option>Occasion Help</option><option>Sizing Help</option><option>General</option>
+      </select>
+    </div>`, ()=>{
+    const text = document.getElementById("sPanelConvReply")?.value.trim();
+    const cat  = document.getElementById("sPanelConvCat")?.value||"";
+    if (!text) return;
+    const key  = `abdan-sp-concierge:${email.toLowerCase()}`;
+    const curr = JSON.parse(localStorage.getItem(key)||"[]");
+    curr.push({from:"abdan", text, sentAt:Date.now(), ts:Date.now(), category:cat});
+    localStorage.setItem(key, JSON.stringify(curr));
+    toast(`Reply sent to ${name}`);
+    closePanel();
+    renderConciergeQueue();
+  });
 }
