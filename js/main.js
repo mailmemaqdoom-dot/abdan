@@ -5743,23 +5743,114 @@ function renderSpaceRequests(email) {
   const reqs = spGet(email, SP_REQUESTS_KEY) || [];
   const occOpts = SP_REQUEST_OCCASIONS.map(o=>`<option>${o}</option>`).join("");
   const bdgOpts = SP_REQUEST_BUDGETS.map(b=>`<option>${b}</option>`).join("");
-  const listHtml = reqs.length === 0
-    ? `<p class="sp-empty-note">Your sourcing requests will appear here.</p>`
-    : reqs.map(r=>`<div class="sp-req-item"><div class="sp-req-item__head"><span class="sp-req-status">${r.status}</span><span class="sp-req-date">${new Date(r.ts).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}</span></div>${r.img?`<img class="sp-req-img" src="${r.img}" alt="" loading="lazy" />`:"" }<p class="sp-req-desc-text">${r.desc}</p><p class="sp-req-meta">${r.occasion} - ${r.budget}</p><div class="sp-req-timeline">${SP_REQUEST_STATUSES.map(s=>`<span class="sp-req-step${SP_REQUEST_STATUSES.indexOf(s)<=SP_REQUEST_STATUSES.indexOf(r.status)?" is-done":""}">${s}</span>`).join("")}</div></div>`).join("");
-  panel.innerHTML = `<div class="sp-section-wrap"><p class="sp-section-kicker">My Requests</p><p class="sp-section-sub">Can ABDAN source something similar? Share your inspiration and we will find it for you.</p><div class="sp-req-form"><label class="sp-req-upload" for="spReqImg"><span id="spReqImgLabel">+ Upload Image / Screenshot</span><input type="file" id="spReqImg" accept="image/*" style="display:none" /></label><textarea class="sp-req-desc" id="spReqDesc" placeholder="Describe what you are looking for" rows="3" maxlength="500"></textarea><select class="sp-req-occ" id="spReqOcc">${occOpts}</select><select class="sp-req-budget" id="spReqBudget">${bdgOpts}</select><button type="button" class="primary-button" id="spReqSubmit">Submit Request</button></div><div class="sp-req-list">${listHtml}</div></div>`;
-  const imgInput = panel.querySelector("#spReqImg");
-  imgInput?.addEventListener("change", () => {
-    const file = imgInput.files?.[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = e => { imgInput.dataset.b64=e.target.result; panel.querySelector("#spReqImgLabel").textContent=file.name; };
-    reader.readAsDataURL(file);
-  });
+
+  const reqCards = reqs.length === 0
+    ? `<div class="sp-req-empty">
+         <p class="sp-req-empty__icon">◇</p>
+         <p class="sp-req-empty__title">No requests yet</p>
+         <p class="sp-req-empty__sub">Share an inspiration and ABDAN will personally source something for you.</p>
+       </div>`
+    : reqs.map(r => {
+        const doneIdx = SP_REQUEST_STATUSES.indexOf(r.status);
+        const timelineHtml = SP_REQUEST_STATUSES.map((s,i) => `
+          <div class="sp-req-tl-step${i<=doneIdx?" is-done":""}${i===doneIdx?" is-current":""}">
+            <div class="sp-req-tl-dot"></div>
+            ${i < SP_REQUEST_STATUSES.length-1 ? '<div class="sp-req-tl-line"></div>' : ''}
+            <span class="sp-req-tl-label">${s}</span>
+          </div>`).join("");
+        return `
+          <div class="sp-req-item">
+            <div class="sp-req-item__head">
+              <span class="sp-req-status">${r.status}</span>
+              <span class="sp-req-date">${new Date(r.ts).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}</span>
+            </div>
+            ${r.img ? `<img class="sp-req-img" src="${r.img}" alt="Reference" loading="lazy" />` : ""}
+            <p class="sp-req-desc-text">${r.desc}</p>
+            <p class="sp-req-meta">${r.occasion} · ${r.budget}</p>
+            <div class="sp-req-tl">${timelineHtml}</div>
+          </div>`;
+      }).join("");
+
+  panel.innerHTML = `
+    <div class="sp-section-wrap">
+      <p class="sp-section-kicker">My Requests</p>
+      <p class="sp-section-sub">Can ABDAN source something similar? Share your inspiration — we will find it for you.</p>
+
+      <div class="sp-req-form">
+        <div class="sp-req-upload-row">
+          <label class="sp-req-upload-btn" for="spReqImg">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <span id="spReqImgLabel">Upload Image</span>
+            <input type="file" id="spReqImg" accept="image/*" style="display:none" />
+          </label>
+          <label class="sp-req-upload-btn" for="spReqShot">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="3 9 9 9 9 3"/><polyline points="21 15 15 15 15 21"/></svg>
+            <span id="spReqShotLabel">Upload Screenshot</span>
+            <input type="file" id="spReqShot" accept="image/*" style="display:none" />
+          </label>
+        </div>
+        <div class="sp-req-img-prev" id="spReqImgPrev" hidden></div>
+
+        <label class="sp-portal__field">
+          <span>Product Description</span>
+          <textarea class="sp-req-desc" id="spReqDesc" placeholder="Describe what you are looking for — fabric, colour, occasion, style…" rows="3" maxlength="500"></textarea>
+        </label>
+
+        <label class="sp-portal__field">
+          <span>Occasion</span>
+          <select class="sp-moments-cat" id="spReqOcc">${occOpts}</select>
+        </label>
+
+        <label class="sp-portal__field">
+          <span>Budget Range</span>
+          <select class="sp-moments-cat" id="spReqBudget">${bdgOpts}</select>
+        </label>
+
+        <button type="button" class="primary-button" id="spReqSubmit">Submit Request</button>
+      </div>
+
+      <div class="sp-req-list">${reqCards}</div>
+    </div>`;
+
+  /* Image upload handlers */
+  let pendingReqImg = "";
+  const attachUpload = (inputId, labelId) => {
+    const inp = panel.querySelector(`#${inputId}`);
+    inp?.addEventListener("change", () => {
+      const file = inp.files?.[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        pendingReqImg = ev.target.result;
+        panel.querySelector(`#${labelId}`).textContent = file.name;
+        const prev = panel.querySelector("#spReqImgPrev");
+        if (prev) {
+          prev.hidden = false;
+          prev.innerHTML = `<img src="${pendingReqImg}" alt="Preview" /><button type="button" id="spReqImgClear">Remove</button>`;
+          prev.querySelector("#spReqImgClear")?.addEventListener("click", () => {
+            pendingReqImg = ""; prev.hidden = true; prev.innerHTML = "";
+            panel.querySelector(`#${labelId}`).textContent = inputId === "spReqImg" ? "Upload Image" : "Upload Screenshot";
+          });
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+  attachUpload("spReqImg",  "spReqImgLabel");
+  attachUpload("spReqShot", "spReqShotLabel");
+
   panel.querySelector("#spReqSubmit")?.addEventListener("click", () => {
     const desc = panel.querySelector("#spReqDesc")?.value.trim();
     if (!desc) return showToast("Please describe what you are looking for.");
-    const req = {desc, img:imgInput?.dataset.b64||"", occasion:panel.querySelector("#spReqOcc")?.value||"", budget:panel.querySelector("#spReqBudget")?.value||"", status:"Submitted", ts:Date.now()};
-    spSet(email, SP_REQUESTS_KEY, [req,...(spGet(email,SP_REQUESTS_KEY)||[])]);
-    showToast("Request submitted. ABDAN will review it personally.");
+    const req = {
+      desc,
+      img:      pendingReqImg,
+      occasion: panel.querySelector("#spReqOcc")?.value || "",
+      budget:   panel.querySelector("#spReqBudget")?.value || "",
+      status:   "Submitted",
+      ts:       Date.now(),
+    };
+    spSet(email, SP_REQUESTS_KEY, [req, ...(spGet(email, SP_REQUESTS_KEY) || [])]);
+    showToast("Request submitted. ABDAN will review it personally. 💛");
     renderSpaceRequests(email);
   });
 }
@@ -5768,10 +5859,53 @@ function renderSpaceMessages(email) {
   const panel = document.getElementById("spaceMessagesPanel");
   if (!panel) return;
   const threads = spGetConcierge(email);
-  const listHtml = threads.length === 0
-    ? `<p class="sp-empty-note">Your conversations with ABDAN will appear here.</p><button type="button" class="secondary-button" onclick="showSpaceTab('concierge')" style="margin-top:1.25rem">Start a Conversation</button>`
-    : `<div class="sp-msg-history">${threads.slice().reverse().map(m=>`<div class="sp-msg-hist-item sp-msg-hist-item--${m.from}"><p class="sp-msg-hist-text">${m.text}</p>${m.imageUrl?`<img class="sp-msg-hist-img" src="${m.imageUrl}" alt="" loading="lazy" />`:""}<span class="sp-msg-hist-time">${new Date(m.ts).toLocaleDateString("en-IN",{day:"numeric",month:"short"})}</span></div>`).join("")}</div><button type="button" class="secondary-button" onclick="showSpaceTab('concierge')" style="margin-top:1.25rem">Continue Conversation</button>`;
-  panel.innerHTML = `<div class="sp-section-wrap"><p class="sp-section-kicker">My Conversations</p><p class="sp-section-sub">Your styling guidance, sourcing discussions and personal conversations with ABDAN.</p>${listHtml}</div>`;
+
+  if (!threads.length) {
+    panel.innerHTML = `
+      <div class="sp-section-wrap">
+        <p class="sp-section-kicker">My Conversations</p>
+        <div class="sp-req-empty">
+          <p class="sp-req-empty__icon">✉</p>
+          <p class="sp-req-empty__title">No conversations yet</p>
+          <p class="sp-req-empty__sub">Your styling guidance, sourcing discussions and personal conversations with ABDAN will appear here.</p>
+        </div>
+        <button type="button" class="secondary-button" onclick="showSpaceTab('concierge')" style="margin-top:1.25rem">Start a Conversation</button>
+      </div>`;
+    return;
+  }
+
+  /* Group by category; messages without category go under their own date */
+  const groups = {};
+  threads.forEach(m => {
+    const key = m.category || "Conversation";
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(m);
+  });
+
+  const groupHtml = Object.entries(groups).map(([cat, msgs]) => `
+    <div class="sp-conv-group">
+      <p class="sp-conv-group__label">${cat}</p>
+      <div class="sp-conv-group__msgs">
+        ${msgs.slice(-3).map(m => `
+          <div class="sp-conv-bubble">
+            <p class="sp-conv-bubble__text">${m.text || ""}</p>
+            ${m.imgSrc ? `<img src="${m.imgSrc}" alt="" class="sp-conv-bubble__img" loading="lazy" />` : ""}
+            ${m.voiceSrc ? `<audio controls src="${m.voiceSrc}" class="sp-conv-bubble__audio"></audio>` : ""}
+            <span class="sp-conv-bubble__time">${new Date(m.sentAt||m.ts||Date.now()).toLocaleDateString("en-IN",{day:"numeric",month:"short"})}</span>
+          </div>`).join("")}
+      </div>
+      <a class="sp-conv-group__wa"
+         href="https://wa.me/918760595307?text=${encodeURIComponent(`[ABDAN ${cat}] ${msgs[msgs.length-1]?.text||""}`.substring(0,200))}"
+         target="_blank" rel="noreferrer">Continue on WhatsApp ↗</a>
+    </div>`).join("");
+
+  panel.innerHTML = `
+    <div class="sp-section-wrap">
+      <p class="sp-section-kicker">My Conversations</p>
+      <p class="sp-section-sub">Your styling guidance, sourcing discussions and personal concierge conversations.</p>
+      <div class="sp-conv-list">${groupHtml}</div>
+      <button type="button" class="secondary-button" onclick="showSpaceTab('concierge')" style="margin-top:1rem">Ask ABDAN Something New</button>
+    </div>`;
 }
 
 function renderSpaceMembership(profile) {
@@ -5811,3 +5945,205 @@ function handleHardSignout() {
 }
 
 document.getElementById("spaceSignoutHard")?.addEventListener("click", handleHardSignout);
+
+/* S87 — Upgraded Ask ABDAN concierge with categories + voice notes */
+const SP_CONCIERGE_CATEGORIES = [
+  { label: "Styling Advice",         text: "I would love some styling advice — " },
+  { label: "Fabric Question",        text: "I have a question about fabric — " },
+  { label: "Gift Recommendation",    text: "I am looking for a gift recommendation — " },
+  { label: "Occasion Help",          text: "I need help choosing something for an occasion — " },
+  { label: "Sizing Help",            text: "I need help with sizing — " },
+  { label: "Product Sourcing",       text: "Can ABDAN source something similar? I am looking for — " },
+];
+
+let _spVoiceRecorder  = null;
+let _spVoiceChunks    = [];
+let _spVoiceRecording = false;
+let _spVoiceSrc       = null;
+
+function renderSpaceConcierge(email) {
+  const panel = document.getElementById("spaceConciergePanel");
+  if (!panel) return;
+
+  const msgs = spGetConcierge(email);
+
+  const threadHtml = msgs.length
+    ? msgs.map(m => {
+        const imgHtml   = m.imgSrc   ? `<img src="${m.imgSrc}"   alt="" class="sp-msg__img" loading="lazy" />` : "";
+        const voiceHtml = m.voiceSrc ? `<audio controls src="${m.voiceSrc}" class="sp-msg__audio"></audio>` : "";
+        const catBadge  = m.category ? `<span class="sp-msg__cat">${m.category}</span>` : "";
+        return `
+          <div class="sp-msg sp-msg--sent">
+            ${catBadge}
+            <div class="sp-msg__bubble">${m.text || ""}</div>
+            ${imgHtml}${voiceHtml}
+            <span class="sp-msg__meta">
+              ${m.sentAt ? new Date(m.sentAt).toLocaleDateString("en-IN",{day:"numeric",month:"short"}) : ""}
+              &nbsp;·&nbsp;
+              <a class="sp-msg__wa-link"
+                 href="https://wa.me/918760595307?text=${encodeURIComponent((m.text||"").substring(0,200))}"
+                 target="_blank" rel="noreferrer">Continue on WhatsApp ↗</a>
+            </span>
+          </div>`;
+      }).join("")
+    : `<div class="sp-empty" style="padding:1.5rem 0">
+        <div class="sp-empty__icon">✉</div>
+        <p class="sp-empty__title">A quiet line to ABDAN</p>
+        <p class="sp-empty__body">Ask about a piece, request styling guidance, or share an inspiration.</p>
+      </div>`;
+
+  const catChips = SP_CONCIERGE_CATEGORIES.map(c =>
+    `<button class="sp-occ-chip" type="button" data-cattext="${c.text}">${c.label}</button>`
+  ).join("");
+
+  panel.innerHTML = `
+    <div class="sp-concierge">
+      <div class="sp-concierge-intro">
+        <p class="sp-concierge-intro__kicker">Private Concierge</p>
+        <h3 class="sp-concierge-intro__title">Ask ABDAN anything</h3>
+        <p class="sp-concierge-intro__body">Styling questions, fabric guidance, sourcing a specific piece — your message goes directly to ABDAN. Personal, warm, and always thoughtful.</p>
+      </div>
+
+      <div class="sp-msg-thread" id="spMsgThread">${threadHtml}</div>
+
+      <div class="sp-occ-row" id="spCatRow">
+        <span class="sp-occ-row__label">Categories</span>
+        ${catChips}
+      </div>
+
+      <div class="sp-compose" id="spCompose">
+        <div class="sp-compose__img-preview" id="spComposeImgPrev"></div>
+        <div class="sp-compose__voice-prev" id="spComposeVoicePrev" hidden></div>
+        <textarea class="sp-compose__textarea" id="spComposeText"
+                  placeholder="Ask about a piece, request styling advice, share an inspiration…" rows="3"></textarea>
+        <div class="sp-compose__actions">
+          <label class="sp-compose__img-btn" title="Attach image" aria-label="Attach image">
+            📎
+            <input type="file" accept="image/*" id="spComposeImg" style="display:none" />
+          </label>
+          <button type="button" class="sp-voice-btn" id="spVoiceBtn" title="Voice note" aria-label="Record voice note">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/>
+              <line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
+          </button>
+          <button type="button" class="sp-compose__send" id="spComposeSend">Send to ABDAN</button>
+        </div>
+      </div>
+      <p class="sp-compose__note">Your message will open WhatsApp — responded to personally by ABDAN.</p>
+    </div>`;
+
+  /* Reset voice state */
+  _spVoiceRecording = false;
+  _spVoiceSrc       = null;
+  _spVoiceChunks    = [];
+
+  let pendingImgSrc = null;
+  let selectedCategory = "";
+
+  /* Category chips pre-fill textarea */
+  panel.querySelector("#spCatRow")?.addEventListener("click", e => {
+    const chip = e.target.closest("[data-cattext]");
+    if (!chip) return;
+    selectedCategory = chip.textContent;
+    panel.querySelectorAll("[data-cattext]").forEach(c => c.classList.remove("is-selected"));
+    chip.classList.add("is-selected");
+    const ta = panel.querySelector("#spComposeText");
+    if (ta) { ta.value = chip.dataset.cattext; ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+  });
+
+  /* Image attach */
+  panel.querySelector("#spComposeImg")?.addEventListener("change", e => {
+    const file = e.target.files?.[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      pendingImgSrc = ev.target.result;
+      const prev = panel.querySelector("#spComposeImgPrev");
+      if (prev) {
+        prev.classList.add("has-img");
+        prev.innerHTML = `<img src="${pendingImgSrc}" alt="" /><span class="sp-compose__img-clear" id="spComposeImgClear">✕ Remove</span>`;
+        prev.querySelector("#spComposeImgClear")?.addEventListener("click", () => {
+          pendingImgSrc = null; prev.classList.remove("has-img"); prev.innerHTML = "";
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+
+  /* Voice note */
+  const voiceBtn = panel.querySelector("#spVoiceBtn");
+  let voiceTimer = null;
+  let voiceSeconds = 0;
+
+  voiceBtn?.addEventListener("click", () => {
+    if (!_spVoiceRecording) {
+      navigator.mediaDevices?.getUserMedia?.({ audio: true })
+        .then(stream => {
+          _spVoiceChunks = [];
+          _spVoiceRecorder = new MediaRecorder(stream);
+          _spVoiceRecorder.ondataavailable = e => _spVoiceChunks.push(e.data);
+          _spVoiceRecorder.onstop = () => {
+            stream.getTracks().forEach(t => t.stop());
+            clearInterval(voiceTimer);
+            voiceBtn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`;
+            voiceBtn.classList.remove("is-recording");
+            const blob = new Blob(_spVoiceChunks, { type: "audio/webm" });
+            const reader = new FileReader();
+            reader.onload = ev => {
+              _spVoiceSrc = ev.target.result;
+              const vprev = panel.querySelector("#spComposeVoicePrev");
+              if (vprev) {
+                vprev.hidden = false;
+                vprev.innerHTML = `<audio controls src="${_spVoiceSrc}" style="width:100%;height:36px"></audio><button type="button" id="spVoiceClear" style="font-size:.7rem;color:var(--muted);background:transparent;border:none;cursor:pointer;margin-top:.2rem">Remove voice note</button>`;
+                vprev.querySelector("#spVoiceClear")?.addEventListener("click", () => {
+                  _spVoiceSrc = null; vprev.hidden = true; vprev.innerHTML = "";
+                });
+              }
+            };
+            reader.readAsDataURL(blob);
+          };
+          _spVoiceRecorder.start();
+          _spVoiceRecording = true;
+          voiceSeconds = 0;
+          voiceBtn.classList.add("is-recording");
+          voiceBtn.textContent = "⏹ 0s";
+          voiceTimer = setInterval(() => {
+            voiceSeconds++;
+            voiceBtn.textContent = `⏹ ${voiceSeconds}s`;
+            if (voiceSeconds >= 60) voiceBtn.click(); /* auto-stop at 60s */
+          }, 1000);
+        })
+        .catch(() => showToast("Microphone access needed for voice notes."));
+    } else {
+      _spVoiceRecorder?.stop();
+      _spVoiceRecording = false;
+    }
+  });
+
+  /* Send */
+  panel.querySelector("#spComposeSend")?.addEventListener("click", () => {
+    const ta   = panel.querySelector("#spComposeText");
+    const text = ta?.value?.trim() || "";
+    if (!text && !pendingImgSrc && !_spVoiceSrc) return;
+    const msg  = { text, imgSrc: pendingImgSrc, voiceSrc: _spVoiceSrc, sentAt: Date.now(), category: selectedCategory };
+    spAddMsg(email, msg);
+    const allMsgs = spGetConcierge(email);
+    if (allMsgs.length === 1) spAddLoyalty(email, 20);
+    const voiceNote = _spVoiceSrc ? "\n\n(Voice note attached — I'll share it in the chat)" : "";
+    const imgNote   = pendingImgSrc ? "\n\n(Image attached — I'll share it in the chat)" : "";
+    const waPrefix  = selectedCategory ? `[ABDAN ${selectedCategory}] ` : "[ABDAN Concierge] ";
+    const waText    = text ? `${waPrefix}${text}${imgNote}${voiceNote}` : `${waPrefix}I've attached a reference.${imgNote}${voiceNote}`;
+    window.open(`https://wa.me/918760595307?text=${encodeURIComponent(waText)}`, "_blank", "noreferrer");
+    if (ta) ta.value = "";
+    pendingImgSrc = null; _spVoiceSrc = null; selectedCategory = "";
+    const prev  = panel.querySelector("#spComposeImgPrev");
+    const vprev = panel.querySelector("#spComposeVoicePrev");
+    if (prev)  { prev.classList.remove("has-img"); prev.innerHTML = ""; }
+    if (vprev) { vprev.hidden = true; vprev.innerHTML = ""; }
+    panel.querySelectorAll("[data-cattext]").forEach(c => c.classList.remove("is-selected"));
+    renderSpaceConcierge(email);
+    showToast("Your message is ready — sent via WhatsApp 💛");
+  });
+}
