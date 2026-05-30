@@ -2868,6 +2868,20 @@ function closeProduct() {
   updateOverlayState();
   /* §79 — Restore support pill to default when product sheet closes */
   dom.supportPill?.setAttribute("href", "https://wa.me/918760595307");
+  /* RC-03: reset OG meta to site defaults so sharing the main URL shows the site, not last product */
+  const OG_DEFAULTS = [
+    ["og:title",           "property", `${BRAND.name} | ${BRAND.tagline}`],
+    ["og:description",     "property", "Thoughtfully curated modest fashion for the woman who moves through her days with devotion, grace, and quiet intention."],
+    ["og:image",           "property", "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=85"],
+    ["og:url",             "property", "https://abdan.in"],
+    ["twitter:title",      "name",     `${BRAND.name} | ${BRAND.tagline}`],
+    ["twitter:description","name",     "Thoughtfully curated modest fashion for the woman who moves through her days with devotion, grace, and quiet intention."],
+    ["twitter:image",      "name",     "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=85"],
+  ];
+  OG_DEFAULTS.forEach(([key, attr, val]) => {
+    const el = document.querySelector(`meta[${attr}="${key}"]`);
+    if (el) el.content = val;
+  });
 }
 
 function renderCart() {
@@ -3829,7 +3843,13 @@ function initScrollAwareDock() {
 }
 
 function attachEvents() {
-  dom.themeToggle.addEventListener("click", () => setTheme(state.theme === "dark" ? "light" : "dark"));
+  /* RC-04: debounce 100ms prevents rapid-click race condition on theme toggle */
+  let _themeDebounceTimer = null;
+  dom.themeToggle.addEventListener("click", () => {
+    if (_themeDebounceTimer) return;
+    setTheme(state.theme === "dark" ? "light" : "dark");
+    _themeDebounceTimer = setTimeout(() => { _themeDebounceTimer = null; }, 100);
+  });
   if (dom.adminLoginForm) {
     dom.adminLoginForm.addEventListener("submit", (event) => {
       void handleAdminLogin(event);
@@ -5579,10 +5599,12 @@ document.getElementById("spPortalSigninForm")?.addEventListener("submit", async 
       return;
     }
     setSpaceSession(result.profile);
-    /* Auth success: close portal then enter dashboard */
     resetButtonLoading(submitBtn);
-    hideSpacePortal();
-    showSpaceDashboard(result.profile, false);
+    /* RC-02: set auth-transition flag before history.back() fires in hideSpacePortal */
+    window._abdanAuthTransition = true;
+    setTimeout(() => { window._abdanAuthTransition = false; }, 700);
+    /* RC-02: show dashboard in callback AFTER portal animation/history.back completes */
+    hideSpacePortal(() => showSpaceDashboard(result.profile, false));
   } catch {
     if (errEl) { errEl.textContent = "Something went wrong. Please try once more."; errEl.hidden = false; }
     resetButtonLoading(submitBtn);
@@ -5622,8 +5644,10 @@ document.getElementById("spPortalCreateForm")?.addEventListener("submit", async 
     const profile = await createSpaceProfile(data);
     setSpaceSession(profile);
     resetButtonLoading(submitBtn);
-    hideSpacePortal();
-    showSpaceDashboard(profile, true);
+    /* RC-02: protect against popstate route reset during auth transition */
+    window._abdanAuthTransition = true;
+    setTimeout(() => { window._abdanAuthTransition = false; }, 700);
+    hideSpacePortal(() => showSpaceDashboard(profile, true));
   } catch (err) {
     if (errEl) { errEl.textContent = err instanceof Error ? err.message : "Something went wrong."; errEl.hidden = false; }
     resetButtonLoading(submitBtn);
@@ -5737,6 +5761,8 @@ document.getElementById("ysBackBtn")?.addEventListener("click", () => {
 
 /* browser back closes Your Space route */
 window.addEventListener("popstate", (e) => {
+  /* RC-02: skip route reset during auth-to-dashboard transition */
+  if (window._abdanAuthTransition) return;
   if (dom.html.dataset.route === "your-space" && !e.state?.ysRoute) {
     dom.html.setAttribute("data-route", "storefront");
     const topbar = document.getElementById("ysTopbar");
@@ -6567,7 +6593,7 @@ function updateSpaceTabBadges(email) {
   } catch {}
 }
 
-/* Mark messages as seen when Messages tab is opened */
+/* RC-01 fix + D-05: Re-render Messages on every tab open (ensures fresh data) */
 (function() {
   const orig = window.showSpaceTab;
   if (typeof orig === "function") {
@@ -6576,6 +6602,9 @@ function updateSpaceTabBadges(email) {
       if (tabId === "messages") {
         const sess = typeof getSpaceSession === "function" ? getSpaceSession() : null;
         if (sess?.email) {
+          /* RC-01: always re-render with current email so new messages are visible */
+          if (typeof renderSpaceMessages === "function") renderSpaceMessages(sess.email);
+          /* D-05: clear unread badge + record seen timestamp */
           try { localStorage.setItem(`abdan-sp-msgs-seen:${sess.email.toLowerCase()}`, String(Date.now())); } catch {}
           const msgBadge = document.getElementById("spaceTabMessagesCount");
           if (msgBadge) { msgBadge.textContent="0"; msgBadge.hidden=true; }
