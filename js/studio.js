@@ -83,8 +83,9 @@ const STUDIO_VIEWS = [
   { id: "concierge",   label: "Concierge Queue",    icon: "message-circle",   group: "Her Circle"   },
 
   /* ── INTELLIGENCE ────────────────────────────────────────── */
+  { id: "operations",  label: "Operations",          icon: "activity",         group: "Intelligence" },
   { id: "analytics",   label: "Analytics",          icon: "bar-chart-2",      group: "Intelligence" },
-  { id: "experience",  label: "Experience Intel",   icon: "activity",         group: "Intelligence" },
+  { id: "experience",  label: "Experience Intel",   icon: "trending-up",      group: "Intelligence" },
   { id: "permissions", label: "Permissions",        icon: "lock",             group: "Intelligence" },
 
   /* ── SYSTEM ──────────────────────────────────────────────── */
@@ -395,6 +396,7 @@ function renderView(id) {
     reviews:     renderReviews,
     requests:    renderRequests,
     concierge:   renderConciergeQueue,
+    operations:  renderOperations,
     campaigns:   renderCampaigns,
     founder:     renderFounder,
     analytics:   renderAnalytics,
@@ -2926,5 +2928,256 @@ function openConvPanel(email, name, msgs) {
     toast(`Reply sent to ${name}`);
     closePanel();
     renderConciergeQueue();
+  });
+}
+
+/* S90 — Operations Dashboard: 7-section admin intelligence */
+
+function renderOperations() {
+  setTitle("Operations Dashboard");
+
+  /* ── Collect all data ───────────────────────────────────────── */
+  const profiles    = load(STORAGE.customers, {});
+  const profileArr  = Object.values(profiles);
+  const requests    = load(STORAGE.globalRequests, []);
+  const orders      = load(STORAGE.orders, []);
+  const now         = Date.now();
+  const today       = new Date(); today.setHours(0,0,0,0);
+  const todayTs     = today.getTime();
+  const monthStart  = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
+  const threeDaysAgo = now - 3 * 24 * 60 * 60 * 1000;
+
+  /* Per-customer stats */
+  const customerStats = profileArr.map(p => {
+    const email    = (p.email||"").toLowerCase();
+    const pts      = (() => { try { return JSON.parse(localStorage.getItem(`abdan-sp-loyalty:${email}`))||0; } catch { return 0; } })();
+    const msgs     = (() => { try { return JSON.parse(localStorage.getItem(`abdan-sp-concierge:${email}`))||[]; } catch { return []; } })();
+    const custMsgs = msgs.filter(m=>m.from==="customer");
+    const lastMsg  = msgs[msgs.length-1]||null;
+    const hasBio   = !!localStorage.getItem(`abdan-sp-bio:${email}`);
+    const hasStyle = !!localStorage.getItem(`abdan-sp-style:${email}`);
+    const hasPhoto = !!localStorage.getItem(`abdan-sp-photo:${email}`);
+    const custReqs = requests.filter(r=>(r.email||"").toLowerCase()===email);
+    return {
+      name:       p.displayName||p.fullName||email,
+      email,
+      pts,
+      msgs,
+      custMsgs,
+      lastMsg,
+      hasBio, hasStyle, hasPhoto,
+      reqs:       custReqs.length,
+      profileComplete: hasBio && hasStyle && hasPhoto,
+      awaitingReply:  lastMsg && lastMsg.from==="customer",
+      lastTs:     lastMsg ? (lastMsg.sentAt||lastMsg.ts||0) : 0,
+    };
+  });
+
+  /* Section 1 stats */
+  const totalCustomers      = profileArr.length;
+  const activeCustomers     = customerStats.filter(c => c.msgs.length>0||c.reqs>0).length;
+  const devotedCollectors   = customerStats.filter(c => c.pts>=50).length;
+  const innerCircleEligible = customerStats.filter(c => c.pts>=150).length;
+  const openRequests        = requests.filter(r=>r.status!=="Completed").length;
+  const completedRequests   = requests.filter(r=>r.status==="Completed").length;
+  const openConversations   = customerStats.filter(c=>c.msgs.length>0).length;
+  const pendingReplies      = customerStats.filter(c=>c.awaitingReply).length;
+
+  /* Section 2 — Request pipeline */
+  const pipeline = {};
+  ["Submitted","Reviewing","Sourcing","Options Found","Completed"].forEach(s=>{
+    pipeline[s] = requests.filter(r=>r.status===s).length;
+  });
+
+  /* Section 3 — Concierge */
+  let convsToday=0, newConvs=0, totalResTime=0, resCnt=0;
+  customerStats.forEach(c => {
+    if (c.msgs.some(m=>(m.sentAt||m.ts||0)>=todayTs)) convsToday++;
+    const hasAbdanReply = c.msgs.some(m=>m.from==="abdan");
+    if (c.custMsgs.length>0 && !hasAbdanReply) newConvs++;
+    for (let i=0;i<c.msgs.length-1;i++) {
+      if (c.msgs[i].from==="customer"&&c.msgs[i+1].from==="abdan") {
+        totalResTime += (c.msgs[i+1].sentAt||0)-(c.msgs[i].sentAt||0);
+        resCnt++;
+      }
+    }
+  });
+  const avgResHrs = resCnt>0 ? (totalResTime/resCnt/3600000).toFixed(1) : null;
+
+  /* Section 5 — Category insights */
+  const catMap = {};
+  const catKeywords = [
+    ["Saree",    ["saree","sari","banarasi","kanjivaram","silk saree"]],
+    ["Salwar",   ["salwar","kurta","kurti","palazzo"]],
+    ["Abaya",    ["abaya"]],
+    ["Dupatta",  ["dupatta","stole","scarf"]],
+    ["Wedding",  ["wedding","bridal","nikah","marriage"]],
+    ["Festival", ["festival","festive","eid","diwali","puja","navratri"]],
+    ["Custom",   ["custom","bespoke","similar","source","find","looking for"]],
+  ];
+  requests.forEach(r=>{
+    const occ = r.occasion||"";
+    catMap[occ] = (catMap[occ]||0)+1;
+    const desc = (r.desc||"").toLowerCase();
+    catKeywords.forEach(([label,terms])=>{
+      if (terms.some(t=>desc.includes(t))) catMap[label]=(catMap[label]||0)+1;
+    });
+  });
+  const sortedCats = Object.entries(catMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+
+  /* Section 6 — Loyalty */
+  const totalPts = customerStats.reduce((s,c)=>s+c.pts,0);
+  const topCollectors = [...customerStats].sort((a,b)=>b.pts-a.pts).filter(c=>c.pts>0).slice(0,5);
+  const closestToIC   = [...customerStats].filter(c=>c.pts>=50&&c.pts<150).sort((a,b)=>b.pts-a.pts).slice(0,5);
+  const newThisMonth  = profileArr.filter(p=>p.createdAt&&new Date(p.createdAt)>=monthStart).length;
+
+  /* Section 7 — Alerts */
+  const staleRequests = requests.filter(r=>r.status!=="Completed"&&(r.updatedAt||r.ts)<threeDaysAgo);
+  const unanswered    = customerStats.filter(c=>c.awaitingReply).sort((a,b)=>a.lastTs-b.lastTs);
+  const incomplete    = customerStats.filter(c=>!c.profileComplete&&c.msgs.length>0);
+
+  /* ── Render ─────────────────────────────────────────────────── */
+  function stat(label, value, sub="", mod="") {
+    return `<div class="s-stat ${mod}"><p class="s-stat__label">${label}</p><p class="s-stat__value">${value}</p>${sub?`<p class="s-stat__sub">${sub}</p>`:""}</div>`;
+  }
+  function pipeBar(label, count, total) {
+    const pct = total>0?Math.round((count/total)*100):0;
+    const cls  = {Submitted:"s-badge--amber",Reviewing:"s-badge--blue",Sourcing:"s-badge--gold","Options Found":"s-badge--emerald",Completed:"s-badge--green"}[label]||"";
+    return `<div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem">
+      <span style="width:110px;font-size:.78rem;color:var(--s-text)">${label}</span>
+      <div style="flex:1;height:8px;background:var(--s-border);border-radius:99px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:var(--s-emerald);border-radius:99px;transition:width .4s"></div>
+      </div>
+      <span class="s-badge ${cls}" style="min-width:28px;text-align:center">${count}</span>
+    </div>`;
+  }
+  function topList(items, valueFn, labelFn) {
+    if (!items.length) return `<p style="font-size:.8rem;color:var(--s-text-dim);padding:.5rem 0">No data yet.</p>`;
+    return items.map((c,i)=>`
+      <div style="display:flex;align-items:center;gap:.6rem;padding:.45rem 0;border-bottom:1px solid var(--s-border)">
+        <span style="font-size:.7rem;color:var(--s-text-dim);min-width:16px">${i+1}</span>
+        <span style="flex:1;font-size:.82rem;color:var(--s-text)">${esc(labelFn(c))}</span>
+        <span style="font-size:.82rem;font-weight:600;color:var(--s-gold)">${valueFn(c)}</span>
+      </div>`).join("");
+  }
+  function alertRow(icon, text, count, cls="s-alert--info") {
+    return count>0?`<div class="s-alert ${cls}" style="display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem">
+      <i data-lucide="${icon}" class="s-icon"></i>
+      <span style="flex:1;font-size:.82rem">${text}</span>
+      <span class="s-badge s-badge--red">${count}</span>
+    </div>`:"";
+  }
+  function section(title, content) {
+    return `<div class="s-card" style="background:var(--s-raised);border:1px solid var(--s-border);border-radius:var(--s-r-lg);padding:1.25rem 1.5rem;margin-bottom:1.25rem">
+      <h3 style="font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;color:var(--s-text-dim);font-weight:700;margin:0 0 1rem">${title}</h3>
+      ${content}
+    </div>`;
+  }
+
+  const totalReqs = requests.length;
+  dom.content.innerHTML = `
+    <div style="max-width:860px">
+
+      ${section("Executive Overview", `
+        <div class="s-stats-row">
+          ${stat("Total Customers", totalCustomers, `${activeCustomers} active`)}
+          ${stat("Devoted Collectors", devotedCollectors, "50+ points", "s-stat--gold")}
+          ${stat("Inner Circle Eligible", innerCircleEligible, "150+ points", "s-stat--emerald")}
+          ${stat("Open Requests", openRequests, `${completedRequests} completed`)}
+          ${stat("Open Conversations", openConversations, "")}
+          ${stat("Pending Replies", pendingReplies, "awaiting ABDAN", pendingReplies>0?"s-stat--gold":"")}
+        </div>
+      `)}
+
+      ${section("Request Pipeline", `
+        <div style="margin-bottom:.5rem">
+          ${Object.entries(pipeline).map(([s,c])=>pipeBar(s,c,totalReqs||1)).join("")}
+        </div>
+        <p style="font-size:.72rem;color:var(--s-text-dim)">${totalReqs} total request${totalReqs!==1?"s":""}</p>
+      `)}
+
+      ${section("Concierge", `
+        <div class="s-stats-row">
+          ${stat("New Conversations", newConvs, "no ABDAN reply yet", newConvs>0?"s-stat--gold":"")}
+          ${stat("Pending Replies", pendingReplies, "customer waiting")}
+          ${stat("Conversations Today", convsToday, "")}
+          ${stat("Avg Response Time", avgResHrs?`${avgResHrs}h`:"—", resCnt>0?`from ${resCnt} exchanges`:"no exchanges yet")}
+        </div>
+      `)}
+
+      ${section("Customer Intelligence", `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div>
+            <p style="font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--s-text-dim);margin-bottom:.5rem">Highest Devotion Points</p>
+            ${topList(topCollectors, c=>`${c.pts} pts`, c=>c.name)}
+          </div>
+          <div>
+            <p style="font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--s-text-dim);margin-bottom:.5rem">Most Requests Submitted</p>
+            ${topList(customerStats.filter(c=>c.reqs>0).sort((a,b)=>b.reqs-a.reqs).slice(0,5), c=>`${c.reqs} req${c.reqs!==1?"s":""}`, c=>c.name)}
+          </div>
+          <div>
+            <p style="font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--s-text-dim);margin-bottom:.5rem">Most Conversations Started</p>
+            ${topList(customerStats.filter(c=>c.custMsgs.length>0).sort((a,b)=>b.custMsgs.length-a.custMsgs.length).slice(0,5), c=>`${c.custMsgs.length} msg${c.custMsgs.length!==1?"s":""}`, c=>c.name)}
+          </div>
+          <div>
+            <p style="font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--s-text-dim);margin-bottom:.5rem">Top Active Customers</p>
+            ${topList(customerStats.filter(c=>c.msgs.length>0||c.reqs>0).sort((a,b)=>(b.msgs.length+b.reqs*3)-(a.msgs.length+a.reqs*3)).slice(0,5), c=>`${c.msgs.length+c.reqs} act`, c=>c.name)}
+          </div>
+        </div>
+      `)}
+
+      ${section("Request Categories", sortedCats.length?`
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.65rem">
+          ${sortedCats.map(([cat,cnt])=>`
+            <div style="background:var(--s-surface);border:1px solid var(--s-border);border-radius:var(--s-r-sm);padding:.7rem .9rem">
+              <p style="font-size:.72rem;color:var(--s-text-dim);margin-bottom:.2rem">${esc(cat)}</p>
+              <p style="font-size:1.4rem;font-weight:700;color:var(--s-text);line-height:1">${cnt}</p>
+            </div>`).join("")}
+        </div>`:`<p style="font-size:.8rem;color:var(--s-text-dim)">No requests submitted yet.</p>`)}
+
+      ${section("Loyalty Dashboard", `
+        <div class="s-stats-row" style="margin-bottom:1rem">
+          ${stat("Total Points Issued", totalPts.toLocaleString(), "across all members", "s-stat--gold")}
+          ${stat("New Members This Month", newThisMonth, "")}
+          ${stat("Closest To Inner Circle", closestToIC.length, `${closestToIC[0]?`${closestToIC[0].name} (${closestToIC[0].pts} pts)`:"—"}`)}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div>
+            <p style="font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--s-text-dim);margin-bottom:.5rem">Top Collectors</p>
+            ${topList(topCollectors, c=>`${c.pts} pts`, c=>c.name)}
+          </div>
+          <div>
+            <p style="font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--s-text-dim);margin-bottom:.5rem">Closest To Inner Circle</p>
+            ${topList(closestToIC, c=>`${150-c.pts} to go`, c=>c.name)}
+          </div>
+        </div>
+      `)}
+
+      ${section("Operational Alerts", `
+        ${alertRow("clock",    `${staleRequests.length} request${staleRequests.length!==1?"s":""} waiting more than 3 days without update`,   staleRequests.length, "s-alert--error")}
+        ${alertRow("message-circle", `${unanswered.length} unanswered conversation${unanswered.length!==1?"s":""}`, unanswered.length, "s-alert--info")}
+        ${alertRow("user-x",  `${incomplete.length} active customer${incomplete.length!==1?"s":""} with incomplete profiles`, incomplete.length, "s-alert--info")}
+        ${!staleRequests.length && !unanswered.length && !incomplete.length
+          ? `<div class="s-alert s-alert--ok" style="display:flex;align-items:center;gap:.6rem"><i data-lucide="check-circle" class="s-icon"></i><span style="font-size:.82rem">All clear — no operational issues detected.</span></div>`
+          : ""}
+        ${unanswered.length?`
+          <div style="margin-top:.75rem">
+            <p style="font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--s-text-dim);margin-bottom:.4rem">Unanswered — oldest first</p>
+            ${unanswered.slice(0,5).map(c=>`
+              <div style="display:flex;align-items:center;gap:.6rem;padding:.4rem 0;border-bottom:1px solid var(--s-border)">
+                <span style="flex:1;font-size:.82rem">${esc(c.name)}</span>
+                <span style="font-size:.72rem;color:var(--s-text-dim)">${c.lastTs?new Date(c.lastTs).toLocaleDateString("en-IN",{day:"numeric",month:"short"}):"—"}</span>
+                <button class="s-btn s-btn--primary s-btn--sm" data-nav="concierge">Reply</button>
+              </div>`).join("")}
+          </div>`:""
+        }
+      `)}
+
+    </div>`;
+
+  initLucide();
+  /* Wire alert reply buttons */
+  dom.content.querySelectorAll("[data-nav='concierge']").forEach(btn=>{
+    btn.addEventListener("click",()=>{ currentView="concierge"; renderConciergeQueue(); });
   });
 }
