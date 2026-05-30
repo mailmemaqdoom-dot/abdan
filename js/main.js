@@ -1941,79 +1941,55 @@ function renderSpaceOverview(profile) {
       </div>`;
   }).join("");
 
+  /* S86 — large editorial action cards: exact spec order */
+  const actionCards = [
+    { tab:"saved",       sym:"♡", title:"My Wardrobe",   desc:`${wlSize} piece${wlSize!==1?"s":""} saved` },
+    { tab:"lookbook",    sym:"◻", title:"Lookbooks",      desc:"Your styling boards" },
+    { tab:"savedmoments",sym:"◈", title:"Saved Moments",  desc:"Your memory archive" },
+    { tab:"concierge",   sym:"✉", title:"Ask ABDAN",      desc:"Private concierge" },
+    { tab:"requests",    sym:"◇", title:"My Requests",    desc:"Source a piece" },
+    { tab:"messages",    sym:"◇", title:"Messages",       desc:"Your conversations" },
+    { tab:"journal",     sym:"✦", title:"Journal",        desc:"Your style diary" },
+  ];
+
   panel.innerHTML = `
     <div class="sp-home">
 
-      <div class="sp-profile-mini">
-        <div class="sp-profile-mini__avatar">${avatarHtml}</div>
-        <div class="sp-profile-mini__body">
-          <p class="sp-profile-mini__name">${profile.displayName || profile.fullName || ""}</p>
-          ${identity
-            ? `<p class="sp-profile-mini__identity">${identity}</p>`
-            : `<p class="sp-profile-mini__identity" style="opacity:.55">Set your style identity →</p>`
-          }
-          <p class="sp-profile-mini__tier">${tier.name}</p>
-          <p class="sp-profile-mini__pts">${pts} Devotion Points</p>
-          ${joinedYear83 ? `<p class="sp-profile-mini__since">Member since ${joinedYear83}</p>` : ""}
+      <!-- S86 — Profile Header: exact spec order -->
+      <div class="sp-profile-hero">
+        <div class="sp-profile-hero__av">${photo
+          ? `<img src="${photo}" alt="${profile.displayName||""}" />`
+          : `<span>${first.charAt(0).toUpperCase()}</span>`
+        }</div>
+        <h2 class="sp-profile-hero__name">${profile.displayName || profile.fullName || ""}</h2>
+        ${identity
+          ? `<p class="sp-profile-hero__identity">${identity}</p>`
+          : `<button type="button" class="sp-profile-hero__identity sp-profile-hero__identity--set" onclick="showSpaceTab('profile')">Set your style identity →</button>`
+        }
+        <div class="sp-profile-hero__tier-row">
+          <span class="sp-profile-hero__tier">${tier.name}</span>
+          <span class="sp-profile-hero__pts">${pts} Devotion Points</span>
         </div>
+        ${joinedYear83 ? `<p class="sp-profile-hero__since">Member Since ${joinedYear83}</p>` : ""}
       </div>
-
-      <div class="sp-loyalty">
-        <div class="sp-loyalty__left">
-          <span class="sp-loyalty__kicker">Your membership</span>
-          <p class="sp-loyalty__tier">${tier.name}</p>
-          <p class="sp-loyalty__pts">${pts} devotion points</p>
-        </div>
-        <span class="sp-loyalty__badge-icon">${tierIcon}</span>
-      </div>
-
-      ${badgeHtml}
 
       ${deliveredCount79 > 0 ? `
       <div class="sp-delivered-note">
         <span class="sp-delivered-note__icon">◇</span>
         <div>
           <p class="sp-delivered-note__title">Beautifully delivered</p>
-          <p class="sp-delivered-note__body">${deliveredCount79 === 1 ? "A piece" : `${deliveredCount79} pieces`} reached you. We hope each one feels as beautiful as the moment you chose it.</p>
+          <p class="sp-delivered-note__body">${deliveredCount79 === 1 ? "A piece" : `${deliveredCount79} pieces`} reached you.</p>
         </div>
       </div>` : ""}
 
-      <div class="sp-quick-grid">
-        <button class="sp-quick-card" type="button" onclick="showSpaceTab('saved')">
-          <span class="sp-quick-card__icon">♡</span>
-          <p class="sp-quick-card__title">My Wardrobe</p>
-          <p class="sp-quick-card__sub">${wlSize} piece${wlSize !== 1 ? "s" : ""} saved</p>
-        </button>
-        <button class="sp-quick-card" type="button" onclick="showSpaceTab('savedmoments')">
-          <span class="sp-quick-card__icon">◈</span>
-          <p class="sp-quick-card__title">Saved Moments</p>
-          <p class="sp-quick-card__sub">Your memory archive</p>
-        </button>
-        <button class="sp-quick-card" type="button" onclick="showSpaceTab('lookbook')">
-          <span class="sp-quick-card__icon">◻</span>
-          <p class="sp-quick-card__title">Lookbooks</p>
-          <p class="sp-quick-card__sub">Your styling boards</p>
-        </button>
-        <button class="sp-quick-card" type="button" onclick="showSpaceTab('journey')">
-          <span class="sp-quick-card__icon">✦</span>
-          <p class="sp-quick-card__title">Orders</p>
-          <p class="sp-quick-card__sub">Your journey</p>
-        </button>
-        <button class="sp-quick-card" type="button" onclick="showSpaceTab('concierge')">
-          <span class="sp-quick-card__icon">✉</span>
-          <p class="sp-quick-card__title">Ask ABDAN</p>
-          <p class="sp-quick-card__sub">Private concierge</p>
-        </button>
-        <button class="sp-quick-card" type="button" onclick="showSpaceTab('messages')">
-          <span class="sp-quick-card__icon">◇</span>
-          <p class="sp-quick-card__title">Messages</p>
-          <p class="sp-quick-card__sub">Your conversations</p>
-        </button>
-        <button class="sp-quick-card" type="button" onclick="showSpaceTab('journal')">
-          <span class="sp-quick-card__icon">◇</span>
-          <p class="sp-quick-card__title">Journal</p>
-          <p class="sp-quick-card__sub">Your style diary</p>
-        </button>
+      <!-- S86 — Large editorial luxury action cards -->
+      <div class="sp-action-grid">
+        ${actionCards.map(c => `
+          <button class="sp-action-card" type="button" onclick="showSpaceTab('${c.tab}')">
+            <span class="sp-action-card__sym">${c.sym}</span>
+            <span class="sp-action-card__title">${c.title}</span>
+            <span class="sp-action-card__desc">${c.desc}</span>
+          </button>`).join("")}
       </div>
 
       ${affinityMood ? `
