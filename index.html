@@ -1181,6 +1181,7 @@
               <div class="space-tabs-wrap">
               <nav class="space-tabs" id="spaceTabs" aria-label="Your Space sections" role="tablist">
                 <button class="space-tab is-active" data-space-tab="overview" type="button" role="tab">Home</button>
+                <button class="space-tab" data-space-tab="discover" type="button" role="tab">Discover</button>
                 <button class="space-tab" data-space-tab="saved" type="button" role="tab">
                   My Wardrobe
                   <span class="space-tab__count" id="spaceTabSavedCount" hidden></span>
@@ -1244,6 +1245,11 @@
                 <div id="spaceJournalPanel"></div>
               </div>
 
+              <!-- Panel: Discover — product browsing inside Your Space -->
+              <div class="space-tab-panel" id="spaceTabDiscover" hidden role="tabpanel">
+                <div id="spaceDiscoverPanel"></div>
+              </div>
+
               <!-- Panel: Saved Moments -->
               <div class="space-tab-panel" id="spaceTabSavedMoments" hidden role="tabpanel">
                 <div id="spaceSavedMomentsPanel"></div>
@@ -1270,6 +1276,31 @@
               </div>
 
             </div>
+
+            <!-- Persistent bottom navigation (visible in your-space route on mobile) -->
+            <nav class="ys-bottom-nav" id="ysBottomNav" aria-label="Your Space quick navigation">
+              <button class="ys-bnav-btn is-active" type="button" data-ys-bnav="overview" aria-label="Home">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <span>Home</span>
+              </button>
+              <button class="ys-bnav-btn" type="button" data-ys-bnav="discover" aria-label="Discover">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <span>Discover</span>
+              </button>
+              <button class="ys-bnav-btn" type="button" data-ys-bnav="concierge" aria-label="Ask ABDAN">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span>Ask</span>
+              </button>
+              <button class="ys-bnav-btn" type="button" data-ys-bnav="requests" aria-label="My Requests">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M8 11h6M11 8v6"/></svg>
+                <span>Requests</span>
+              </button>
+              <button class="ys-bnav-btn" type="button" data-ys-bnav="membership" aria-label="Membership">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <span>Membership</span>
+              </button>
+            </nav>
+
           </div>
 
         </div>

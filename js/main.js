@@ -1368,6 +1368,7 @@ function showSpaceDashboard(profile, isNew = false) {
   renderSpaceMessages(email);           /* S84 */
   renderSpaceMembership(profile);       /* S84 */
   renderSpaceSettings(profile, email);  /* S84 */
+  renderSpaceDiscover(profile);          /* YS arch */
   updateSavedPiecesCount();
 
   /* §80 — Apply saved profile theme to dashboard shell */
@@ -1485,6 +1486,7 @@ function showSpaceTab(tabId) {
     lookbook:     "spaceTabLookbook",
     concierge:    "spaceTabConcierge",
     journal:      "spaceTabJournal",
+    discover:     "spaceTabDiscover",
     savedmoments: "spaceTabSavedMoments",
     requests:     "spaceTabRequests",
     messages:     "spaceTabMessages",
@@ -6774,4 +6776,77 @@ function renderSpaceWishlist() {
     /* Also update badges */
     if (profile.email) updateSpaceTabBadges(profile.email);
   };
+})();
+
+/* YS Architecture — Discover tab + bottom nav + overlay fixes */
+
+/* renderSpaceDiscover: product grid inside Your Space */
+function renderSpaceDiscover(profile) {
+  const panel = document.getElementById("spaceDiscoverPanel");
+  if (!panel) return;
+  const email = profile?.email || "";
+  const wl    = getWishlist ? getWishlist() : new Set();
+  const cards = (typeof PRODUCTS !== "undefined" ? PRODUCTS : []).map(p => `
+    <div class="ys-discover-card" onclick="openProduct('${p.id}')">
+      <div class="ys-discover-card__img">
+        <img src="${p.image}" alt="${p.name}" loading="lazy" />
+      </div>
+      <div class="ys-discover-card__body">
+        <p class="ys-discover-card__name">${p.name}</p>
+        <p class="ys-discover-card__price">${p.priceLabel || ""}</p>
+      </div>
+    </div>`).join("");
+  panel.innerHTML = `
+    <div class="sp-section-wrap">
+      <p class="sp-section-kicker">The Collection</p>
+      <p class="sp-section-sub">Thoughtfully curated pieces, personally chosen for you.</p>
+      <div class="ys-discover-grid">${cards || '<p class="sp-empty-note">The collection is being curated.</p>'}</div>
+    </div>`;
+}
+
+/* Bottom nav: wire buttons to showSpaceTab + sync active state */
+(function wireYsBottomNav() {
+  const nav = document.getElementById("ysBottomNav");
+  if (!nav) return;
+  nav.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-ys-bnav]");
+    if (!btn) return;
+    const tab = btn.dataset.ysbnav;
+    if (typeof showSpaceTab === "function") showSpaceTab(tab);
+    nav.querySelectorAll(".ys-bnav-btn").forEach(b => b.classList.toggle("is-active", b.dataset.ysbnav === tab));
+  });
+
+  /* Keep bottom nav in sync when tabs change via any mechanism */
+  const _origShowTab = window.showSpaceTab;
+  if (typeof _origShowTab === "function") {
+    window.showSpaceTab = function(tabId) {
+      _origShowTab(tabId);
+      nav.querySelectorAll(".ys-bnav-btn").forEach(b => {
+        b.classList.toggle("is-active", b.dataset.ysbnav === tabId);
+      });
+    };
+  }
+})();
+
+/* Ensure product sheet is opened above Your Space overlay */
+(function patchOpenProduct() {
+  const _orig = window.openProduct;
+  if (typeof _orig !== "function") return;
+  window.openProduct = function(productId) {
+    /* If in your-space route, temporarily ensure product sheet z-index is above overlay */
+    const sheet = document.getElementById("productSheet");
+    if (sheet && document.documentElement.dataset.route === "your-space") {
+      sheet.style.zIndex = "3500";
+    }
+    _orig(productId);
+  };
+  /* Also patch close to restore */
+  const _origClose = window.closeProduct;
+  if (typeof _origClose === "function") {
+    window.closeProduct = function() {
+      _origClose();
+      const sheet = document.getElementById("productSheet");
+      if (sheet) sheet.style.zIndex = "";
+    };
+  }
 })();
