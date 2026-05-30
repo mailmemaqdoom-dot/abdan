@@ -16436,3 +16436,26 @@ html[data-theme="dark"] .sp-tier-display{background:linear-gradient(135deg,rgba(
 html[data-theme="dark"] .sp-ic-preview{background:rgba(248,245,236,.04);border-color:rgba(248,245,236,.1)}
 html[data-theme="dark"] .sp-action-card{background:rgba(248,245,236,.05);border-color:rgba(248,245,236,.08)}
 html[data-theme="dark"] .sp-rec-col{background:rgba(248,245,236,.05);border-color:rgba(248,245,236,.08)}
+html[data-theme="dark"]{--muted:rgba(220,213,200,.56);--text:rgba(247,241,228,.92)}
+html[data-theme="dark"] .sp-section-kicker,html[data-theme="dark"] .sp-section-sub,html[data-theme="dark"] .sp-recently__kicker,html[data-theme="dark"] .sp-wardrobe-section__label,html[data-theme="dark"] .sp-wardrobe-section__sub,html[data-theme="dark"] .sp-req-meta,html[data-theme="dark"] .sp-profile-hero__since,html[data-theme="dark"] .sp-req-date,html[data-theme="dark"] .sp-moment-item__date,html[data-theme="dark"] .sp-moment-item__note,html[data-theme="dark"] .sp-ic-benefit__desc,html[data-theme="dark"] .sp-rec-col__desc,html[data-theme="dark"] .sp-recently__price,html[data-theme="dark"] .sp-action-card__desc,html[data-theme="dark"] .sp-tier-display__next,html[data-theme="dark"] .sp-membership-hero__next,html[data-theme="dark"] .sp-empty-note,html[data-theme="dark"] .sp-conv-bubble__time,html[data-theme="dark"] .sp-msg-hist-time,html[data-theme="dark"] .space-browse-cta__text,html[data-theme="dark"] .sp-ic-preview__lock-note{color:rgba(220,213,200,.58)}
+html[data-theme="dark"] .sp-req-desc-text,html[data-theme="dark"] .sp-moment-item__title,html[data-theme="dark"] .sp-conv-bubble__text,html[data-theme="dark"] .sp-msg-hist-text,html[data-theme="dark"] .sp-recently__name,html[data-theme="dark"] .sp-action-card__title,html[data-theme="dark"] .sp-rec-col__title,html[data-theme="dark"] .sp-settings-item__label,html[data-theme="dark"] .sp-profile-hero__name,html[data-theme="dark"] .sp-tier-display__name,html[data-theme="dark"] .sp-ic-benefit__label,html[data-theme="dark"] .sp-ic-preview__tagline,html[data-theme="dark"] .sp-wardrobe-head__title,html[data-theme="dark"] .sp-req-empty__title,html[data-theme="dark"] .space-section-heading,html[data-theme="dark"] .sp-req-empty__sub{color:rgba(247,241,228,.88)}
+html[data-theme="dark"] .ec-card__verse,html[data-theme="dark"] .wsy-quote__text,html[data-theme="dark"] .editorial-panel p,html[data-theme="dark"] .sp-ic-preview__tagline{color:rgba(247,241,228,.74)}
+.space-tabs{-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+.space-tab{scroll-snap-align:start;flex-shrink:0}
+html[data-route="your-space"] #account{overflow-x:hidden}
+.sp-section-wrap,.sp-home,.sp-moments-form,.sp-req-form,.sp-req-list,.sp-moments-list,.sp-ic-benefits,.sp-settings-list{max-width:100%;overflow-x:hidden;box-sizing:border-box}
+.sp-recently__list{max-width:calc(100vw - 2rem)}
+.sp-req-tl{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.sp-req-tl::-webkit-scrollbar{display:none}
+html[data-theme="dark"] .sp-req-item,html[data-theme="dark"] .sp-moment-item{background:rgba(230,220,200,.04);border-color:rgba(230,220,200,.1)}
+html[data-theme="dark"] .space-saved-card{background:rgba(10,33,31,.9);border-color:rgba(230,220,200,.1)}
+html[data-theme="dark"] .sp-settings-item{color:rgba(247,241,228,.88);border-color:rgba(230,220,200,.12)}
+html[data-theme="dark"] .sp-settings-item svg{stroke:rgba(230,220,200,.45)}
+html[data-theme="dark"] .sp-membership-hero{background:linear-gradient(135deg,rgba(197,161,59,.1),rgba(247,241,228,.04))}
+html[data-theme="dark"] .sp-recently__thumb{background:rgba(230,220,200,.06)}
+html[data-theme="dark"] .sp-profile-hero__tier{background:rgba(197,161,59,.15);border-color:rgba(197,161,59,.35)}
+html[data-theme="dark"] .sp-profile-hero__pts{color:rgba(220,213,200,.65)}
+html[data-theme="dark"] .sp-tier-display__pts{color:#C8A84E}
+html[data-theme="dark"] .sp-section-kicker{color:rgba(200,168,78,.7)}
+html[data-route="your-space"] .support-pill{display:none!important}
+@media(max-width:767px){.support-pill{bottom:max(4.5rem,env(safe-area-inset-bottom))}}
