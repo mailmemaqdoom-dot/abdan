@@ -16333,3 +16333,5 @@ html[data-route="your-space"] #account .container { padding: 0 1.25rem 3rem; }
 .sp-portal__btn-submit{margin-top:.35rem;background:#c5a13b !important;color:#fff !important;border-color:transparent !important}
 .sp-portal__switch{background:transparent;border:none;color:rgba(248,245,236,.45);font-size:.78rem;cursor:pointer;margin-top:.875rem;text-align:center;width:100%;letter-spacing:.02em;transition:color 200ms}
 .sp-portal__switch:hover{color:rgba(248,245,236,.8)}
+.sp-portal__view[hidden]{display:none!important}
+.sp-portal__member[hidden]{display:none!important}
