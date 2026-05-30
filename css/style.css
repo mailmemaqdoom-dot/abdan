@@ -16404,3 +16404,8 @@ html[data-route="your-space"] .space-dash-head__text .space-heading{order:-1}
 .sp-ic-benefit__desc{font-size:.75rem;color:var(--muted);line-height:1.5}
 .sp-ic-preview__lock{margin-top:1.25rem;padding-top:.875rem;border-top:1px solid var(--line)}
 .sp-ic-preview__lock-note{font-size:.78rem;color:var(--muted);text-align:center;font-style:italic}
+.sp-portal__recovery{display:block;text-align:center;font-size:.75rem;color:rgba(248,245,236,.45);text-decoration:none;margin:.5rem 0 .25rem;letter-spacing:.02em;transition:color 180ms}
+.sp-portal__recovery:hover{color:rgba(248,245,236,.75)}
+.space-tabs-wrap{position:relative}
+.space-tabs-wrap::after{content:"";position:absolute;right:0;top:0;bottom:0;width:48px;background:linear-gradient(to right,transparent,var(--bg,#f8f5ec));pointer-events:none;z-index:1}
+html[data-theme="dark"] .space-tabs-wrap::after{background:linear-gradient(to right,transparent,var(--emerald-deep,#012f2c))}
