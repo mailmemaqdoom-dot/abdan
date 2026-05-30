@@ -1170,22 +1170,29 @@
                     <p class="space-auth-intro" id="spaceDashTagline">Everything you love, thoughtfully kept in one place.</p>
                   </div>
                 </div>
-                <button type="button" class="space-leave-btn" id="spaceSignoutBtn">
-                  Pause My Space
-                </button>
+                <div class="space-leave-wrap">
+                  <button type="button" class="space-leave-btn" id="spaceSignoutBtn">
+                    Pause My Space
+                  </button>
+                  <button type="button" class="space-signout-hard" id="spaceSignoutHard">Sign Out</button>
+                </div>
               </header>
 
               <!-- ── Gentle section navigation ──────────────────────── -->
               <nav class="space-tabs" id="spaceTabs" aria-label="Your Space sections" role="tablist">
                 <button class="space-tab is-active" data-space-tab="overview" type="button" role="tab">Home</button>
                 <button class="space-tab" data-space-tab="saved" type="button" role="tab">
-                  Wardrobe
+                  My Wardrobe
                   <span class="space-tab__count" id="spaceTabSavedCount" hidden></span>
                 </button>
-                <button class="space-tab" data-space-tab="lookbook" type="button" role="tab">Lookbook</button>
+                <button class="space-tab" data-space-tab="lookbook" type="button" role="tab">Lookbooks</button>
+                <button class="space-tab" data-space-tab="savedmoments" type="button" role="tab">Saved Moments</button>
+                <button class="space-tab" data-space-tab="requests" type="button" role="tab">My Requests</button>
                 <button class="space-tab" data-space-tab="concierge" type="button" role="tab">Ask ABDAN</button>
-                <button class="space-tab" data-space-tab="profile" type="button" role="tab">Profile</button>
+                <button class="space-tab" data-space-tab="messages" type="button" role="tab">Messages</button>
                 <button class="space-tab" data-space-tab="journal" type="button" role="tab">Journal</button>
+                <button class="space-tab" data-space-tab="membership" type="button" role="tab">Membership</button>
+                <button class="space-tab" data-space-tab="settings" type="button" role="tab">Settings</button>
               </nav>
 
               <!-- ── Panel: Home ────────────────────────────────────── -->
@@ -1227,6 +1234,31 @@
               <!-- Panel: Style Journal -->
               <div class="space-tab-panel" id="spaceTabJournal" hidden role="tabpanel">
                 <div id="spaceJournalPanel"></div>
+              </div>
+
+              <!-- Panel: Saved Moments -->
+              <div class="space-tab-panel" id="spaceTabSavedMoments" hidden role="tabpanel">
+                <div id="spaceSavedMomentsPanel"></div>
+              </div>
+
+              <!-- Panel: My Requests -->
+              <div class="space-tab-panel" id="spaceTabRequests" hidden role="tabpanel">
+                <div id="spaceRequestsPanel"></div>
+              </div>
+
+              <!-- Panel: Messages -->
+              <div class="space-tab-panel" id="spaceTabMessages" hidden role="tabpanel">
+                <div id="spaceMessagesPanel"></div>
+              </div>
+
+              <!-- Panel: Membership -->
+              <div class="space-tab-panel" id="spaceTabMembership" hidden role="tabpanel">
+                <div id="spaceMembershipPanel"></div>
+              </div>
+
+              <!-- Panel: Settings -->
+              <div class="space-tab-panel" id="spaceTabSettings" hidden role="tabpanel">
+                <div id="spaceSettingsPanel"></div>
               </div>
 
             </div>

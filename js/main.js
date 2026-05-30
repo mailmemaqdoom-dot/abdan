@@ -1308,13 +1308,11 @@ function showSpaceDashboard(profile, isNew = false) {
   const greetingEl  = document.getElementById("spaceDashGreeting");
   const taglineEl   = document.getElementById("spaceDashTagline");
 
-  if (kickerEl)   kickerEl.textContent   = isNew ? "A space made just for you" : "You are home";
+  if (kickerEl)   kickerEl.textContent   = isNew ? "A space made just for you" : "Continue Your Story";
   if (greetingEl) greetingEl.textContent = isNew
-    ? `Your Space is ready, ${first} 💛`
-    : `${first}'s Space 💛`;
-  if (taglineEl)  taglineEl.textContent  = isNew
-    ? "A quieter space, thoughtfully yours. Everything you love, gently kept."
-    : "Everything you love is still here, kept with care. 💛";
+    ? `Welcome to Your Space, ${first} 💛`
+    : `Welcome Back, ${first} 💛`;
+  if (taglineEl)  taglineEl.textContent  = "Everything you love, thoughtfully kept in one place.";
 
   /* ── Mood profile strip — surfaces affinity if it exists ──────────── */
   const moodProfileEl = document.getElementById("spaceMoodProfile");
@@ -1364,7 +1362,12 @@ function showSpaceDashboard(profile, isNew = false) {
   renderSpaceOverview(profile);
   renderSpaceLookbook(email);
   renderSpaceConcierge(email);
-  renderSpaceJournal(email);               /* §80 */
+  renderSpaceJournal(email);
+  renderSpaceSavedMoments(email);       /* S84 */
+  renderSpaceRequests(email);           /* S84 */
+  renderSpaceMessages(email);           /* S84 */
+  renderSpaceMembership(profile);       /* S84 */
+  renderSpaceSettings(profile, email);  /* S84 */
   updateSavedPiecesCount();
 
   /* §80 — Apply saved profile theme to dashboard shell */
@@ -1473,15 +1476,20 @@ function handleSpaceSignout() {
    Four panels: overview · saved · journey · profile.
    Activated via data-space-tab delegation in main init section.       */
 function showSpaceTab(tabId) {
-  /* §78 — expanded panelMap: overview · saved · lookbook · concierge · profile */
+  /* §78/S84 — full panelMap */
   const panelMap = {
-    overview:  "spaceTabOverview",
-    saved:     "spaceTabSaved",
-    journey:   "spaceTabJourney",
-    profile:   "spaceTabProfile",
-    lookbook:  "spaceTabLookbook",
-    concierge: "spaceTabConcierge",
-    journal:   "spaceTabJournal",   /* §80 */
+    overview:     "spaceTabOverview",
+    saved:        "spaceTabSaved",
+    journey:      "spaceTabJourney",
+    profile:      "spaceTabProfile",
+    lookbook:     "spaceTabLookbook",
+    concierge:    "spaceTabConcierge",
+    journal:      "spaceTabJournal",
+    savedmoments: "spaceTabSavedMoments",
+    requests:     "spaceTabRequests",
+    messages:     "spaceTabMessages",
+    membership:   "spaceTabMembership",
+    settings:     "spaceTabSettings",
   };
   document.querySelectorAll("[data-space-tab]").forEach((t) => {
     t.classList.toggle("is-active", t.dataset.spaceTab === tabId);
@@ -1944,6 +1952,8 @@ function renderSpaceOverview(profile) {
             ? `<p class="sp-profile-mini__identity">${identity}</p>`
             : `<p class="sp-profile-mini__identity" style="opacity:.55">Set your style identity →</p>`
           }
+          <p class="sp-profile-mini__tier">${tier.name}</p>
+          <p class="sp-profile-mini__pts">${pts} Devotion Points</p>
           ${joinedYear83 ? `<p class="sp-profile-mini__since">Member since ${joinedYear83}</p>` : ""}
         </div>
       </div>
@@ -1971,33 +1981,38 @@ function renderSpaceOverview(profile) {
       <div class="sp-quick-grid">
         <button class="sp-quick-card" type="button" onclick="showSpaceTab('saved')">
           <span class="sp-quick-card__icon">♡</span>
-          <p class="sp-quick-card__title">Wardrobe</p>
+          <p class="sp-quick-card__title">My Wardrobe</p>
           <p class="sp-quick-card__sub">${wlSize} piece${wlSize !== 1 ? "s" : ""} saved</p>
+        </button>
+        <button class="sp-quick-card" type="button" onclick="showSpaceTab('savedmoments')">
+          <span class="sp-quick-card__icon">◈</span>
+          <p class="sp-quick-card__title">Saved Moments</p>
+          <p class="sp-quick-card__sub">Your memory archive</p>
         </button>
         <button class="sp-quick-card" type="button" onclick="showSpaceTab('lookbook')">
           <span class="sp-quick-card__icon">◻</span>
-          <p class="sp-quick-card__title">Lookbook</p>
-          <p class="sp-quick-card__sub">Your styling moments</p>
+          <p class="sp-quick-card__title">Lookbooks</p>
+          <p class="sp-quick-card__sub">Your styling boards</p>
+        </button>
+        <button class="sp-quick-card" type="button" onclick="showSpaceTab('journey')">
+          <span class="sp-quick-card__icon">✦</span>
+          <p class="sp-quick-card__title">Orders</p>
+          <p class="sp-quick-card__sub">Your journey</p>
         </button>
         <button class="sp-quick-card" type="button" onclick="showSpaceTab('concierge')">
           <span class="sp-quick-card__icon">✉</span>
           <p class="sp-quick-card__title">Ask ABDAN</p>
           <p class="sp-quick-card__sub">Private concierge</p>
         </button>
-        <button class="sp-quick-card" type="button" onclick="showSpaceTab('profile')">
-          <span class="sp-quick-card__icon">◈</span>
-          <p class="sp-quick-card__title">Profile</p>
-          <p class="sp-quick-card__sub">Your style identity</p>
+        <button class="sp-quick-card" type="button" onclick="showSpaceTab('messages')">
+          <span class="sp-quick-card__icon">◇</span>
+          <p class="sp-quick-card__title">Messages</p>
+          <p class="sp-quick-card__sub">Your conversations</p>
         </button>
         <button class="sp-quick-card" type="button" onclick="showSpaceTab('journal')">
           <span class="sp-quick-card__icon">◇</span>
           <p class="sp-quick-card__title">Journal</p>
           <p class="sp-quick-card__sub">Your style diary</p>
-        </button>
-        <button class="sp-quick-card" type="button" onclick="showSpaceTab('journey')">
-          <span class="sp-quick-card__icon">✦</span>
-          <p class="sp-quick-card__title">Orders</p>
-          <p class="sp-quick-card__sub">Your journey</p>
         </button>
       </div>
 
@@ -5598,3 +5613,110 @@ document.addEventListener("DOMContentLoaded", () => {
   const emblem = document.querySelector(".lx-entry__emblem");
   if (emblem) setTimeout(() => emblem.classList.add("is-visible"), 60);
 }, { once: true });
+
+/* S84 localStorage keys */
+const SP_MOMENTS_KEY  = "abdan-sp-moments";
+const SP_REQUESTS_KEY = "abdan-sp-requests";
+const SP_REQUEST_STATUSES  = ["Submitted","Reviewing","Sourcing","Options Found","Completed"];
+const SP_REQUEST_OCCASIONS = ["Festive","Wedding","Everyday","Gift","Travel","Just Because","Other"];
+const SP_REQUEST_BUDGETS   = ["Under 3k","3k to 8k","8k to 20k","20k to 50k","Above 50k"];
+
+function renderSpaceSavedMoments(email) {
+  const panel = document.getElementById("spaceSavedMomentsPanel");
+  if (!panel) return;
+  const moments = spGet(email, SP_MOMENTS_KEY) || [];
+  const cats = ["Wedding","Festival","Gift","Favourite Outfit","Special Occasion"];
+  const catOpts = cats.map(c=>`<option value="${c}">${c}</option>`).join("");
+  const listHtml = moments.length === 0
+    ? `<p class="sp-empty-note">Your moments will be kept here, quietly and beautifully.</p>`
+    : moments.map((m,i)=>`<div class="sp-moment-item"><div class="sp-moment-item__head"><span class="sp-moment-item__cat">${m.cat}</span><span class="sp-moment-item__date">${new Date(m.ts).toLocaleDateString("en-IN",{month:"short",year:"numeric"})}</span><button type="button" class="sp-moment-item__del" data-midx="${i}" aria-label="Remove">&#x2715;</button></div><p class="sp-moment-item__title">${m.title}</p>${m.note?`<p class="sp-moment-item__note">${m.note}</p>`:""}</div>`).join("");
+  panel.innerHTML = `<div class="sp-section-wrap"><p class="sp-section-kicker">Saved Moments</p><p class="sp-section-sub">Your emotional memory archive — pieces, occasions and feelings worth keeping.</p><div class="sp-moments-form"><select class="sp-moments-cat" id="spMomentCat">${catOpts}</select><input type="text" class="sp-moments-title" id="spMomentTitle" placeholder="A name for this moment" maxlength="80" /><textarea class="sp-moments-note" id="spMomentNote" placeholder="What made this moment special" rows="2" maxlength="300"></textarea><button type="button" class="primary-button sp-moments-add" id="spMomentAdd">Save Moment</button></div><div class="sp-moments-list" id="spMomentsList">${listHtml}</div></div>`;
+  panel.querySelector("#spMomentAdd")?.addEventListener("click", () => {
+    const title = panel.querySelector("#spMomentTitle")?.value.trim();
+    if (!title) return;
+    const updated = [{title, cat: panel.querySelector("#spMomentCat")?.value||"", note: panel.querySelector("#spMomentNote")?.value.trim()||"", ts:Date.now()}, ...(spGet(email,SP_MOMENTS_KEY)||[])];
+    spSet(email, SP_MOMENTS_KEY, updated);
+    renderSpaceSavedMoments(email);
+  });
+  panel.querySelector("#spMomentsList")?.addEventListener("click", e => {
+    const btn = e.target.closest("[data-midx]");
+    if (!btn) return;
+    spSet(email, SP_MOMENTS_KEY, (spGet(email,SP_MOMENTS_KEY)||[]).filter((_,i)=>i!==+btn.dataset.midx));
+    renderSpaceSavedMoments(email);
+  });
+}
+
+function renderSpaceRequests(email) {
+  const panel = document.getElementById("spaceRequestsPanel");
+  if (!panel) return;
+  const reqs = spGet(email, SP_REQUESTS_KEY) || [];
+  const occOpts = SP_REQUEST_OCCASIONS.map(o=>`<option>${o}</option>`).join("");
+  const bdgOpts = SP_REQUEST_BUDGETS.map(b=>`<option>${b}</option>`).join("");
+  const listHtml = reqs.length === 0
+    ? `<p class="sp-empty-note">Your sourcing requests will appear here.</p>`
+    : reqs.map(r=>`<div class="sp-req-item"><div class="sp-req-item__head"><span class="sp-req-status">${r.status}</span><span class="sp-req-date">${new Date(r.ts).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}</span></div>${r.img?`<img class="sp-req-img" src="${r.img}" alt="" loading="lazy" />`:"" }<p class="sp-req-desc-text">${r.desc}</p><p class="sp-req-meta">${r.occasion} - ${r.budget}</p><div class="sp-req-timeline">${SP_REQUEST_STATUSES.map(s=>`<span class="sp-req-step${SP_REQUEST_STATUSES.indexOf(s)<=SP_REQUEST_STATUSES.indexOf(r.status)?" is-done":""}">${s}</span>`).join("")}</div></div>`).join("");
+  panel.innerHTML = `<div class="sp-section-wrap"><p class="sp-section-kicker">My Requests</p><p class="sp-section-sub">Can ABDAN source something similar? Share your inspiration and we will find it for you.</p><div class="sp-req-form"><label class="sp-req-upload" for="spReqImg"><span id="spReqImgLabel">+ Upload Image / Screenshot</span><input type="file" id="spReqImg" accept="image/*" style="display:none" /></label><textarea class="sp-req-desc" id="spReqDesc" placeholder="Describe what you are looking for" rows="3" maxlength="500"></textarea><select class="sp-req-occ" id="spReqOcc">${occOpts}</select><select class="sp-req-budget" id="spReqBudget">${bdgOpts}</select><button type="button" class="primary-button" id="spReqSubmit">Submit Request</button></div><div class="sp-req-list">${listHtml}</div></div>`;
+  const imgInput = panel.querySelector("#spReqImg");
+  imgInput?.addEventListener("change", () => {
+    const file = imgInput.files?.[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => { imgInput.dataset.b64=e.target.result; panel.querySelector("#spReqImgLabel").textContent=file.name; };
+    reader.readAsDataURL(file);
+  });
+  panel.querySelector("#spReqSubmit")?.addEventListener("click", () => {
+    const desc = panel.querySelector("#spReqDesc")?.value.trim();
+    if (!desc) return showToast("Please describe what you are looking for.");
+    const req = {desc, img:imgInput?.dataset.b64||"", occasion:panel.querySelector("#spReqOcc")?.value||"", budget:panel.querySelector("#spReqBudget")?.value||"", status:"Submitted", ts:Date.now()};
+    spSet(email, SP_REQUESTS_KEY, [req,...(spGet(email,SP_REQUESTS_KEY)||[])]);
+    showToast("Request submitted. ABDAN will review it personally.");
+    renderSpaceRequests(email);
+  });
+}
+
+function renderSpaceMessages(email) {
+  const panel = document.getElementById("spaceMessagesPanel");
+  if (!panel) return;
+  const threads = spGetConcierge(email);
+  const listHtml = threads.length === 0
+    ? `<p class="sp-empty-note">Your conversations with ABDAN will appear here.</p><button type="button" class="secondary-button" onclick="showSpaceTab('concierge')" style="margin-top:1.25rem">Start a Conversation</button>`
+    : `<div class="sp-msg-history">${threads.slice().reverse().map(m=>`<div class="sp-msg-hist-item sp-msg-hist-item--${m.from}"><p class="sp-msg-hist-text">${m.text}</p>${m.imageUrl?`<img class="sp-msg-hist-img" src="${m.imageUrl}" alt="" loading="lazy" />`:""}<span class="sp-msg-hist-time">${new Date(m.ts).toLocaleDateString("en-IN",{day:"numeric",month:"short"})}</span></div>`).join("")}</div><button type="button" class="secondary-button" onclick="showSpaceTab('concierge')" style="margin-top:1.25rem">Continue Conversation</button>`;
+  panel.innerHTML = `<div class="sp-section-wrap"><p class="sp-section-kicker">My Conversations</p><p class="sp-section-sub">Your styling guidance, sourcing discussions and personal conversations with ABDAN.</p>${listHtml}</div>`;
+}
+
+function renderSpaceMembership(profile) {
+  const panel = document.getElementById("spaceMembershipPanel");
+  if (!panel) return;
+  const email   = profile.email || "";
+  const pts     = spGetLoyalty(email);
+  const tier    = spGetTier(pts);
+  const tierIdx = SP_LOYALTY_TIERS.indexOf(tier);
+  const next    = SP_LOYALTY_TIERS[tierIdx + 1];
+  const ptsToNext = next ? next.min - pts : 0;
+  const pct = next ? Math.min(100,Math.round(((pts-tier.min)/(next.min-tier.min))*100)) : 100;
+  const icHtml = SP_IC_CARDS.map(card=>{const u=pts>=card.minPts;return `<div class="sp-ic-card ${u?"sp-ic-card--unlocked":"sp-ic-card--locked"}"><p class="sp-ic-card__label">${card.label}</p><p class="sp-ic-card__title">${card.title}</p><p class="sp-ic-card__body">${card.body}</p>${!u?`<span class="sp-ic-card__lock">Unlock at ${card.unlock}</span>`:""}</div>`;}).join("");
+  panel.innerHTML = `<div class="sp-section-wrap"><div class="sp-membership-hero"><p class="sp-section-kicker">Membership</p><p class="sp-membership-hero__tier">${tier.name}</p><p class="sp-membership-hero__pts">${pts} Devotion Points</p>${next?`<p class="sp-membership-hero__next">${ptsToNext} points until ${next.name}</p><div class="sp-membership-bar"><div class="sp-membership-bar__fill" style="width:${pct}%"></div></div>`:`<p class="sp-membership-hero__next">You have reached the highest tier.</p>`}</div><div class="sp-ic-section" style="margin-top:2rem"><p class="sp-ic-section__kicker">The Inner Circle</p><p class="sp-section-sub" style="margin-bottom:1rem">Private launches - Early access - Priority concierge - Founder notes - Limited collections - Reserved pieces</p><div class="sp-ic-cards">${icHtml}</div></div></div>`;
+}
+
+const SP_SETTINGS_SECTIONS = ["Personal Details","Address Book","Communication Preferences","Privacy","Theme Selection","Notifications","Membership","Inner Circle","Messages","Concierge"];
+
+function renderSpaceSettings(profile, email) {
+  const panel = document.getElementById("spaceSettingsPanel");
+  if (!panel) return;
+  const actions = {"Personal Details":"showSpaceTab('profile')","Theme Selection":"showSpaceTab('profile')","Membership":"showSpaceTab('membership')","Inner Circle":"showSpaceTab('membership')","Messages":"showSpaceTab('messages')","Concierge":"showSpaceTab('concierge')"};
+  const items = SP_SETTINGS_SECTIONS.map(s=>{const act=actions[s]?`onclick="${actions[s]}"` : "";return `<button type="button" class="sp-settings-item" ${act}><span class="sp-settings-item__label">${s}</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></button>`;}).join("");
+  panel.innerHTML = `<div class="sp-section-wrap"><p class="sp-section-kicker">Settings</p><div class="sp-settings-list">${items}</div><div class="sp-settings-signout"><button type="button" class="secondary-button" id="spSettingsPause">Pause My Space</button><button type="button" class="sp-signout-text" id="spSettingsOut">Sign Out</button></div></div>`;
+  panel.querySelector("#spSettingsPause")?.addEventListener("click",()=>{ if(typeof handleSpaceSignout==="function")handleSpaceSignout(); });
+  panel.querySelector("#spSettingsOut")?.addEventListener("click",()=>{ if(typeof handleHardSignout==="function")handleHardSignout(); });
+}
+
+function handleHardSignout() {
+  clearSpaceSession();
+  try{localStorage.removeItem("abdan-sp-last");}catch{}
+  const dashEl=document.getElementById("spaceDashboard");
+  if(dashEl) dashEl.dataset.spTheme="";
+  if(typeof exitYourSpaceRoute==="function") exitYourSpaceRoute();
+  showSpaceView("spaceEntry");
+  showToast("You have signed out of Your Space.");
+}
+
+document.getElementById("spaceSignoutHard")?.addEventListener("click", handleHardSignout);
