@@ -1879,36 +1879,107 @@
          Responsive: mobile bottom dock + desktop pill nav both validated
          Dark mode: compatible · Typography: consistent across all nav items
          Build: static HTML/CSS/JS · Cloudflare Pages compatible -->
-  <!-- S83 — Your Space Auth Portal (refined from S81) -->
+  <!-- S85 — Your Space Auth Portal: multi-view auth container -->
   <div id="spaceAuthPortal" class="sp-portal" role="dialog" aria-modal="true" aria-label="Your Space" hidden>
     <div class="sp-portal__bg" aria-hidden="true"></div>
     <div class="sp-portal__stage">
-      <!-- S83: back link replaces X close — this is a destination, not a modal -->
-      <button type="button" class="sp-portal__back" id="spPortalBack" aria-label="Back to ABDAN">
+
+      <!-- Context-aware back button: ABDAN on welcome, Back on forms -->
+      <button type="button" class="sp-portal__back" id="spPortalBack" aria-label="Back">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
-        ABDAN
+        <span id="spPortalBackLabel">ABDAN</span>
       </button>
-      <div class="sp-portal__brand">
-        <div class="sp-portal__icon" aria-hidden="true">
-          <img src="./assets/abdan-icon.jpg" alt="" draggable="false" />
+
+      <!-- VIEW: Welcome (State A / State B) -->
+      <div class="sp-portal__view" id="spPortalWelcome">
+        <div class="sp-portal__brand">
+          <div class="sp-portal__icon" aria-hidden="true">
+            <img src="./assets/abdan-icon.jpg" alt="" draggable="false" />
+          </div>
+          <p class="sp-portal__name abdan-calligraph" aria-label="ABDAN">ABDAN</p>
+          <p class="sp-portal__ys-label" aria-hidden="true">YOUR SPACE</p>
         </div>
-        <p class="sp-portal__name abdan-calligraph" aria-label="ABDAN">ABDAN</p>
-        <p class="sp-portal__ys-label" aria-hidden="true">YOUR SPACE</p>
+        <div class="sp-portal__member" id="spPortalMember" hidden aria-hidden="true">
+          <div class="sp-portal__member-av" id="spPortalAvatar"></div>
+          <p class="sp-portal__member-nm" id="spPortalMemberName"></p>
+        </div>
+        <div class="sp-portal__headline">
+          <h1 class="sp-portal__h1" id="spPortalH1">Welcome Back</h1>
+          <p class="sp-portal__sub" id="spPortalSub">Your stories await.</p>
+        </div>
+        <div class="sp-portal__actions">
+          <button type="button" class="primary-button sp-portal__btn-continue" id="spPortalContinue">Continue</button>
+          <button type="button" class="sp-portal__btn-create" id="spPortalCreate">Create Your Space</button>
+        </div>
+        <p class="sp-portal__trust">Private. Secure. Always yours.</p>
       </div>
-      <!-- S83: returning user identity block (shown/hidden + populated by JS) -->
-      <div class="sp-portal__member" id="spPortalMember" hidden aria-hidden="true">
-        <div class="sp-portal__member-av" id="spPortalAvatar"></div>
-        <p class="sp-portal__member-nm" id="spPortalMemberName"></p>
+
+      <!-- VIEW: Sign In -->
+      <div class="sp-portal__view sp-portal__view--form" id="spPortalSigninView" hidden>
+        <p class="sp-portal__form-kicker">YOUR SPACE</p>
+        <h2 class="sp-portal__form-h2">Continue Your Space</h2>
+        <p class="sp-portal__form-sub">Your carefully chosen pieces and quiet favorites are waiting.</p>
+        <form class="sp-portal__form" id="spPortalSigninForm" novalidate>
+          <label class="sp-portal__field">
+            <span>Email address</span>
+            <input type="email" name="email" placeholder="your@email.com" required autocomplete="email" />
+          </label>
+          <label class="sp-portal__field">
+            <span>Password</span>
+            <div class="sp-portal__pw-wrap">
+              <input type="password" name="password" placeholder="••••••••" required autocomplete="current-password" />
+              <button type="button" class="sp-portal__eye" data-eye aria-label="Show password"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            </div>
+          </label>
+          <p class="sp-portal__form-err" id="spPortalSigninErr" hidden></p>
+          <button type="submit" class="primary-button sp-portal__btn-submit">Continue to Your Space</button>
+        </form>
+        <button type="button" class="sp-portal__switch" id="spPortalToCreate">New to ABDAN? Create Your Space →</button>
       </div>
-      <div class="sp-portal__headline">
-        <h1 class="sp-portal__h1" id="spPortalH1">Welcome Back</h1>
-        <p class="sp-portal__sub" id="spPortalSub">Your stories, inspirations, purchases and cherished moments await.</p>
+
+      <!-- VIEW: Create Account -->
+      <div class="sp-portal__view sp-portal__view--form" id="spPortalCreateView" hidden>
+        <p class="sp-portal__form-kicker">YOUR SPACE</p>
+        <h2 class="sp-portal__form-h2">Create Your Space</h2>
+        <p class="sp-portal__form-sub">A private place for the pieces and memories that stay with you.</p>
+        <form class="sp-portal__form" id="spPortalCreateForm" novalidate>
+          <label class="sp-portal__field">
+            <span>What should ABDAN call you?</span>
+            <input type="text" name="displayName" placeholder="Display name" required maxlength="40" />
+          </label>
+          <label class="sp-portal__field">
+            <span>Full name</span>
+            <input type="text" name="fullName" placeholder="Your full name" required maxlength="80" />
+          </label>
+          <label class="sp-portal__field">
+            <span>Email address</span>
+            <input type="email" name="email" placeholder="your@email.com" required autocomplete="email" />
+          </label>
+          <label class="sp-portal__field">
+            <span>Phone <small style="opacity:.6">(optional)</small></span>
+            <input type="tel" name="phone" placeholder="Your phone number" autocomplete="tel" />
+          </label>
+          <label class="sp-portal__field">
+            <span>Password</span>
+            <div class="sp-portal__pw-wrap">
+              <input type="password" name="password" placeholder="At least 6 characters" required autocomplete="new-password" minlength="6" />
+              <button type="button" class="sp-portal__eye" data-eye aria-label="Show password"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            </div>
+          </label>
+          <label class="sp-portal__field">
+            <span>Confirm password</span>
+            <input type="password" name="confirmPassword" placeholder="Repeat password" required autocomplete="new-password" />
+          </label>
+          <label class="sp-portal__field sp-portal__field--check">
+            <input type="checkbox" name="agreement" required />
+            <span>I agree to ABDAN's privacy and care commitment.</span>
+          </label>
+          <p class="sp-portal__form-err" id="spPortalCreateErr" hidden></p>
+          <button type="submit" class="primary-button sp-portal__btn-submit">Create My Space</button>
+        </form>
+        <button type="button" class="sp-portal__switch" id="spPortalToSignin">Already have a space? Sign In →</button>
       </div>
-      <div class="sp-portal__actions">
-        <button type="button" class="primary-button sp-portal__btn-continue" id="spPortalContinue">Continue</button>
-        <button type="button" class="sp-portal__btn-create" id="spPortalCreate">Create Your Space</button>
-      </div>
-      <p class="sp-portal__trust">Private. Secure. Always yours.</p>
+
     </div>
   </div>
 

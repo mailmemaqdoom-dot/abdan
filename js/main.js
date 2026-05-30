@@ -5401,7 +5401,26 @@ function staggerFabricBreathe() {
 
 /* §90 probe */
 
-/* S81 — Your Space Auth Portal (Task 2) */
+/* S85 — Your Space Auth Portal: unified multi-view container
+   Flow: Welcome → Sign-in or Create → Dashboard (no page navigation) */
+
+let _portalCurrentView = "welcome";
+
+function showPortalView(viewName) {
+  const views = ["welcome", "signin", "create"];
+  const ids   = { welcome: "spPortalWelcome", signin: "spPortalSigninView", create: "spPortalCreateView" };
+  const backLabel = document.getElementById("spPortalBackLabel");
+  views.forEach(v => {
+    const el = document.getElementById(ids[v]);
+    if (!el) return;
+    el.hidden = (v !== viewName);
+  });
+  _portalCurrentView = viewName;
+  if (backLabel) backLabel.textContent = viewName === "welcome" ? "ABDAN" : "Back";
+  /* Clear form errors when switching */
+  document.getElementById("spPortalSigninErr") && (document.getElementById("spPortalSigninErr").hidden = true);
+  document.getElementById("spPortalCreateErr") && (document.getElementById("spPortalCreateErr").hidden = true);
+}
 
 function showSpacePortal() {
   const portal = document.getElementById("spaceAuthPortal");
@@ -5417,13 +5436,11 @@ function showSpacePortal() {
   const memberAv    = document.getElementById("spPortalAvatar");
   const memberNm    = document.getElementById("spPortalMemberName");
 
-  /* S83 — detect last signed-in member for returning user experience */
   let lastMember = null;
   try { lastMember = JSON.parse(localStorage.getItem("abdan-sp-last") || "null"); } catch {}
   const isKnownReturn = hasProfiles && lastMember && profiles[(lastMember.email || "").toLowerCase()];
 
   if (isKnownReturn) {
-    /* Returning user: show identity + personalised copy */
     if (h1)          h1.textContent          = "Welcome Back";
     if (sub)         sub.textContent         = "Continue Your Story";
     if (continueBtn) continueBtn.textContent = "Continue to Your Space";
@@ -5437,14 +5454,12 @@ function showSpacePortal() {
         : `<span>${(lastMember.name || "?").charAt(0).toUpperCase()}</span>`;
     }
   } else if (hasProfiles) {
-    /* Has profiles but no named last session */
     if (h1)          h1.textContent          = "Welcome Back";
     if (sub)         sub.textContent         = "Your stories, inspirations, purchases and cherished moments await.";
     if (continueBtn) continueBtn.textContent = "Continue to Your Space";
     if (createBtn)   createBtn.textContent   = "Switch Account";
     if (memberBlock) { memberBlock.hidden = true; memberBlock.setAttribute("aria-hidden", "true"); }
   } else {
-    /* New user */
     if (h1)          h1.textContent          = "Welcome to Your Space";
     if (sub)         sub.textContent         = "A private place for the pieces, memories and inspirations that stay with you.";
     if (continueBtn) continueBtn.textContent = "Create Your Space";
@@ -5452,6 +5467,7 @@ function showSpacePortal() {
     if (memberBlock) { memberBlock.hidden = true; memberBlock.setAttribute("aria-hidden", "true"); }
   }
 
+  showPortalView("welcome");
   portal.hidden = false;
   requestAnimationFrame(() => requestAnimationFrame(() => portal.classList.add("is-open")));
   document.body.classList.add("is-locked");
@@ -5469,29 +5485,122 @@ function hideSpacePortal(then) {
   setTimeout(() => { portal.hidden = true; then?.(); }, 440);
 }
 
-/* Portal button wiring */
+/* Welcome CTAs — now route to in-portal views, no page navigation */
 document.getElementById("spPortalContinue")?.addEventListener("click", () => {
-  const profiles = getSpaceProfiles();
-  const hasProfiles = Object.keys(profiles).length > 0;
+  const hasProfiles = Object.keys(getSpaceProfiles()).length > 0;
   if (hasProfiles) {
-    hideSpacePortal(() => { scrollToSection("account"); setTimeout(() => showSpaceView("spaceSignin"), 350); });
+    showPortalView("signin");
   } else {
-    hideSpacePortal(() => { scrollToSection("account"); setTimeout(() => showSpaceView("spaceCreate"), 350); });
+    showPortalView("create");
   }
 });
 document.getElementById("spPortalCreate")?.addEventListener("click", () => {
-  /* S83: "Sign In" for new users, "Switch Account" for returning — both → spaceSignin */
   const hasProfiles = Object.keys(getSpaceProfiles()).length > 0;
   if (hasProfiles) {
-    hideSpacePortal(() => { scrollToSection("account"); setTimeout(() => showSpaceView("spaceSignin"), 350); });
+    showPortalView("signin"); /* Switch Account → sign in with different email */
   } else {
-    hideSpacePortal(() => { scrollToSection("account"); setTimeout(() => showSpaceView("spaceSignin"), 350); });
+    showPortalView("signin"); /* Sign In */
   }
 });
-/* S83: back button replaces X close */
-document.getElementById("spPortalBack")?.addEventListener("click", () => hideSpacePortal());
 
-/* Intercept "Your Space" dock nav click — capture phase fires before existing listener */
+/* View switch links inside forms */
+document.getElementById("spPortalToCreate")?.addEventListener("click", () => showPortalView("create"));
+document.getElementById("spPortalToSignin")?.addEventListener("click", () => showPortalView("signin"));
+
+/* Context-aware back button */
+document.getElementById("spPortalBack")?.addEventListener("click", () => {
+  if (_portalCurrentView === "welcome") {
+    hideSpacePortal();
+  } else {
+    showPortalView("welcome");
+  }
+});
+
+/* Portal sign-in form handler */
+document.getElementById("spPortalSigninForm")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const form      = e.currentTarget;
+  const email     = form.email.value.trim();
+  const password  = form.password.value;
+  const errEl     = document.getElementById("spPortalSigninErr");
+  const submitBtn = form.querySelector("[type='submit']");
+  if (errEl) errEl.hidden = true;
+  setButtonLoading(submitBtn, "Entering your space…");
+  try {
+    const result = await authenticateSpace(email, password);
+    if (!result) {
+      if (errEl) { errEl.textContent = "These details don’t match. Please try again."; errEl.hidden = false; }
+      resetButtonLoading(submitBtn);
+      return;
+    }
+    if (result.type === "admin") {
+      setAdminSession(true);
+      resetButtonLoading(submitBtn);
+      window.location.href = "/studio.html";
+      return;
+    }
+    setSpaceSession(result.profile);
+    /* Auth success: close portal then enter dashboard */
+    resetButtonLoading(submitBtn);
+    hideSpacePortal();
+    showSpaceDashboard(result.profile, false);
+  } catch {
+    if (errEl) { errEl.textContent = "Something went wrong. Please try once more."; errEl.hidden = false; }
+    resetButtonLoading(submitBtn);
+  }
+});
+
+/* Portal create-account form handler */
+document.getElementById("spPortalCreateForm")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const form    = e.currentTarget;
+  const errEl   = document.getElementById("spPortalCreateErr");
+  const data    = {
+    fullName:         form.fullName.value,
+    displayName:      form.displayName.value,
+    email:            form.email.value,
+    phone:            form.phone?.value || "",
+    password:         form.password.value,
+    confirmPassword:  form.confirmPassword.value,
+    marketingConsent: false,
+  };
+  if (errEl) errEl.hidden = true;
+  if (data.password.length < 6) {
+    if (errEl) { errEl.textContent = "Your password needs at least 6 characters."; errEl.hidden = false; }
+    return;
+  }
+  if (data.password !== data.confirmPassword) {
+    if (errEl) { errEl.textContent = "Your passwords don’t match. Please try again."; errEl.hidden = false; }
+    return;
+  }
+  if (!form.agreement?.checked) {
+    if (errEl) { errEl.textContent = "Please agree to continue."; errEl.hidden = false; }
+    return;
+  }
+  const submitBtn = form.querySelector("[type='submit']");
+  setButtonLoading(submitBtn, "Creating your space…");
+  try {
+    const profile = await createSpaceProfile(data);
+    setSpaceSession(profile);
+    resetButtonLoading(submitBtn);
+    hideSpacePortal();
+    showSpaceDashboard(profile, true);
+  } catch (err) {
+    if (errEl) { errEl.textContent = err instanceof Error ? err.message : "Something went wrong."; errEl.hidden = false; }
+    resetButtonLoading(submitBtn);
+  }
+});
+
+/* Password eye toggles inside portal */
+document.getElementById("spaceAuthPortal")?.addEventListener("click", (e) => {
+  const eye = e.target.closest("[data-eye]");
+  if (!eye) return;
+  const input = eye.closest(".sp-portal__pw-wrap")?.querySelector("input");
+  if (!input) return;
+  input.type = input.type === "password" ? "text" : "password";
+});
+
+/* Intercept dock nav — Your Space click */
 document.getElementById("bottomDock")?.addEventListener("click", (e) => {
   const btn = e.target.closest('[data-target="account"]');
   if (!btn) return;
@@ -5501,17 +5610,23 @@ document.getElementById("bottomDock")?.addEventListener("click", (e) => {
     showSpacePortal();
   } else {
     e.stopPropagation();
-    if (typeof enterYourSpaceRoute === "function") enterYourSpaceRoute(); /* S82 */
+    if (typeof enterYourSpaceRoute === "function") enterYourSpaceRoute();
   }
 }, { capture: true });
 
-/* Handle browser back closing portal */
+/* Browser back closes portal or goes back to welcome */
 window.addEventListener("popstate", () => {
   const portal = document.getElementById("spaceAuthPortal");
   if (portal && portal.classList.contains("is-open")) {
-    portal.classList.remove("is-open");
-    document.body.classList.remove("is-locked");
-    setTimeout(() => { portal.hidden = true; }, 440);
+    if (_portalCurrentView !== "welcome") {
+      showPortalView("welcome");
+      /* Re-push history state so back still works to exit */
+      history.pushState({ spPortal: true }, "", "#your-space");
+    } else {
+      portal.classList.remove("is-open");
+      document.body.classList.remove("is-locked");
+      setTimeout(() => { portal.hidden = true; }, 440);
+    }
   }
 });
 
