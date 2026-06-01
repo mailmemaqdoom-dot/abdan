@@ -11219,6 +11219,16 @@ html[data-theme="dark"] #account.section-frame {
     rgba(1, 10, 9, 0.6) 100%
   ) !important;
 }
+/* Dark-mode fix: #teasers had an !important ivory gradient with no dark
+   override → light bg + light text = invisible "What You Might Love". */
+html[data-theme="dark"] #teasers.section-frame {
+  background: linear-gradient(
+    180deg,
+    var(--bg, #071d1c) 0%,
+    color-mix(in srgb, var(--bg, #071d1c) 90%, var(--emerald) 10%) 50%,
+    var(--bg, #071d1c) 100%
+  ) !important;
+}
 @keyframes lx-devotion-breathe {
   0%   { opacity: 0;    transform: translate(-50%, -50%) scale(0.45); }
   28%  { opacity: 0.11; }
@@ -16626,3 +16636,15 @@ html[data-route="your-space"] .space-leave-wrap{display:none!important}
 .sp-signout-text:hover{opacity:1}
 html[data-theme="dark"] .sp-profile-signout{border-top-color:rgba(230,220,200,.12)}
 html[data-theme="dark"] .sp-signout-text{color:rgba(230,223,203,.6)}
+/* Dark-mode text-visibility fixes (storefront):
+   1) .promise-band blockquote — its dark rule set only text-shadow, not color,
+      so the "Modest fashion can feel emotional…" quote stayed dark-on-dark.
+   2) .story-card h3 — an earlier light-mode rule out-cascaded the dark override. */
+html[data-theme="dark"] .promise-band blockquote,
+html[data-theme="dark"] .promise-band__inner blockquote {
+  color: rgba(230, 223, 203, 0.90) !important;
+}
+html[data-theme="dark"] #wsy .story-card h3,
+html[data-theme="dark"] .story-card h3 {
+  color: #F0E9D6 !important;
+}
