@@ -821,8 +821,8 @@ function setTheme(theme) {
   const isMidnightSilk = (theme === "dark");
   const drapeVariant   = isMidnightSilk ? "theme-drape--midnight-silk"
                                         : "theme-drape--ivory-shawl";
-  const switchDelay    = isMidnightSilk ? 300 : 210;
-  const fadeOutDur     = isMidnightSilk ? 400 : 320;
+  const switchDelay    = isMidnightSilk ? 300 : 280;
+  const fadeOutDur     = isMidnightSilk ? 400 : 360;
 
   const drape = document.createElement("div");
   drape.className = `theme-drape ${drapeVariant}`;
