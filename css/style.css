@@ -16465,7 +16465,10 @@ html[data-route="your-space"] main > *:not(#account){display:none!important}
 html[data-route="your-space"] .site-footer,
 html[data-route="your-space"] .footer-emotional-close{display:none!important}
 html[data-route="your-space"] body{overscroll-behavior:none;-webkit-overflow-scrolling:initial}
-html[data-route="your-space"] #account{isolation:isolate;overscroll-behavior:none}
+/* content-visibility:visible removes the containing block that content-visibility:auto
+   (from .account-section perf rule) created — otherwise the floating nav's
+   position:fixed anchors to #account and scrolls with content instead of the viewport. */
+html[data-route="your-space"] #account{isolation:isolate;overscroll-behavior:none;content-visibility:visible}
 html[data-route="your-space"] .product-sheet,html[data-route="your-space"] .teaser-modal{z-index:3500!important}
 html[data-route="your-space"] .cart-drawer{z-index:3400!important}
 html[data-route="your-space"] #abdan-toast,html[data-route="your-space"] .s-toast{z-index:3600!important}
