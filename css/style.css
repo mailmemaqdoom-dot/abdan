@@ -16520,3 +16520,98 @@ html[data-theme="dark"] .ys-discover-card{background:rgba(10,33,31,.84);border-c
                 background-color 620ms cubic-bezier(0.4,0,0.2,1);
   }
 }
+/* ═══ RC-4 — Customer Experience Final Polish ═══ */
+
+/* --- Audit fixes: dark-mode contrast --- */
+/* UI-H01: topbar back button invisible in dark (emerald on near-black) */
+html[data-theme="dark"] .ys-topbar__back{color:var(--gold,#c5a13b)}
+html[data-theme="dark"] .ys-topbar__back svg{stroke:var(--gold,#c5a13b)}
+/* UI-M01: action-card icons too dark in dark mode */
+html[data-theme="dark"] .sp-action-card__sym{color:var(--gold,#c5a13b);opacity:.75}
+/* UI-M02: saved-card remove ✕ black on dark */
+html[data-theme="dark"] .space-saved-card__remove{color:rgba(230,223,203,.62)}
+html[data-theme="dark"] .space-saved-card__remove svg{stroke:rgba(230,223,203,.62)}
+/* UI-M04: Pause My Space too faint */
+html[data-theme="dark"] .space-leave-btn{color:rgba(230,223,203,.62)}
+/* UI-L03: Save Moment / primary buttons inside dark surfaces keep readable text */
+html[data-theme="dark"] .sp-moments-form .primary-button,
+html[data-theme="dark"] .sp-req-form .primary-button{color:#fff}
+
+/* UI-L01: request timeline scroll-cue fade */
+.sp-req-tl{position:relative}
+.sp-req-tl::after{content:"";position:absolute;right:0;top:0;bottom:0;width:28px;background:linear-gradient(to right,transparent,var(--bg,#f8f5ec));pointer-events:none}
+html[data-theme="dark"] .sp-req-tl::after{background:linear-gradient(to right,transparent,var(--bg,#091010))}
+
+/* UI-L02: tab count badge — keep visible inline (now also mirrored in nav) */
+.space-tab__count{flex-shrink:0}
+
+/* --- Replace 12-tab model: hide top strip on mobile, floating nav is primary --- */
+@media (max-width:767px){
+  html[data-route="your-space"] .space-tabs-wrap{display:none!important}
+}
+
+/* --- Secondary navigation hub (inside Profile) --- */
+.sp-secondary-nav{margin-bottom:1.5rem}
+.sp-secondary-grid{display:flex;flex-direction:column;gap:.25rem}
+.sp-secondary-item{display:flex;align-items:center;gap:.75rem;width:100%;padding:.85rem .25rem;background:transparent;border:none;border-bottom:1px solid var(--line);color:var(--text);font-family:var(--font-body,"Open Sans",sans-serif);font-size:.9rem;cursor:pointer;text-align:left;transition:opacity 160ms}
+.sp-secondary-item:last-child{border-bottom:none}
+.sp-secondary-item:active{opacity:.6}
+.sp-secondary-item__icon{font-size:1rem;color:var(--gold,#c5a13b);width:1.4rem;text-align:center;flex-shrink:0}
+.sp-secondary-item__label{flex:1}
+.sp-secondary-item svg{color:var(--muted);opacity:.5}
+html[data-theme="dark"] .sp-secondary-item{color:rgba(247,241,228,.88);border-color:rgba(230,220,200,.12)}
+html[data-theme="dark"] .sp-secondary-item__icon{color:var(--gold,#c5a13b)}
+
+/* --- Phil Murphy floating glass nav (mobile only) --- */
+@media (max-width:767px){
+  html[data-route="your-space"] .ys-bottom-nav{
+    position:fixed;
+    left:50%;
+    bottom:max(0.9rem, env(safe-area-inset-bottom));
+    transform:translateX(-50%);
+    width:auto;
+    max-width:calc(100vw - 1.5rem);
+    display:flex!important;
+    gap:0.25rem;
+    padding:0.5rem 0.6rem;
+    border-radius:999px;
+    background:rgba(248,245,236,0.72);
+    -webkit-backdrop-filter:saturate(140%) blur(18px);
+    backdrop-filter:saturate(140%) blur(18px);
+    border:1px solid rgba(2,61,58,0.10);
+    box-shadow:0 12px 40px rgba(18,31,29,0.18);
+    z-index:120;
+    transition:transform 420ms cubic-bezier(0.4,0,0.2,1),
+               opacity 360ms cubic-bezier(0.4,0,0.2,1);
+  }
+  html[data-route="your-space"] .ys-bottom-nav.is-hidden{
+    transform:translateX(-50%) translateY(140%);
+    opacity:0;
+    pointer-events:none;
+  }
+  html[data-theme="dark"][data-route="your-space"] .ys-bottom-nav{
+    background:rgba(7,28,26,0.72);
+    border-color:rgba(197,161,59,0.18);
+    box-shadow:0 12px 44px rgba(0,0,0,0.45);
+  }
+  .ys-bnav-btn{
+    flex:0 0 auto;
+    min-width:3.4rem;
+    padding:0.4rem 0.55rem;
+    border-radius:999px;
+    gap:0.15rem;
+    transition:color 200ms, background 200ms;
+  }
+  /* Light mode: emerald active */
+  .ys-bnav-btn.is-active{color:var(--emerald,#023d3a);background:rgba(2,61,58,0.07)}
+  /* Dark mode: gold active */
+  html[data-theme="dark"] .ys-bnav-btn{color:rgba(230,223,203,0.55)}
+  html[data-theme="dark"] .ys-bnav-btn.is-active{color:var(--gold,#c5a13b);background:rgba(197,161,59,0.12)}
+}
+/* extra bottom padding so content clears the floating pill */
+@media (max-width:767px){
+  html[data-route="your-space"] #account .container{padding-bottom:6rem}
+}
+@media (prefers-reduced-motion:reduce){
+  html[data-route="your-space"] .ys-bottom-nav{transition:none!important}
+}

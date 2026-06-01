@@ -6734,6 +6734,37 @@ function renderSpaceWishlist() {
       spSet(email, SP_QUOTE_KEY, val);
       showToast("Quote saved. 💛");
     });
+
+    /* RC-4: Secondary navigation hub — destinations not in the primary
+       floating nav are reached here (the 12-tab strip is hidden on mobile). */
+    if (!panel.querySelector("#spSecondaryNav")) {
+      const secItems = [
+        { tab:"saved",        icon:"♡", label:"My Wardrobe" },
+        { tab:"journey",      icon:"✦", label:"Orders" },
+        { tab:"lookbook",     icon:"◻", label:"Lookbooks" },
+        { tab:"savedmoments", icon:"◈", label:"Saved Moments" },
+        { tab:"concierge",    icon:"✉", label:"Ask ABDAN" },
+        { tab:"journal",      icon:"◇", label:"Journal" },
+        { tab:"membership",   icon:"♛", label:"Membership" },
+        { tab:"settings",     icon:"⚙", label:"Settings" },
+      ];
+      const nav = document.createElement("div");
+      nav.id = "spSecondaryNav";
+      nav.className = "sp-secondary-nav";
+      nav.innerHTML = `
+        <p class="sp-section-kicker" style="margin-bottom:.6rem">More in Your Space</p>
+        <div class="sp-secondary-grid">
+          ${secItems.map(i=>`
+            <button type="button" class="sp-secondary-item" onclick="showSpaceTab('${i.tab}')">
+              <span class="sp-secondary-item__icon">${i.icon}</span>
+              <span class="sp-secondary-item__label">${i.label}</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>`).join("")}
+        </div>`;
+      panel.firstElementChild
+        ? panel.insertBefore(nav, panel.firstElementChild)
+        : panel.appendChild(nav);
+    }
   };
 })();
 
@@ -6816,16 +6847,50 @@ function renderSpaceDiscover(profile) {
     nav.querySelectorAll(".ys-bnav-btn").forEach(b => b.classList.toggle("is-active", b.dataset.ysBnav === tab));
   });
 
-  /* Keep bottom nav in sync when tabs change via any mechanism */
+  /* Keep bottom nav in sync when tabs change via any mechanism.
+     Secondary tabs (reached via Profile hub) keep Profile highlighted. */
+  const PRIMARY = ["overview","discover","requests","messages","profile"];
   const _origShowTab = window.showSpaceTab;
   if (typeof _origShowTab === "function") {
     window.showSpaceTab = function(tabId) {
       _origShowTab(tabId);
+      const activeKey = PRIMARY.includes(tabId) ? tabId : "profile";
       nav.querySelectorAll(".ys-bnav-btn").forEach(b => {
-        b.classList.toggle("is-active", b.dataset.ysBnav === tabId);
+        b.classList.toggle("is-active", b.dataset.ysBnav === activeKey);
       });
+      /* Reveal nav whenever a destination changes */
+      nav.classList.remove("is-hidden");
     };
   }
+})();
+
+/* RC-4: Auto-hide floating nav on scroll (down=hide, up=reveal, stop=reveal 200ms) */
+(function ysNavAutoHide() {
+  const nav = document.getElementById("ysBottomNav");
+  const acc = document.getElementById("account");
+  if (!nav || !acc) return;
+  let lastY = 0, stopTimer = null, ticking = false;
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const y = acc.scrollTop;
+      const dy = y - lastY;
+      if (y < 40) {
+        nav.classList.remove("is-hidden");        /* always show near top */
+      } else if (dy > 6) {
+        nav.classList.add("is-hidden");            /* scrolling down → hide */
+      } else if (dy < -6) {
+        nav.classList.remove("is-hidden");         /* scrolling up → reveal */
+      }
+      lastY = y;
+      ticking = false;
+      /* Scroll stop → reveal after 200ms */
+      clearTimeout(stopTimer);
+      stopTimer = setTimeout(() => nav.classList.remove("is-hidden"), 200);
+    });
+  };
+  acc.addEventListener("scroll", onScroll, { passive: true });
 })();
 
 /* Ensure product sheet is opened above Your Space overlay */
