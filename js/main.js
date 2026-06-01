@@ -6765,6 +6765,23 @@ function renderSpaceWishlist() {
         ? panel.insertBefore(nav, panel.firstElementChild)
         : panel.appendChild(nav);
     }
+
+    /* Move Pause My Space / Sign Out into Profile (relocated from the header) */
+    if (!panel.querySelector("#spProfileSignout")) {
+      const so = document.createElement("div");
+      so.id = "spProfileSignout";
+      so.className = "sp-profile-signout";
+      so.innerHTML = `
+        <button type="button" class="secondary-button" id="spProfilePause">Pause My Space</button>
+        <button type="button" class="sp-signout-text" id="spProfileOut">Sign Out</button>`;
+      panel.appendChild(so);
+      so.querySelector("#spProfilePause")?.addEventListener("click", () => {
+        if (typeof handleSpaceSignout === "function") handleSpaceSignout();
+      });
+      so.querySelector("#spProfileOut")?.addEventListener("click", () => {
+        if (typeof handleHardSignout === "function") handleHardSignout();
+      });
+    }
   };
 })();
 

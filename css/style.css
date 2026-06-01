@@ -16618,3 +16618,11 @@ html[data-theme="dark"] .sp-secondary-item__icon{color:var(--gold,#c5a13b)}
 @media (prefers-reduced-motion:reduce){
   html[data-route="your-space"] .ys-bottom-nav{transition:none!important}
 }
+/* RC-4b: Pause My Space / Sign Out relocated from header into Profile */
+html[data-route="your-space"] .space-leave-wrap{display:none!important}
+.sp-profile-signout{display:flex;flex-direction:column;align-items:flex-start;gap:.75rem;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--line)}
+.sp-profile-signout .secondary-button{font-size:.85rem}
+.sp-signout-text{background:transparent;border:none;color:var(--muted);font-size:.78rem;cursor:pointer;padding:.2rem 0;letter-spacing:.03em;opacity:.7;transition:opacity 180ms}
+.sp-signout-text:hover{opacity:1}
+html[data-theme="dark"] .sp-profile-signout{border-top-color:rgba(230,220,200,.12)}
+html[data-theme="dark"] .sp-signout-text{color:rgba(230,223,203,.6)}
