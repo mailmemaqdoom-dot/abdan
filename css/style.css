@@ -16459,7 +16459,8 @@ html[data-theme="dark"] .sp-tier-display__pts{color:#C8A84E}
 html[data-theme="dark"] .sp-section-kicker{color:rgba(200,168,78,.7)}
 html[data-route="your-space"] .support-pill{display:none!important}
 @media(max-width:767px){.support-pill{bottom:max(4.5rem,env(safe-area-inset-bottom))}}
-html[data-route="your-space"] main{display:none!important}
+/* Hide storefront sections but KEEP #account (the dashboard lives inside <main>) */
+html[data-route="your-space"] main > *:not(#account){display:none!important}
 html[data-route="your-space"] body{overscroll-behavior:none;-webkit-overflow-scrolling:initial}
 html[data-route="your-space"] #account{isolation:isolate;overscroll-behavior:none}
 html[data-route="your-space"] .product-sheet,html[data-route="your-space"] .teaser-modal{z-index:3500!important}
