@@ -206,6 +206,23 @@ function save(key, data) {
   try { localStorage.setItem(key, JSON.stringify(data)); } catch { /* quota */ }
 }
 
+/* RC5-04 — Single source of truth for the customer collection.
+   STORAGE.customers ("abdan-space-profiles") is an OBJECT keyed by email.
+   Every admin view must use this helper (never load(STORAGE.customers, []))
+   to get a normalized ARRAY with the field names the views expect. */
+function getCustomers() {
+  const obj = load(STORAGE.customers, {}) || {};
+  if (Array.isArray(obj)) return obj; /* defensive: legacy array shape */
+  return Object.values(obj).map((p) => ({
+    ...p,
+    id:            p.email || p.id || "",
+    name:          p.displayName || p.fullName || p.email || "Anonymous",
+    joinedAt:      p.createdAt || p.joinedAt || null,
+    acceptedTerms: (p.consent && p.consent.agreement) || p.acceptedTerms || false,
+    wishlist:      p.wishlist || [],
+  }));
+}
+
 function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
@@ -316,6 +333,22 @@ function closeSidebar() {
   dom.asideOverlay.classList.remove("is-open");
 }
 
+/* RC5-07: attention counts for sidebar badges (requests needing action, pending replies) */
+function navAttentionCounts() {
+  let openRequests = 0, pendingReplies = 0;
+  try {
+    const reqs = load(STORAGE.globalRequests, []) || [];
+    openRequests = reqs.filter((r) => r.status && r.status !== "Completed").length;
+  } catch {}
+  try {
+    getCustomers().forEach((c) => {
+      const msgs = JSON.parse(localStorage.getItem(`abdan-sp-concierge:${(c.email||"").toLowerCase()}`) || "[]");
+      if (msgs.length && msgs[msgs.length - 1].from === "customer") pendingReplies++;
+    });
+  } catch {}
+  return { requests: openRequests, concierge: pendingReplies };
+}
+
 /* ── Nav builder ────────────────────────────────────────────── */
 function buildNav() {
   const groups = {};
@@ -324,16 +357,21 @@ function buildNav() {
     groups[v.group].push(v);
   });
 
+  const counts = navAttentionCounts();
+
   dom.nav.innerHTML = Object.entries(groups).map(([group, views]) => `
     <div class="s-nav-group">
       <p class="s-nav-group__label">${group}</p>
-      ${views.map((v) => `
+      ${views.map((v) => {
+        const n = counts[v.id] || 0;
+        const badge = n > 0 ? `<span class="s-nav-badge">${n}</span>` : "";
+        return `
         <a class="s-nav-item ${v.id === currentView ? "s-nav-item--active" : ""}"
            href="#${v.id}" data-nav="${v.id}" role="menuitem">
           <i data-lucide="${v.icon}" class="s-icon"></i>
-          <span>${v.label}</span>
-        </a>
-      `).join("")}
+          <span>${v.label}</span>${badge}
+        </a>`;
+      }).join("")}
     </div>
   `).join("");
 }
@@ -417,7 +455,7 @@ function renderOverview() {
   setTitle("Studio Overview");
   const products  = load(STORAGE.products, []);
   const orders    = load(STORAGE.orders, []);
-  const customers = load(STORAGE.customers, []);
+  const customers = getCustomers();
   const notices   = load(STORAGE.notices, []);
 
   const activeProducts  = products.filter((p) => p.status === "active").length;
@@ -959,7 +997,7 @@ function openNoticeForm(notice = null) {
 /* ── Her Circle (customers) ─────────────────────────────────── */
 function renderCustomers() {
   setTitle("Her Circle 💛");
-  const customers = load(STORAGE.customers, []);
+  const customers = getCustomers();
   dom.content.innerHTML = `
     <div class="s-filter-bar">
       <div class="s-search">
@@ -997,7 +1035,7 @@ function customerRow(c) {
 /* ── Her Circle Updates (messaging) ────────────────────────── */
 function renderMessaging() {
   setTitle("Her Circle Updates");
-  const customers = load(STORAGE.customers, []);
+  const customers = getCustomers();
   dom.content.innerHTML = `
     <div class="s-alert s-alert--info">
       <i data-lucide="info" class="s-icon"></i>
@@ -1802,7 +1840,7 @@ function renderTerms() {
 /* ── EXPERIENCE: Legal Acceptance Dashboard ──────────────────── */
 function renderLegal() {
   setTitle("Legal Acceptance");
-  const customers = load(STORAGE.customers, []);
+  const customers = getCustomers();
   const accepted  = customers.filter((c) => c.acceptedTerms);
   const pending   = customers.filter((c) => !c.acceptedTerms);
   dom.content.innerHTML = `
@@ -2190,7 +2228,7 @@ function renderAnalytics() {
   setTitle("Analytics");
   const products  = load(STORAGE.products,  []);
   const orders    = load(STORAGE.orders,    []);
-  const customers = load(STORAGE.customers, []);
+  const customers = getCustomers();
   const revenue   = orders.reduce((s, o) => s + (Number(o.total) || 0), 0);
   const avgOrder  = orders.length ? revenue / orders.length : 0;
 
@@ -2296,7 +2334,7 @@ function renderAnalytics() {
 function renderExperience() {
   setTitle("Experience Intel");
   const orders    = load(STORAGE.orders,    []);
-  const customers = load(STORAGE.customers, []);
+  const customers = getCustomers();
   const reviews   = load(STORAGE.reviews,   []);
 
   const productFreq = {};
@@ -2626,9 +2664,10 @@ function init() {
     save(STORAGE.products, []);
   }
 
-  /* Initial view from URL hash */
-  const hash = window.location.hash.replace("#", "") || "overview";
-  const view = STUDIO_VIEWS.find((v) => v.id === hash) ? hash : "overview";
+  /* RC5-08: Operations is the default landing (no hash) — Analytics/Overview
+     remain reachable from the sidebar. */
+  const hash = window.location.hash.replace("#", "") || "operations";
+  const view = STUDIO_VIEWS.find((v) => v.id === hash) ? hash : "operations";
   currentView = view;
   buildNav();
   syncTabBar();

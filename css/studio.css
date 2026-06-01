@@ -2220,3 +2220,40 @@ html[data-theme="dark"] .s-review-card--featured {
   .s-type-scale-grid { grid-template-columns: 1fr; }
 }
 
+
+/* ═══ RC-5 — Admin Stabilization ═══ */
+
+/* RC5-05: prevent mobile layout-viewport inflation from the off-screen
+   slide panel (position:fixed translateX(100%)). Clipping at the root
+   stops phones expanding the viewport to ~486px. */
+html { overflow-x: hidden; }
+.s-panel[hidden] { transform: translateX(100%); visibility: hidden; }
+.s-shell { max-width: 100%; min-width: 0; overflow-x: hidden; }
+.s-content { max-width: 100%; min-width: 0; }
+
+/* RC5-06: Operations stat cards — allow text to wrap, no clipping.
+   Single column under 480px so value + sub always fit. */
+.s-stat { min-width: 0; }
+.s-stat__label, .s-stat__sub, .s-stat__value { white-space: normal; overflow-wrap: anywhere; }
+@media (max-width: 479px) {
+  .s-stats-row { grid-template-columns: 1fr !important; }
+}
+
+/* RC5-07: sidebar attention badges (uses existing badge language) */
+.s-nav-item { position: relative; }
+.s-nav-badge {
+  margin-left: auto;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 999px;
+  background: var(--s-gold, #c5a13b);
+  color: #fff;
+  line-height: 1;
+}
+.s-tabbar .s-nav-badge { position: absolute; top: 4px; right: 18px; margin: 0; }
