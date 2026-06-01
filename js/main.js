@@ -1,6 +1,6 @@
 const BRAND = {
   name: "ABDAN",
-  tagline: "Where devotion meets style.",
+  tagline: "Your devotion deserves to be seen.",
   whatsappNumber: "918760595307",
   whatsappUrl: "https://wa.me/918760595307",
   telegramUrl: "https://t.me/+918760595307",
@@ -5730,7 +5730,7 @@ function renderShareCard(product) {
       <p class="share-preview__brand">Personally Curated by ABDAN</p>
       <p class="share-preview__name">${product.name}</p>
       <p class="share-preview__price">${product.priceLabel || ""}</p>
-      <p class="share-preview__descriptor">${product.curationLine || "Where devotion meets style."}</p>
+      <p class="share-preview__descriptor">${product.curationLine || "Your devotion deserves to be seen."}</p>
     </div>`;
   card.hidden = false;
   card.removeAttribute("aria-hidden");
