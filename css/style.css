@@ -16660,3 +16660,15 @@ html[data-theme="dark"] .story-card h3 {
     padding-inline: 16px;
   }
 }
+
+/* ── Accent bands (RC-7): trust-rail & promise-band are intentional editorial
+   accents, kept deliberately wider than the standard 34px content column but
+   no longer full-bleed. A mobile-only 8px inline padding seats them ~8px wider
+   than standard on each side — landing ~24-28px from the edge (22 @320, 26 @390,
+   28 @430). Subtle, grid-aligned hierarchy; not uniformity, not detached.     */
+@media (max-width: 767px) {
+  .trust-rail,
+  .promise-band {
+    padding-inline: 8px;
+  }
+}
