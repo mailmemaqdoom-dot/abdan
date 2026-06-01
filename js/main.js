@@ -6811,9 +6811,9 @@ function renderSpaceDiscover(profile) {
   nav.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-ys-bnav]");
     if (!btn) return;
-    const tab = btn.dataset.ysbnav;
+    const tab = btn.dataset.ysBnav;
     if (typeof showSpaceTab === "function") showSpaceTab(tab);
-    nav.querySelectorAll(".ys-bnav-btn").forEach(b => b.classList.toggle("is-active", b.dataset.ysbnav === tab));
+    nav.querySelectorAll(".ys-bnav-btn").forEach(b => b.classList.toggle("is-active", b.dataset.ysBnav === tab));
   });
 
   /* Keep bottom nav in sync when tabs change via any mechanism */
@@ -6822,7 +6822,7 @@ function renderSpaceDiscover(profile) {
     window.showSpaceTab = function(tabId) {
       _origShowTab(tabId);
       nav.querySelectorAll(".ys-bnav-btn").forEach(b => {
-        b.classList.toggle("is-active", b.dataset.ysbnav === tabId);
+        b.classList.toggle("is-active", b.dataset.ysBnav === tabId);
       });
     };
   }
