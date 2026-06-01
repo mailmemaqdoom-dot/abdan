@@ -16648,3 +16648,15 @@ html[data-theme="dark"] #wsy .story-card h3,
 html[data-theme="dark"] .story-card h3 {
   color: #F0E9D6 !important;
 }
+
+/* ── Container audit fix (RC-6): align edge-to-edge content bands to the
+   canonical 16px mobile gutter used by .section-frame sections. Placed at
+   EOF so it wins over the base `.ec-section`/`.promise-trust-strip` padding
+   shorthand. Background bleeds stay full-width; only inner content is inset
+   so section left/right edges line up consistently while scrolling.        */
+@media (max-width: 767px) {
+  .ec-section,
+  .promise-trust-strip {
+    padding-inline: 16px;
+  }
+}
