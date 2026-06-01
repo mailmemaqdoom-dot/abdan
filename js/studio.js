@@ -117,7 +117,7 @@ const STATUS_OPTIONS = ["active","draft","sold-out","archived"];
 /* ── Default data ───────────────────────────────────────────── */
 const DEFAULT_SETTINGS = {
   siteName:        "ABDAN",
-  tagline:         "Where devotion meets style.",
+  tagline:         "Your devotion deserves to be seen.",
   whatsappNumber:  "919876543210",
   upiId:           "abdan@upi",
   razorpayKey:     "",
@@ -130,7 +130,7 @@ const DEFAULT_VOICE = {
   openingLine:     "For the woman who moves through her days with devotion, grace, and quiet intention.",
   closingLine:     "Quietly chosen. Deeply felt.",
   brandPromise:    "Every piece carries the weight of thoughtfulness.",
-  heroHeadline:    "Devotion Meets Style",
+  heroHeadline:    "Your Devotion Deserves To Be Seen",
   heroSubline:     "Thoughtfully curated modest fashion",
 };
 
@@ -1658,7 +1658,7 @@ function renderTypography() {
     <div class="s-type-row">
       <div class="s-type-sample">
         <span class="s-type-name">Display / Headings</span>
-        <p class="s-type-demo s-type-demo--display">Devotion Meets Style</p>
+        <p class="s-type-demo s-type-demo--display">Your Devotion Deserves To Be Seen</p>
         <span class="s-type-meta">Cormorant Garamond · Weight 600 · Letter-spacing −0.03em · Line-height 1.04</span>
       </div>
       <div class="s-type-sample">
