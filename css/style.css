@@ -16472,6 +16472,13 @@ html[data-route="your-space"] #abdan-toast,html[data-route="your-space"] .s-toas
 html[data-route="your-space"] #lxEntry{z-index:0!important;display:none!important}
 html[data-route="your-space"] #spaceAuthPortal{z-index:10100!important}
 html[data-route="your-space"] #account .container{padding-bottom:5rem}
+/* Mobile overflow fix: .space-dashboard is display:grid; its auto column
+   sized to the flex-nowrap header's wide min-content, blowing the layout
+   to ~1174px (clipped by overflow-x:hidden). minmax(0,1fr) caps the track
+   to the container so all dashboard content stays within the viewport. */
+html[data-route="your-space"] .space-dashboard{grid-template-columns:minmax(0,1fr)}
+html[data-route="your-space"] .space-dash-head{min-width:0;flex-wrap:wrap}
+html[data-route="your-space"] .space-dash-head__identity{min-width:0}
 .ys-bottom-nav{display:none;position:sticky;bottom:0;z-index:100;background:var(--bg);border-top:1px solid var(--line);padding:0.35rem 0 max(0.5rem,env(safe-area-inset-bottom));grid-template-columns:repeat(5,1fr)}
 html[data-route="your-space"] .ys-bottom-nav{display:grid!important}
 .ys-bnav-btn{display:flex;flex-direction:column;align-items:center;gap:0.2rem;background:transparent;border:none;cursor:pointer;color:var(--muted);font-family:var(--font-body,"Open Sans",sans-serif);font-size:.6rem;letter-spacing:.04em;padding:.35rem .25rem;transition:color 180ms;-webkit-tap-highlight-color:transparent}
