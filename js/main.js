@@ -840,6 +840,99 @@ function abdanCartSavings() {
   }, 0);
 }
 
+/* ── Coupon & automated-rule engine (live cart application) ────────────── */
+function getStudioCoupons() { try { return JSON.parse(localStorage.getItem("abdan-studio-coupons") || "[]"); } catch { return []; } }
+function getStudioRules()   { try { return JSON.parse(localStorage.getItem("abdan-studio-rules")   || "[]"); } catch { return []; } }
+
+function cartSubtotal()  { return state.cart.reduce((s, it) => s + getNumericPrice(it.priceLabel) * it.quantity, 0); }
+function cartTotalQty()  { return state.cart.reduce((s, it) => s + it.quantity, 0); }
+
+/* Subtotal of the cart items a coupon's collection/product restriction applies
+   to. With no restriction, the whole cart qualifies. */
+function couponQualifyingSubtotal(coupon) {
+  if (typeof applyStudioOverrides === "function") applyStudioOverrides();
+  const col = coupon.collection && coupon.collection !== "All" ? coupon.collection : null;
+  const prod = (coupon.product || "").trim().toLowerCase();
+  if (!col && !prod) return cartSubtotal();
+  return state.cart.reduce((s, it) => {
+    const p = PRODUCTS.find((x) => x.id === it.id) || {};
+    const cat = p.category || p.primaryTag || "";
+    const matchCol  = col  ? cat === col : true;
+    const matchProd = prod ? (String(it.id).toLowerCase() === prod || String(it.name || "").toLowerCase().includes(prod)) : true;
+    return (matchCol && matchProd) ? s + getNumericPrice(it.priceLabel) * it.quantity : s;
+  }, 0);
+}
+
+/* Validate a coupon code against the cart. Returns {ok, coupon, discount, message}. */
+function validateCoupon(code) {
+  const norm = String(code || "").toUpperCase().replace(/\s+/g, "");
+  if (!norm) return { ok: false, message: "Enter a code." };
+  const coupon = getStudioCoupons().find((c) => String(c.code || "").toUpperCase() === norm);
+  if (!coupon || !coupon.active) return { ok: false, message: "That code isn’t available." };
+  const now = new Date();
+  if (coupon.startDate && new Date(coupon.startDate) > now) return { ok: false, message: "This code isn’t active yet." };
+  if (coupon.endDate) { const end = new Date(coupon.endDate); end.setHours(23, 59, 59, 999); if (end < now) return { ok: false, message: "This code has expired." }; }
+  const session = (typeof getSpaceSession === "function" ? getSpaceSession() : null);
+  if (coupon.tier && coupon.tier !== "All Members" && !session) {
+    return { ok: false, message: `Sign in to Your Space to use ${coupon.tier} benefits.` };
+  }
+  if (coupon.usageLimit && Number(coupon.uses || 0) >= Number(coupon.usageLimit)) {
+    return { ok: false, message: "This code has reached its limit." };
+  }
+  if (coupon.customerLimit && session && session.email) {
+    const used = (coupon.usedBy || {})[String(session.email).toLowerCase()] || 0;
+    if (used >= Number(coupon.customerLimit)) return { ok: false, message: "You’ve already used this code." };
+  }
+  const qualifying = couponQualifyingSubtotal(coupon);
+  if (qualifying <= 0) return { ok: false, message: "This code doesn’t apply to your current pieces." };
+  const value = parseFloat(coupon.discountValue);
+  if (!isFinite(value) || value <= 0) return { ok: false, message: "This code has no benefit configured." };
+  const discount = coupon.discountType === "flat"
+    ? Math.min(Math.round(value), qualifying)
+    : Math.round(qualifying * value / 100);
+  if (discount <= 0) return { ok: false, message: "This code doesn’t apply to your current pieces." };
+  return { ok: true, coupon, discount, message: `${coupon.name || coupon.code} applied` };
+}
+
+/* Best auto-applied rule benefit for the current cart (no stacking surprises). */
+function evaluateRules() {
+  const subtotal = cartSubtotal();
+  const qty = cartTotalQty();
+  let best = null;
+  getStudioRules().forEach((r) => {
+    if (!r.active) return;
+    let triggered = false;
+    switch (r.trigger) {
+      case "Buy 2 Items":     triggered = qty >= 2; break;
+      case "Buy 3 Items":     triggered = qty >= 3; break;
+      case "Cart Over ₹5,000": triggered = subtotal >= 5000; break;
+      default: triggered = false; /* tier/collection/first-order: not auto-valued */
+    }
+    if (!triggered) return;
+    const m = String(r.benefit || "").match(/(\d+(?:\.\d+)?)\s*%/);
+    if (!m) return;
+    const pct = parseFloat(m[1]);
+    const amount = Math.round(subtotal * pct / 100);
+    if (amount > 0 && (!best || amount > best.amount)) best = { name: r.name || r.trigger, pct, amount };
+  });
+  return best;
+}
+
+/* Single source of truth for the cart's money, incl. coupon + rule benefits. */
+function computeCartTotals() {
+  const subtotal = cartSubtotal();
+  const rule = evaluateRules();
+  const ruleDiscount = rule ? rule.amount : 0;
+  let couponDiscount = 0, couponCode = "";
+  if (state.appliedCoupon) {
+    const v = validateCoupon(state.appliedCoupon);
+    if (v.ok) { couponDiscount = v.discount; couponCode = v.coupon.code; }
+    else { state.appliedCoupon = null; }   /* drop if no longer valid */
+  }
+  const total = Math.max(0, subtotal - ruleDiscount - couponDiscount);
+  return { subtotal, ruleDiscount, ruleName: rule ? rule.name : "", couponDiscount, couponCode, total };
+}
+
 /* Compact price markup for product cards — elegant strikethrough + saving. */
 function abdanCardPriceHtml(product) {
   const s = abdanSavings(product);
@@ -3116,16 +3209,38 @@ function renderCart() {
     )
     .join("");
 
-  dom.cartTotal.textContent = formatCurrency(total);
+  /* ── Totals incl. coupon + automated-rule benefits ──────────────────── */
+  const totals = computeCartTotals();
+  dom.cartTotal.textContent = formatCurrency(totals.total);
   dom.cartCount.textContent = String(state.cart.reduce((sum, item) => sum + item.quantity, 0));
 
-  /* ── Total Savings line (Part 3) ─────────────────────────────────────── */
+  /* Compare-at savings line (Part 3) */
   const cartSave = abdanCartSavings();
   const saveLine = document.getElementById("cartSavingsLine");
   const saveVal  = document.getElementById("cartSavings");
   if (saveLine && saveVal) {
     if (cartSave > 0) { saveVal.textContent = formatCurrency(cartSave); saveLine.hidden = false; }
     else { saveLine.hidden = true; }
+  }
+
+  /* Automated rule benefit line */
+  const ruleLine = document.getElementById("cartRuleLine");
+  if (ruleLine) {
+    if (totals.ruleDiscount > 0) {
+      document.getElementById("cartRuleLabel").textContent = totals.ruleName;
+      document.getElementById("cartRuleAmount").textContent = `−${formatCurrency(totals.ruleDiscount)}`;
+      ruleLine.hidden = false;
+    } else { ruleLine.hidden = true; }
+  }
+
+  /* Applied coupon line */
+  const cpLine = document.getElementById("cartCouponLine");
+  if (cpLine) {
+    if (totals.couponDiscount > 0) {
+      document.getElementById("cartCouponLabel").textContent = `Coupon · ${totals.couponCode}`;
+      document.getElementById("cartCouponAmount").textContent = `−${formatCurrency(totals.couponDiscount)}`;
+      cpLine.hidden = false;
+    } else { cpLine.hidden = true; }
   }
 
   /* ── Cart image fade-in — same pattern as product cards ─────────────── */
@@ -3457,11 +3572,20 @@ function lxCreateOrder(details, items, paymentMethod, extra = {}) {
   const total = items.reduce((sum, item) => sum + getNumericPrice(item.priceLabel) * item.quantity, 0);
   /* Savings captured on the order — powers confirmation, Your Space & analytics. */
   if (typeof applyStudioOverrides === "function") applyStudioOverrides();
-  const savings = items.reduce((sum, item) => {
+  const compareSavings = items.reduce((sum, item) => {
     const p = PRODUCTS.find((x) => x.id === item.id);
     const sv = abdanSavings(p);
     return sum + (sv ? sv.amount * (item.quantity || 1) : 0);
   }, 0);
+  /* Coupon + automated-rule benefits apply to the bag (cart) flow only. */
+  let couponDiscount = 0, ruleDiscount = 0, couponCode = "", ruleName = "";
+  if (items === state.cart) {
+    const t = computeCartTotals();
+    couponDiscount = t.couponDiscount; ruleDiscount = t.ruleDiscount;
+    couponCode = t.couponCode; ruleName = t.ruleName;
+  }
+  const finalTotal = Math.max(0, total - couponDiscount - ruleDiscount);
+  const savings = compareSavings + couponDiscount + ruleDiscount;
   const ref   = `ABD-${Date.now().toString(36).toUpperCase().slice(-6)}`;
   const order = {
     id:            ref,
@@ -3472,8 +3596,14 @@ function lxCreateOrder(details, items, paymentMethod, extra = {}) {
     status:        "confirmed",
     paymentMethod,
     paymentId:     extra.paymentId || "",
-    total,
+    total:         finalTotal,
+    subtotal:      total,
     savings,
+    compareSavings,
+    couponCode,
+    couponDiscount,
+    ruleName,
+    ruleDiscount,
     items: items.map((item) => ({
       id:         item.id || "",
       name:       item.name,
@@ -3491,6 +3621,20 @@ function lxCreateOrder(details, items, paymentMethod, extra = {}) {
     existing.unshift(order);
     localStorage.setItem("abdan-studio-orders", JSON.stringify(existing));
   } catch { /* quota — continue silently */ }
+  /* Record coupon redemption (powers usage limits + analytics "Most Used"). */
+  if (couponCode) {
+    try {
+      const coupons = JSON.parse(localStorage.getItem("abdan-studio-coupons") || "[]");
+      const c = coupons.find((x) => String(x.code).toUpperCase() === String(couponCode).toUpperCase());
+      if (c) {
+        c.uses = Number(c.uses || 0) + 1;
+        const em = String(order.customerEmail || "").toLowerCase();
+        if (em) { c.usedBy = c.usedBy || {}; c.usedBy[em] = (c.usedBy[em] || 0) + 1; }
+        localStorage.setItem("abdan-studio-coupons", JSON.stringify(coupons));
+      }
+    } catch { /* ignore */ }
+  }
+  state.appliedCoupon = null;   /* reset for the next order */
   return order;
 }
 
@@ -3661,11 +3805,33 @@ function closeCart() {
   updateOverlayState();
 }
 
+function applyCartCoupon() {
+  const input = document.getElementById("cartCouponInput");
+  const msg   = document.getElementById("cartCouponMsg");
+  const v = validateCoupon(input ? input.value : "");
+  if (v.ok) {
+    state.appliedCoupon = v.coupon.code;
+    if (input) input.value = "";
+    if (msg) { msg.textContent = `${v.message} · You save ${formatCurrency(v.discount)}`; msg.className = "drawer-coupon__msg drawer-coupon__msg--ok"; msg.hidden = false; }
+  } else {
+    state.appliedCoupon = null;
+    if (msg) { msg.textContent = v.message; msg.className = "drawer-coupon__msg drawer-coupon__msg--err"; msg.hidden = false; }
+  }
+  renderCart();
+}
+function removeCartCoupon() {
+  state.appliedCoupon = null;
+  const msg = document.getElementById("cartCouponMsg");
+  if (msg) msg.hidden = true;
+  renderCart();
+}
+
 function toggleBagCheckout() {
   if (!state.cart.length) return;
   if (dom.bagCheckoutPanel.hidden) {
-    /* You Saved ₹X On This Order (Part 3 — checkout) */
-    const cs = abdanCartSavings();
+    /* You Saved ₹X On This Order (Part 3 — checkout) incl. coupon + rule */
+    const t  = computeCartTotals();
+    const cs = abdanCartSavings() + t.couponDiscount + t.ruleDiscount;
     const el = document.getElementById("bagCheckoutSavings");
     if (el) {
       if (cs > 0) { el.textContent = `You Saved ${formatCurrency(cs)} On This Order`; el.hidden = false; }
@@ -3717,7 +3883,18 @@ function buildWhatsAppOrderMessage(details, items, paymentMethod, extra = {}) {
     `Items:`,
     ...items.map((item, index) => `${index + 1}. ${item.name} — ${item.size} / ${item.color} × ${item.quantity}`),
     ``,
-    `Total: ${formatCurrency(items.reduce((sum, item) => sum + getNumericPrice(item.priceLabel) * item.quantity, 0))}`,
+    ...(() => {
+      const subtotal = items.reduce((sum, item) => sum + getNumericPrice(item.priceLabel) * item.quantity, 0);
+      const t = (items === state.cart) ? computeCartTotals() : { ruleDiscount: 0, couponDiscount: 0, couponCode: "", ruleName: "", total: subtotal };
+      const out = [];
+      if (t.ruleDiscount > 0 || t.couponDiscount > 0) {
+        out.push(`Subtotal: ${formatCurrency(subtotal)}`);
+        if (t.ruleDiscount > 0)   out.push(`${t.ruleName}: −${formatCurrency(t.ruleDiscount)}`);
+        if (t.couponDiscount > 0) out.push(`Coupon ${t.couponCode}: −${formatCurrency(t.couponDiscount)}`);
+      }
+      out.push(`Total: ${formatCurrency(t.total)}`);
+      return out;
+    })(),
     details.notes ? `Notes: ${details.notes}` : null,
     ``,
     `Please confirm availability before dispatch.`,
@@ -3727,7 +3904,9 @@ function buildWhatsAppOrderMessage(details, items, paymentMethod, extra = {}) {
 }
 
 function launchRazorpay(details, items) {
-  const total = items.reduce((sum, item) => sum + getNumericPrice(item.priceLabel) * item.quantity, 0);
+  const total = (items === state.cart)
+    ? computeCartTotals().total
+    : items.reduce((sum, item) => sum + getNumericPrice(item.priceLabel) * item.quantity, 0);
   if (!window.Razorpay) {
     showToast("Razorpay couldn't load. Try UPI or reach us on WhatsApp.");
     return;
@@ -4130,6 +4309,9 @@ function attachEvents() {
   dom.addToCartButton.addEventListener("click", addToCart);
   dom.toggleProductCheckout.addEventListener("click", toggleProductCheckout);
   dom.cartCheckoutButton.addEventListener("click", toggleBagCheckout);
+  document.getElementById("cartCouponApply")?.addEventListener("click", applyCartCoupon);
+  document.getElementById("cartCouponInput")?.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); applyCartCoupon(); } });
+  document.getElementById("cartCouponRemove")?.addEventListener("click", removeCartCoupon);
   dom.bagRazorpayButton.addEventListener("click", handleBagRazorpay);
   dom.bagUpiButton.addEventListener("click", handleBagUpi);
   dom.copyUpiButton.addEventListener("click", copyUpi);

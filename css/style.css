@@ -16964,3 +16964,52 @@ html[data-theme="dark"] .space-entry-grid > .space-gift-visual::after {
   color:       var(--text-soft);
   margin:      0.5rem 0 0;
 }
+
+/* RC-10 — Live coupon application in the cart drawer (quiet, editorial). */
+.drawer-coupon {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+.drawer-coupon__input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md, 0.6rem);
+  background: var(--surface, transparent);
+  color: var(--text-main);
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+}
+.drawer-coupon__input::placeholder { color: var(--text-soft); letter-spacing: 0; }
+.drawer-coupon__apply {
+  flex: 0 0 auto;
+  padding: 0.6rem 1.1rem;
+  border: 1px solid color-mix(in srgb, var(--gold, #c5a13b) 45%, transparent);
+  border-radius: var(--radius-md, 0.6rem);
+  background: color-mix(in srgb, var(--gold, #c5a13b) 10%, transparent);
+  color: var(--gold, #c5a13b);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.drawer-coupon__msg { margin: 0 0 0.6rem; font-size: 0.8rem; }
+.drawer-coupon__msg--ok  { color: var(--gold, #c5a13b); }
+.drawer-coupon__msg--err { color: color-mix(in srgb, #b4452f 80%, var(--text-main)); }
+.drawer-savings--applied {
+  color: var(--text-main);
+  position: relative;
+}
+.drawer-savings--applied strong { color: var(--gold, #c5a13b); }
+.drawer-coupon__remove {
+  border: none;
+  background: none;
+  color: var(--text-soft);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0.4rem;
+  margin-right: auto;
+}

@@ -2058,8 +2058,8 @@ function renderCoupons() {
         <div class="s-offer-badge"><span>${esc(c.code || "—")}</span></div>
         <div class="s-list-item__main">
           <strong>${esc(c.name || c.code)}</strong>
-          <span class="s-list-item__sub">${window} · ${restr}</span>
-          <span class="s-list-item__sub">Usage limit: ${c.usageLimit || "∞"} · Per customer: ${c.customerLimit || "∞"}</span>
+          <span class="s-list-item__sub">${c.discountValue ? (c.discountType === "flat" ? `₹${c.discountValue} off` : `${c.discountValue}% off`) : "No benefit set"} · ${window} · ${restr}</span>
+          <span class="s-list-item__sub">Usage limit: ${c.usageLimit || "∞"} · Per customer: ${c.customerLimit || "∞"} · Used: ${c.uses || 0}</span>
         </div>
         <div class="s-list-item__actions">
           <span class="s-badge ${c.active ? "s-badge--green" : ""}">${c.active ? "Active" : "Inactive"}</span>
@@ -2087,11 +2087,19 @@ function renderCoupons() {
 
   function openCouponPanel(coupon = null) {
     const isNew = !coupon;
-    const c = coupon || { id: uid(), name: "", code: "", startDate: "", endDate: "", usageLimit: "", customerLimit: "", collection: "All", product: "", tier: "All Members", active: true };
+    const c = coupon || { id: uid(), name: "", code: "", discountType: "percent", discountValue: "", startDate: "", endDate: "", usageLimit: "", customerLimit: "", collection: "All", product: "", tier: "All Members", active: true };
     openPanel(isNew ? "New Coupon" : "Edit Coupon", `
       <div class="s-form-grid">
         ${field("Coupon Name", "text", "cpName", c.name, "e.g. Inner Circle Access")}
         ${field("Coupon Code", "text", "cpCode", c.code, "e.g. INNERCIRCLE")}
+        <label class="s-field">
+          <span class="s-field__label">Benefit Type</span>
+          <select id="cpType" class="s-field__select">
+            <option value="percent" ${c.discountType === "percent" ? "selected" : ""}>Percentage</option>
+            <option value="flat" ${c.discountType === "flat" ? "selected" : ""}>Flat Amount (₹)</option>
+          </select>
+        </label>
+        ${field("Benefit Value (% or ₹)", "number", "cpValue", c.discountValue || "", "e.g. 10")}
         ${field("Start Date", "date", "cpStart", c.startDate || "", "")}
         ${field("End Date", "date", "cpEnd", c.endDate || "", "")}
         ${field("Usage Limit (total)", "number", "cpUsage", c.usageLimit || "", "optional")}
@@ -2125,6 +2133,7 @@ function renderCoupons() {
       if (start && end && new Date(end) < new Date(start)) { toast("End date must be after start date", "error"); return; }
       const updated = {
         ...c, name: val("cpName") || code, code,
+        discountType: val("cpType"), discountValue: val("cpValue"),
         startDate: start, endDate: end,
         usageLimit: val("cpUsage"), customerLimit: val("cpCustomer"),
         collection: val("cpCollection"), product: val("cpProduct").trim(),

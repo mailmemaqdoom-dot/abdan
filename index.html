@@ -1514,9 +1514,23 @@
         </div>
 
         <footer class="drawer-footer">
+          <div class="drawer-coupon" id="cartCouponRow">
+            <input type="text" id="cartCouponInput" class="drawer-coupon__input" placeholder="Have a code? e.g. INNERCIRCLE" autocomplete="off" spellcheck="false" />
+            <button type="button" class="drawer-coupon__apply" id="cartCouponApply">Apply</button>
+          </div>
+          <p class="drawer-coupon__msg" id="cartCouponMsg" hidden></p>
           <div class="drawer-savings" id="cartSavingsLine" hidden>
             <span>Total Savings</span>
             <strong id="cartSavings">₹0</strong>
+          </div>
+          <div class="drawer-savings drawer-savings--applied" id="cartRuleLine" hidden>
+            <span id="cartRuleLabel">Benefit</span>
+            <strong id="cartRuleAmount">−₹0</strong>
+          </div>
+          <div class="drawer-savings drawer-savings--applied" id="cartCouponLine" hidden>
+            <span id="cartCouponLabel">Coupon</span>
+            <button type="button" class="drawer-coupon__remove" id="cartCouponRemove" aria-label="Remove coupon">×</button>
+            <strong id="cartCouponAmount">−₹0</strong>
           </div>
           <div class="drawer-total">
             <span>Total</span>
