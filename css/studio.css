@@ -2283,3 +2283,19 @@ html { overflow-x: hidden; }
   color:          var(--s-text-dim);
   letter-spacing: 0.02em;
 }
+
+/* RC-10 Phase 3/5 — coupon/rules list rows reuse .s-list; analytics rank lists */
+.s-rank-list { display: flex; flex-direction: column; gap: 0.55rem; margin-top: 0.5rem; }
+.s-rank-row {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     baseline;
+  gap:             1rem;
+  padding-bottom:  0.5rem;
+  border-bottom:   1px solid var(--s-border);
+  font-size:       0.88rem;
+}
+.s-rank-row:last-child { border-bottom: none; padding-bottom: 0; }
+.s-rank-row__name { color: var(--s-text); }
+.s-rank-row__val  { color: #c5a13b; font-weight: 700; white-space: nowrap; }
+.s-card__hint { font-size: 0.7rem; color: var(--s-text-dim); font-weight: 400; letter-spacing: 0.02em; }

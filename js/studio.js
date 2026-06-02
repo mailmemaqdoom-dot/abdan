@@ -66,6 +66,8 @@ const STUDIO_VIEWS = [
   { id: "collections", label: "Collections",        icon: "layers",           group: "Commerce"     },
   { id: "orders",      label: "Orders",             icon: "receipt",          group: "Commerce"     },
   { id: "offers",      label: "Offer Studio",       icon: "tag",              group: "Commerce"     },
+  { id: "coupons",     label: "Discount Management", icon: "ticket",          group: "Commerce"     },
+  { id: "rules",       label: "Automated Rules",    icon: "git-branch",       group: "Commerce"     },
   { id: "media",       label: "Media Library",      icon: "image",            group: "Commerce"     },
 
   /* ── STORYTELLING ────────────────────────────────────────── */
@@ -104,6 +106,8 @@ const STORAGE = {
   customers:        "abdan-space-profiles",
   globalRequests:   "abdan-global-requests",
   offers:      "abdan-studio-offers",
+  coupons:     "abdan-studio-coupons",
+  rules:       "abdan-studio-rules",
   reviews:     "abdan-studio-reviews",
   campaigns:   "abdan-studio-campaigns",
   founder:     "abdan-studio-founder",
@@ -451,6 +455,8 @@ function renderView(id) {
     terms:       renderTerms,
     legal:       renderLegal,
     offers:      renderOffers,
+    coupons:     renderCoupons,
+    rules:       renderRules,
     reviews:     renderReviews,
     requests:    renderRequests,
     concierge:   renderConciergeQueue,
@@ -2021,6 +2027,208 @@ function renderOffers() {
   }
 }
 
+/* ── COMMERCE: Discount Management (Coupon Engine) — Part 6 ────── */
+const COUPON_TIERS = ["All Members", "Inner Circle", "Patron", "Founding Circle"];
+function renderCoupons() {
+  setTitle("Discount Management", `
+    <button class="s-btn s-btn--primary s-btn--sm" id="sAddCoupon">
+      <i data-lucide="plus" class="s-icon"></i> New Coupon
+    </button>
+  `);
+  const coupons = load(STORAGE.coupons, []);
+  dom.content.innerHTML = `
+    <div class="s-zone-header s-zone-header--commerce">
+      <i data-lucide="ticket" class="s-icon"></i>
+      <span>Coupon Engine</span>
+    </div>
+    <div class="s-list" id="sCouponList">
+      ${coupons.length ? coupons.map(couponRow).join("") : empty("No coupons yet. Create member codes like INNERCIRCLE or FESTIVE2026.", "ticket")}
+    </div>
+  `;
+
+  function couponRow(c) {
+    const window = [c.startDate ? fmtDate(c.startDate) : "—", c.endDate ? fmtDate(c.endDate) : "No end"].join(" → ");
+    const restr = [
+      c.collection && c.collection !== "All" ? c.collection : null,
+      c.product ? `Product: ${c.product}` : null,
+      c.tier && c.tier !== "All Members" ? c.tier : null,
+    ].filter(Boolean).join(" · ") || "No restrictions";
+    return `
+      <div class="s-list-item">
+        <div class="s-offer-badge"><span>${esc(c.code || "—")}</span></div>
+        <div class="s-list-item__main">
+          <strong>${esc(c.name || c.code)}</strong>
+          <span class="s-list-item__sub">${window} · ${restr}</span>
+          <span class="s-list-item__sub">Usage limit: ${c.usageLimit || "∞"} · Per customer: ${c.customerLimit || "∞"}</span>
+        </div>
+        <div class="s-list-item__actions">
+          <span class="s-badge ${c.active ? "s-badge--green" : ""}">${c.active ? "Active" : "Inactive"}</span>
+          <button class="s-btn s-btn--ghost s-btn--sm s-btn--icon" data-edit-coupon="${c.id}"><i data-lucide="pencil" class="s-icon"></i></button>
+          <button class="s-btn s-btn--ghost s-btn--sm s-btn--icon" data-del-coupon="${c.id}"><i data-lucide="trash-2" class="s-icon"></i></button>
+        </div>
+      </div>`;
+  }
+
+  document.getElementById("sAddCoupon")?.addEventListener("click", () => openCouponPanel());
+  dom.content.querySelectorAll("[data-edit-coupon]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const c = load(STORAGE.coupons, []).find((x) => x.id === btn.dataset.editCoupon);
+      if (c) openCouponPanel(c);
+    });
+  });
+  dom.content.querySelectorAll("[data-del-coupon]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (!confirm("Delete this coupon?")) return;
+      save(STORAGE.coupons, load(STORAGE.coupons, []).filter((c) => c.id !== btn.dataset.delCoupon));
+      toast("Coupon removed");
+      renderCoupons();
+    });
+  });
+
+  function openCouponPanel(coupon = null) {
+    const isNew = !coupon;
+    const c = coupon || { id: uid(), name: "", code: "", startDate: "", endDate: "", usageLimit: "", customerLimit: "", collection: "All", product: "", tier: "All Members", active: true };
+    openPanel(isNew ? "New Coupon" : "Edit Coupon", `
+      <div class="s-form-grid">
+        ${field("Coupon Name", "text", "cpName", c.name, "e.g. Inner Circle Access")}
+        ${field("Coupon Code", "text", "cpCode", c.code, "e.g. INNERCIRCLE")}
+        ${field("Start Date", "date", "cpStart", c.startDate || "", "")}
+        ${field("End Date", "date", "cpEnd", c.endDate || "", "")}
+        ${field("Usage Limit (total)", "number", "cpUsage", c.usageLimit || "", "optional")}
+        ${field("Customer Limit (per member)", "number", "cpCustomer", c.customerLimit || "", "optional")}
+        <label class="s-field">
+          <span class="s-field__label">Collection Restriction</span>
+          <select id="cpCollection" class="s-field__select">
+            <option value="All" ${c.collection === "All" ? "selected" : ""}>All collections</option>
+            ${CATEGORIES.map((cat) => `<option value="${cat}" ${c.collection === cat ? "selected" : ""}>${cat}</option>`).join("")}
+          </select>
+        </label>
+        ${field("Product Restriction", "text", "cpProduct", c.product || "", "optional — product id or name")}
+        <label class="s-field">
+          <span class="s-field__label">Member Tier Restriction</span>
+          <select id="cpTier" class="s-field__select">
+            ${COUPON_TIERS.map((t) => `<option value="${t}" ${c.tier === t ? "selected" : ""}>${t}</option>`).join("")}
+          </select>
+        </label>
+        <div class="s-field s-field--full s-toggle-row">
+          <span class="s-field__label">Active</span>
+          <label class="s-toggle">
+            <input type="checkbox" id="cpActive" ${c.active ? "checked" : ""} />
+            <span class="s-toggle__track"></span>
+          </label>
+        </div>
+      </div>
+    `, () => {
+      const code = val("cpCode").toUpperCase().replace(/\s+/g, "");
+      if (!code) { toast("Coupon code is required", "error"); return; }
+      const start = val("cpStart"), end = val("cpEnd");
+      if (start && end && new Date(end) < new Date(start)) { toast("End date must be after start date", "error"); return; }
+      const updated = {
+        ...c, name: val("cpName") || code, code,
+        startDate: start, endDate: end,
+        usageLimit: val("cpUsage"), customerLimit: val("cpCustomer"),
+        collection: val("cpCollection"), product: val("cpProduct").trim(),
+        tier: val("cpTier"), active: !!document.getElementById("cpActive")?.checked,
+        updatedAt: new Date().toISOString(),
+      };
+      const list = load(STORAGE.coupons, []);
+      if (list.some((x) => x.code === code && x.id !== c.id)) { toast("That code already exists", "error"); return; }
+      const idx = list.findIndex((x) => x.id === c.id);
+      if (idx >= 0) list[idx] = updated; else list.unshift(updated);
+      save(STORAGE.coupons, list);
+      closePanel();
+      toast(isNew ? "Coupon created 💛" : "Coupon updated");
+      renderCoupons();
+    });
+  }
+}
+
+/* ── COMMERCE: Automated Discount Rules — Part 7 ──────────────── */
+const RULE_TRIGGERS = ["Buy 2 Items", "Buy 3 Items", "Festival Collection", "Inner Circle Access", "First Order", "Cart Over ₹5,000"];
+function renderRules() {
+  setTitle("Automated Rules", `
+    <button class="s-btn s-btn--primary s-btn--sm" id="sAddRule">
+      <i data-lucide="plus" class="s-icon"></i> New Rule
+    </button>
+  `);
+  const rules = load(STORAGE.rules, []);
+  dom.content.innerHTML = `
+    <div class="s-zone-header s-zone-header--commerce">
+      <i data-lucide="git-branch" class="s-icon"></i>
+      <span>Automated Discount Rules</span>
+    </div>
+    <div class="s-list" id="sRuleList">
+      ${rules.length ? rules.map(ruleRow).join("") : empty("No rules yet. e.g. Buy 2 Items → 5% Benefit, Inner Circle Access → Member Pricing.", "git-branch")}
+    </div>
+  `;
+
+  function ruleRow(r) {
+    return `
+      <div class="s-list-item">
+        <div class="s-list-item__main">
+          <strong>${esc(r.name || "Rule")}</strong>
+          <span class="s-list-item__sub"><b>${esc(r.trigger || "—")}</b> → ${esc(r.benefit || "—")}</span>
+        </div>
+        <div class="s-list-item__actions">
+          <span class="s-badge ${r.active ? "s-badge--green" : ""}">${r.active ? "Active" : "Inactive"}</span>
+          <button class="s-btn s-btn--ghost s-btn--sm s-btn--icon" data-edit-rule="${r.id}"><i data-lucide="pencil" class="s-icon"></i></button>
+          <button class="s-btn s-btn--ghost s-btn--sm s-btn--icon" data-del-rule="${r.id}"><i data-lucide="trash-2" class="s-icon"></i></button>
+        </div>
+      </div>`;
+  }
+
+  document.getElementById("sAddRule")?.addEventListener("click", () => openRulePanel());
+  dom.content.querySelectorAll("[data-edit-rule]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const r = load(STORAGE.rules, []).find((x) => x.id === btn.dataset.editRule);
+      if (r) openRulePanel(r);
+    });
+  });
+  dom.content.querySelectorAll("[data-del-rule]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (!confirm("Delete this rule?")) return;
+      save(STORAGE.rules, load(STORAGE.rules, []).filter((r) => r.id !== btn.dataset.delRule));
+      toast("Rule removed");
+      renderRules();
+    });
+  });
+
+  function openRulePanel(rule = null) {
+    const isNew = !rule;
+    const r = rule || { id: uid(), name: "", trigger: "Buy 2 Items", benefit: "", active: true };
+    openPanel(isNew ? "New Rule" : "Edit Rule", `
+      <div class="s-form-grid">
+        ${field("Rule Name", "text", "rlName", r.name, "e.g. Two-Piece Benefit")}
+        <label class="s-field">
+          <span class="s-field__label">Trigger</span>
+          <select id="rlTrigger" class="s-field__select">
+            ${RULE_TRIGGERS.map((t) => `<option value="${t}" ${r.trigger === t ? "selected" : ""}>${t}</option>`).join("")}
+          </select>
+        </label>
+        ${field("Benefit", "text", "rlBenefit", r.benefit || "", "e.g. 5% Benefit or Member Pricing")}
+        <div class="s-field s-field--full s-toggle-row">
+          <span class="s-field__label">Active</span>
+          <label class="s-toggle">
+            <input type="checkbox" id="rlActive" ${r.active ? "checked" : ""} />
+            <span class="s-toggle__track"></span>
+          </label>
+        </div>
+      </div>
+    `, () => {
+      const name = val("rlName");
+      if (!name) { toast("Rule name is required", "error"); return; }
+      const updated = { ...r, name, trigger: val("rlTrigger"), benefit: val("rlBenefit"), active: !!document.getElementById("rlActive")?.checked, updatedAt: new Date().toISOString() };
+      const list = load(STORAGE.rules, []);
+      const idx = list.findIndex((x) => x.id === r.id);
+      if (idx >= 0) list[idx] = updated; else list.unshift(updated);
+      save(STORAGE.rules, list);
+      closePanel();
+      toast(isNew ? "Rule created 💛" : "Rule updated");
+      renderRules();
+    });
+  }
+}
+
 /* ── HER CIRCLE: Reviews ─────────────────────────────────────── */
 function renderReviews() {
   setTitle("Reviews", `
@@ -2300,6 +2508,45 @@ function renderAnalytics() {
   });
   const maxMonthly = Math.max(...Object.values(monthlyData), 1);
 
+  /* ── Savings analytics (Part 9) ──────────────────────────────────────── */
+  const nowS = new Date();
+  const startTodayS = new Date(); startTodayS.setHours(0, 0, 0, 0);
+  const weekAgoS = nowS.getTime() - 7 * 864e5;
+  const sv = { today: 0, week: 0, month: 0, year: 0, life: 0 };
+  orders.forEach((o) => {
+    const s = Number(o.savings) || 0; if (s <= 0) return;
+    sv.life += s;
+    const d = new Date(o.createdAt || o.updatedAt || nowS);
+    if (d >= startTodayS) sv.today += s;
+    if (d.getTime() >= weekAgoS) sv.week += s;
+    if (d.getMonth() === nowS.getMonth() && d.getFullYear() === nowS.getFullYear()) sv.month += s;
+    if (d.getFullYear() === nowS.getFullYear()) sv.year += s;
+  });
+  const coupons      = load(STORAGE.coupons, []);
+  const topCoupons   = [...coupons].sort((a, b) => (b.uses || 0) - (a.uses || 0)).filter((c) => c.code).slice(0, 5);
+  const campaignsA   = load(STORAGE.campaigns, []);
+  const topCampaigns = [...campaignsA].slice(0, 5);
+  const prodById     = {}; products.forEach((p) => { prodById[p.id] = p; });
+  const catSavings   = {};
+  orders.forEach((o) => {
+    const s = Number(o.savings) || 0;
+    if (s <= 0 || !Array.isArray(o.items) || !o.items.length) return;
+    const units = o.items.reduce((a, it) => a + (it.quantity || 1), 0) || 1;
+    const per = s / units;
+    o.items.forEach((it) => {
+      const cat = (prodById[it.id] || {}).category || "Other";
+      catSavings[cat] = (catSavings[cat] || 0) + per * (it.quantity || 1);
+    });
+  });
+  const topCats = Object.entries(catSavings).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const custSavings = {};
+  orders.forEach((o) => {
+    const s = Number(o.savings) || 0; if (s <= 0) return;
+    const key = o.customerName || o.customerEmail || o.customerPhone || "Guest";
+    custSavings[key] = (custSavings[key] || 0) + s;
+  });
+  const topCust = Object.entries(custSavings).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
   dom.content.innerHTML = `
     <div class="s-zone-header s-zone-header--intel">
       <i data-lucide="bar-chart-2" class="s-icon"></i>
@@ -2311,7 +2558,44 @@ function renderAnalytics() {
       ${stat("shopping-bag", "Avg Order Value",  fmtCurrency(Math.round(avgOrder)), "s-stat--blue")}
       ${stat("users",        "Her Circle",       customers.length,               "s-stat--purple")}
     </div>
+    <div class="s-zone-header s-zone-header--commerce" style="margin-top:1.5rem">
+      <i data-lucide="gift" class="s-icon"></i>
+      <span>Savings Provided</span>
+    </div>
+    <div class="s-stats-row">
+      ${stat("gift",       "Today",      fmtCurrency(sv.today), "s-stat--gold")}
+      ${stat("calendar",   "This Week",  fmtCurrency(sv.week),  "s-stat--blue")}
+      ${stat("calendar",   "This Month", fmtCurrency(sv.month), "s-stat--green")}
+      ${stat("calendar",   "This Year",  fmtCurrency(sv.year),  "s-stat--purple")}
+    </div>
+    <div class="s-stats-row">
+      ${stat("trending-up", "Lifetime Savings Provided", fmtCurrency(sv.life), "s-stat--gold")}
+    </div>
     <div class="s-analytics-grid">
+      <div class="s-card">
+        <h3 class="s-card__title">Most Used Coupons</h3>
+        ${topCoupons.length ? `<div class="s-rank-list">${topCoupons.map((c) => `
+          <div class="s-rank-row"><span class="s-rank-row__name">${esc(c.code)}</span><span class="s-rank-row__val">${c.uses || 0} uses</span></div>`).join("")}</div>`
+          : empty("No coupons created yet.", "ticket")}
+      </div>
+      <div class="s-card">
+        <h3 class="s-card__title">Top Performing Campaigns</h3>
+        ${topCampaigns.length ? `<div class="s-rank-list">${topCampaigns.map((c) => `
+          <div class="s-rank-row"><span class="s-rank-row__name">${esc(c.title || c.name || "Campaign")}</span><span class="s-rank-row__val">${c.active ? "Active" : "—"}</span></div>`).join("")}</div>`
+          : empty("No campaigns yet.", "megaphone")}
+      </div>
+      <div class="s-card">
+        <h3 class="s-card__title">Top Benefit Collections</h3>
+        ${topCats.length ? `<div class="s-rank-list">${topCats.map(([cat, amt]) => `
+          <div class="s-rank-row"><span class="s-rank-row__name">${esc(cat)}</span><span class="s-rank-row__val">${fmtCurrency(Math.round(amt))}</span></div>`).join("")}</div>`
+          : empty("Savings by collection appears as orders arrive.", "layers")}
+      </div>
+      <div class="s-card">
+        <h3 class="s-card__title">Customer Savings Leaderboard <span class="s-card__hint">(admin only)</span></h3>
+        ${topCust.length ? `<div class="s-rank-list">${topCust.map(([name, amt], i) => `
+          <div class="s-rank-row"><span class="s-rank-row__name">${i + 1}. ${esc(name)}</span><span class="s-rank-row__val">${fmtCurrency(Math.round(amt))}</span></div>`).join("")}</div>`
+          : empty("No member savings recorded yet.", "users")}
+      </div>
       <div class="s-card">
         <h3 class="s-card__title">Revenue — Last 6 Months</h3>
         <div class="s-bar-chart">
