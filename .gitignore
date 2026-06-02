@@ -1,0 +1,15 @@
+# ── Local tooling / caches (never deploy) ───────────────────────────
+.claude/
+.wrangler/
+node_modules/
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# ── Source / scratch art (not referenced by the live site) ───────────
+# Brand source files & generated image scratch live only on local disk.
+# The deployed site references ./assets/** exclusively. Keeping these out
+# of the production deploy branch avoids shipping ~42MB of unused public
+# files. If off-machine backup is wanted, archive them separately.
+Logo/
+Website Image/
