@@ -16672,3 +16672,61 @@ html[data-theme="dark"] .story-card h3 {
     padding-inline: 8px;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   RC-8 — Targeted layout corrections (QA screenshots)
+   1) Floating nav: center orb icons; stop "Your Space" clipping
+   2) Mood editorial: restore visible container on desktop
+   3) Her Story cards: equal height
+   5) Her Circle: give side testimonials a card container + equal height
+   (Issue 4 "remove quote ornament" handled in index.html markup.)
+   ════════════════════════════════════════════════════════════════════ */
+
+/* 1a — orb buttons (theme toggle, cart): center the glyph inside the circle */
+.orb-button {
+  display:         flex !important;
+  align-items:     center !important;
+  justify-content: center !important;
+}
+
+/* 1b — desktop floating nav: tighten link spacing so all items (incl.
+   "Your Space") fit inside the pill without overflow/clipping. */
+@media (min-width: 1024px) {
+  .site-header.is-scrolled .bottom-dock { gap: 2px !important; }
+  .site-header.is-scrolled .bottom-dock .dock-link {
+    padding-left:  10px !important;
+    padding-right: 10px !important;
+  }
+}
+
+/* 3 — Her Story cards: equal height across the row */
+.story-grid { align-items: stretch !important; }
+.story-card { height: 100% !important; }
+
+/* 5 — Her Circle: side (non-featured) testimonials were stripped of card
+   styling. Restore a contained light card so all three read as cards, and
+   stretch the row so the trio is uniform. Featured stays emerald-emphasised. */
+.testimonial-grid { align-items: stretch !important; }
+.testimonial-card:not(.testimonial-card--featured) {
+  background:      var(--card-bg) !important;
+  border:          1px solid var(--line) !important;
+  box-shadow:      0 2px 20px rgba(0, 0, 0, 0.055) !important;
+  border-radius:   var(--radius-xl) !important;
+  padding:         clamp(1.6rem, 3vh, 2.2rem) clamp(1.4rem, 3vw, 2rem) !important;
+  backdrop-filter: none !important;
+  height:          100% !important;
+}
+
+/* 2 — Mood editorial ("For Slower Mornings"): the desktop layout stripped
+   the card, leaving the copy reading as loose, uncontained text. Restore the
+   visible container (matches its mobile treatment) so the content sits inside
+   a defined box. Grid columns are fr-based and reflow within the padding. */
+@media (min-width: 1024px) {
+  #moodEditorial.mood-editorial,
+  .mood-editorial {
+    background:    var(--paper-soft) !important;
+    border:        1px solid var(--line) !important;
+    border-radius: var(--radius-lg) !important;
+    padding:       clamp(1.5rem, 2.4vw, 1.9rem) clamp(1.6rem, 2.6vw, 2rem) !important;
+  }
+}
