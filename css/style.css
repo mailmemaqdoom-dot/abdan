@@ -16893,3 +16893,74 @@ html[data-theme="dark"] .space-entry-grid > .space-gift-visual::after {
   font-size:     1.02rem;
   color:         var(--gold, #c5a13b);
 }
+
+/* RC-10 Phase 4 — Your Space "My Savings" + Circle Benefits.
+   Calm editorial cards, gold accent; deliberately not gamified. */
+.sp-savings { margin: 1.5rem 0; }
+.sp-savings__kicker {
+  font-size:      0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color:          var(--text-soft);
+  margin:         0 0 0.9rem;
+}
+.sp-savings__grid {
+  display:               grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap:                   0.8rem;
+}
+.sp-savings__card {
+  display:        flex;
+  flex-direction: column;
+  gap:            0.3rem;
+  padding:        1.1rem 1rem;
+  border:         1px solid var(--line);
+  border-radius:  var(--radius-lg, 1rem);
+  background:     color-mix(in srgb, var(--gold, #c5a13b) 3%, transparent);
+}
+.sp-savings__card--lifetime {
+  background:   color-mix(in srgb, var(--gold, #c5a13b) 9%, transparent);
+  border-color: color-mix(in srgb, var(--gold, #c5a13b) 32%, transparent);
+}
+.sp-savings__value {
+  font-family:    var(--font-display, inherit);
+  font-size:      1.5rem;
+  font-weight:    500;
+  letter-spacing: -0.02em;
+  color:          var(--text-main);
+}
+.sp-savings__label {
+  font-size:      0.74rem;
+  letter-spacing: 0.06em;
+  color:          var(--text-soft);
+}
+.sp-circle-benefit {
+  margin-top:    1rem;
+  padding:       1.4rem 1.5rem;
+  border-radius: var(--radius-lg, 1rem);
+  border:        1px solid color-mix(in srgb, var(--gold, #c5a13b) 28%, transparent);
+  background:    color-mix(in srgb, var(--gold, #c5a13b) 6%, transparent);
+  text-align:    center;
+}
+.sp-circle-benefit__label {
+  font-size:      0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color:          var(--text-soft);
+  margin:         0 0 0.4rem;
+}
+.sp-circle-benefit__value {
+  font-family:    var(--font-display, inherit);
+  font-size:      2.1rem;
+  font-weight:    500;
+  letter-spacing: -0.02em;
+  color:          var(--gold, #c5a13b);
+  margin:         0;
+}
+.sp-circle-benefit__note {
+  font-family: var(--font-editorial, inherit);
+  font-style:  italic;
+  font-size:   0.9rem;
+  color:       var(--text-soft);
+  margin:      0.5rem 0 0;
+}

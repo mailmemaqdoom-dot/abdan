@@ -1955,6 +1955,37 @@ function renderSpaceProfile(email) {
    ════════════════════════════════════════════════════════════════════════════ */
 
 /* ── renderSpaceOverview ─────────────────────────────────────────────────── */
+/* Aggregate a member's order savings by time period (Parts 4 & 5).
+   Matches orders by phone or email. Circle Benefits = lifetime value received. */
+function abdanMemberSavings(profile) {
+  let orders = [];
+  try { orders = JSON.parse(localStorage.getItem("abdan-studio-orders") || "[]"); } catch { orders = []; }
+  const email  = String(profile.email || "").toLowerCase();
+  const fullP  = (typeof getSpaceProfiles === "function" ? getSpaceProfiles() : {})[email] || {};
+  const phones = [profile.phone, fullP.phone].map((p) => String(p || "").replace(/\D/g, "")).filter(Boolean);
+  const mine = orders.filter((o) => {
+    const op = String(o.customerPhone || "").replace(/\D/g, "");
+    const oe = String(o.customerEmail || "").toLowerCase();
+    return (op && phones.includes(op)) || (email && oe === email);
+  });
+  const nowD = new Date();
+  const startToday = new Date(); startToday.setHours(0, 0, 0, 0);
+  const weekAgo = nowD.getTime() - 7 * 864e5;
+  const acc = { today: 0, week: 0, month: 0, year: 0, life: 0 };
+  mine.forEach((o) => {
+    const s = Number(o.savings) || 0;
+    if (s <= 0) return;
+    acc.life += s;
+    const d = new Date(o.createdAt || o.updatedAt || nowD);
+    if (d >= startToday) acc.today += s;
+    if (d.getTime() >= weekAgo) acc.week += s;
+    if (d.getMonth() === nowD.getMonth() && d.getFullYear() === nowD.getFullYear()) acc.month += s;
+    if (d.getFullYear() === nowD.getFullYear()) acc.year += s;
+  });
+  acc.circle = acc.life;   /* Circle Benefits received (tangible value) */
+  return acc;
+}
+
 function renderSpaceOverview(profile) {
   const panel = document.getElementById("spaceOverviewPanel");
   if (!panel) return;
@@ -2056,6 +2087,36 @@ function renderSpaceOverview(profile) {
           <p class="sp-delivered-note__body">${deliveredCount79 === 1 ? "A piece" : `${deliveredCount79} pieces`} reached you.</p>
         </div>
       </div>` : ""}
+
+      ${(() => {
+        /* Parts 4 & 5 — My Savings + Circle Benefits (editorial, not gamified) */
+        const sv = abdanMemberSavings(profile);
+        if (sv.life <= 0) return "";
+        const fc = (n) => formatCurrency(n);
+        const cards = [
+          { label: "Today",      value: sv.today },
+          { label: "This Week",  value: sv.week },
+          { label: "This Month", value: sv.month },
+          { label: "This Year",  value: sv.year },
+          { label: "Lifetime",   value: sv.life },
+        ];
+        return `
+        <section class="sp-savings" aria-label="My Savings">
+          <p class="sp-savings__kicker">My Savings</p>
+          <div class="sp-savings__grid">
+            ${cards.map((c) => `
+              <div class="sp-savings__card${c.label === "Lifetime" ? " sp-savings__card--lifetime" : ""}">
+                <span class="sp-savings__value">${fc(c.value)}</span>
+                <span class="sp-savings__label">${c.label}</span>
+              </div>`).join("")}
+          </div>
+          <div class="sp-circle-benefit">
+            <p class="sp-circle-benefit__label">Circle Benefits Received</p>
+            <p class="sp-circle-benefit__value">${fc(sv.circle)}</p>
+            <p class="sp-circle-benefit__note">Savings, member-only pricing, and quiet access — held for you, with care. 💛</p>
+          </div>
+        </section>`;
+      })()}
 
       <!-- S86 — Large editorial luxury action cards -->
       <div class="sp-action-grid">
