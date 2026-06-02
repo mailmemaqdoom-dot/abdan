@@ -2257,3 +2257,29 @@ html { overflow-x: hidden; }
   line-height: 1;
 }
 .s-tabbar .s-nav-badge { position: absolute; top: 4px; right: 18px; margin: 0; }
+
+/* RC-10 — Premium Pricing: live savings auto-calculation preview in the
+   product form. Hidden until a genuine saving exists. */
+.s-savings-preview { display: none; }
+.s-savings-preview.is-active {
+  display:        flex;
+  flex-direction: column;
+  gap:            0.35rem;
+  padding:        0.8rem 1rem;
+  border:         1.5px solid var(--s-border);
+  border-radius:  var(--s-r-sm);
+  background:     color-mix(in srgb, #c5a13b 7%, var(--s-bg));
+}
+.s-savings-preview__row {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     baseline;
+  font-size:       0.85rem;
+  color:           var(--s-text);
+}
+.s-savings-preview__row strong { color: #c5a13b; font-weight: 700; }
+.s-savings-preview__note {
+  font-size:      0.74rem;
+  color:          var(--s-text-dim);
+  letter-spacing: 0.02em;
+}

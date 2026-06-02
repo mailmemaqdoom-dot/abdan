@@ -16804,3 +16804,67 @@ html[data-theme="dark"] .space-entry-grid > .space-gift-visual::after {
   -webkit-backdrop-filter:  blur(8px);
   border-color:             color-mix(in srgb, var(--line) 70%, transparent) !important;
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   RC-10 — Premium Savings & Benefits System (Phase 1: pricing, badges,
+   transparency). Editorial language only — never sale/deal styling.
+   ════════════════════════════════════════════════════════════════════ */
+/* Product card price with compare-at saving */
+.product-card__price-soft--saver {
+  display:        flex;
+  flex-direction: column;
+  gap:            0.08rem;
+  line-height:    1.22;
+}
+.product-card__price-soft--saver .price-was {
+  font-size:               0.72em;
+  color:                   var(--text-soft);
+  text-decoration:         line-through;
+  text-decoration-thickness: 1px;
+  opacity:                 0.7;
+}
+.product-card__price-soft--saver .price-now { font-weight: 600; }
+.product-card__price-soft--saver .price-save {
+  font-size:      0.62em;
+  letter-spacing: 0.03em;
+  color:          var(--gold, #c5a13b);
+}
+/* Editorial badge chip */
+.abdan-badge {
+  display:        inline-block;
+  font-size:      0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding:        0.3em 0.72em;
+  border-radius:  999px;
+  border:         1px solid color-mix(in srgb, var(--gold, #c5a13b) 42%, transparent);
+  color:          var(--gold, #c5a13b);
+  background:     color-mix(in srgb, var(--gold, #c5a13b) 8%, transparent);
+  white-space:    nowrap;
+}
+.abdan-badge--card  { align-self: flex-start; margin: 0 0 0.45rem; }
+.abdan-badge--sheet { margin-left: 0.6rem; vertical-align: middle; }
+/* Product page savings + transparency block */
+.product-price.is-saver { margin-bottom: 0.55rem; }
+.product-savings { margin: 0.3rem 0 1.1rem; }
+.product-savings__rows {
+  display:       grid;
+  gap:           0.42rem;
+  max-width:     23rem;
+  padding:       0.95rem 1.15rem;
+  border:        1px solid var(--line);
+  border-radius: var(--radius-lg, 1rem);
+  background:    color-mix(in srgb, var(--gold, #c5a13b) 4%, transparent);
+}
+.product-savings__row {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     baseline;
+  gap:             1rem;
+  font-size:       0.92rem;
+  color:           var(--text-soft);
+}
+.product-savings__was { text-decoration: line-through; opacity: 0.7; }
+.product-savings__now { color: var(--text-main); font-weight: 600; }
+.product-savings__row--accent { color: var(--text-main); }
+.product-savings__row--accent strong { color: var(--gold, #c5a13b); font-weight: 700; }

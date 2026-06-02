@@ -786,6 +786,69 @@ function formatCurrency(value) {
   return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(value);
 }
 
+/* ── Premium Savings System ─────────────────────────────────────────────
+   Shared, honest savings math. Returns null when there is no genuine saving.
+   Reads numeric `price`/`comparePrice` first, falling back to the priceLabel
+   string so both admin-set and built-in products are covered.            */
+function abdanSavings(product) {
+  if (!product) return null;
+  const toNum = (v) => {
+    if (v === null || v === undefined) return NaN;
+    const m = String(v).replace(/[^\d.]/g, "");
+    return m ? parseFloat(m) : NaN;
+  };
+  let cur = toNum(product.price);
+  if (!isFinite(cur)) cur = getNumericPrice(product.priceLabel || "");
+  const cmp = toNum(product.comparePrice);
+  if (!isFinite(cur) || !isFinite(cmp) || cmp <= cur || cur <= 0) return null;
+  const amount = Math.round(cmp - cur);
+  const pct = Math.floor((amount / cmp) * 100);   /* conservative — never overstates */
+  return { current: cur, compare: cmp, amount, pct };
+}
+
+/* Overlay admin (studio) pricing onto the catalogue so admin edits — current
+   price, compare-at price and badge — drive the storefront. Runs once per load
+   (PRODUCTS starts fresh each load, so this is idempotent). */
+let _abdanStudioApplied = false;
+function applyStudioOverrides() {
+  if (_abdanStudioApplied) return;
+  _abdanStudioApplied = true;
+  let studio = [];
+  try { studio = JSON.parse(localStorage.getItem("abdan-studio-products") || "[]"); }
+  catch { return; }
+  if (!Array.isArray(studio)) return;
+  studio.forEach((sp) => {
+    const p = PRODUCTS.find((x) => x.id === sp.id);
+    if (!p) return;
+    if (sp.badge) p.badge = sp.badge;
+    const sv = abdanSavings({ price: sp.price, comparePrice: sp.comparePrice });
+    if (sv) {
+      p.price        = sv.current;
+      p.comparePrice = sv.compare;
+      p.priceLabel   = formatCurrency(sv.current);
+    }
+  });
+}
+
+/* Compact price markup for product cards — elegant strikethrough + saving. */
+function abdanCardPriceHtml(product) {
+  const s = abdanSavings(product);
+  if (!s) return `<span class="product-card__price-soft">${product.priceLabel || formatCurrency(s ? s.current : 0)}</span>`;
+  return `
+    <span class="product-card__price-soft product-card__price-soft--saver">
+      <span class="price-was">${formatCurrency(s.compare)}</span>
+      <span class="price-now">${formatCurrency(s.current)}</span>
+      <span class="price-save">Save ${formatCurrency(s.amount)} · ${s.pct}%</span>
+    </span>`;
+}
+
+/* Elegant editorial badge chip (Premium Product Badges). */
+function abdanBadgeHtml(product, variant) {
+  const b = product && product.badge;
+  if (!b) return "";
+  return `<span class="abdan-badge abdan-badge--${variant || "card"}">${b}</span>`;
+}
+
 function showToast(message, duration = 2800) {
   let toast = document.getElementById("abdan-toast");
   if (!toast) {
@@ -2518,6 +2581,7 @@ const EDITORIAL_PAUSES = [
 ];
 
 function renderProducts() {
+  applyStudioOverrides();
   const filteredProducts = state.filter === "All"
     ? PRODUCTS
     : PRODUCTS.filter((product) => product.primaryTag === state.filter);
@@ -2555,10 +2619,11 @@ function renderProducts() {
             <!-- Story layer: floats over cinematic gradient -->
             <div class="product-card__story">
               <span class="product-card__emotion-chip">${product.primaryTag}</span>
+              ${abdanBadgeHtml(product, "card")}
               <h3 class="product-card__title">${product.name}</h3>
               <p class="product-card__verse">${verse}</p>
               <div class="product-card__quiet-row">
-                <span class="product-card__price-soft">${product.priceLabel}</span>
+                ${abdanCardPriceHtml(product)}
                 <button class="product-card__cta" type="button" data-preview="${product.id}">
                   ${ctaLabel}
                   <svg viewBox="0 0 24 24" aria-hidden="true" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -2810,6 +2875,47 @@ function openProduct(productId) {
   dom.productTag.textContent = product.primaryTag;
   dom.productName.textContent = product.name;
   dom.productPrice.textContent = product.priceLabel;
+
+  /* ── Premium savings & transparency block on the product page ──────────
+     Shows Original / Current / Savings amount / Savings %. Removed cleanly
+     when the piece carries no compare-at price (keeps presentation honest). */
+  {
+    const sv = abdanSavings(product);
+    let block = document.getElementById("productSavings");
+    let badgeEl = document.getElementById("productBadgeChip");
+    /* Editorial badge chip beside the tag */
+    if (!badgeEl && dom.productTag && dom.productTag.parentNode) {
+      badgeEl = document.createElement("span");
+      badgeEl.id = "productBadgeChip";
+      dom.productTag.parentNode.insertBefore(badgeEl, dom.productTag.nextSibling);
+    }
+    if (badgeEl) {
+      badgeEl.innerHTML = product.badge
+        ? `<span class="abdan-badge abdan-badge--sheet">${product.badge}</span>` : "";
+    }
+    if (sv) {
+      if (!block && dom.productPrice && dom.productPrice.parentNode) {
+        block = document.createElement("div");
+        block.id = "productSavings";
+        block.className = "product-savings";
+        dom.productPrice.parentNode.insertBefore(block, dom.productPrice.nextSibling);
+      }
+      if (block) {
+        dom.productPrice.classList.add("is-saver");
+        block.innerHTML = `
+          <div class="product-savings__rows">
+            <span class="product-savings__row"><span>Original Price</span><span class="product-savings__was">${formatCurrency(sv.compare)}</span></span>
+            <span class="product-savings__row"><span>Current Price</span><span class="product-savings__now">${formatCurrency(sv.current)}</span></span>
+            <span class="product-savings__row product-savings__row--accent"><span>You Save</span><strong>${formatCurrency(sv.amount)}</strong></span>
+            <span class="product-savings__row product-savings__row--accent"><span>Savings</span><strong>${sv.pct}%</strong></span>
+          </div>`;
+        block.hidden = false;
+      }
+    } else {
+      dom.productPrice.classList.remove("is-saver");
+      if (block) { block.innerHTML = ""; block.hidden = true; }
+    }
+  }
   if (dom.productIntro) dom.productIntro.textContent = product.curationLine || "";
   dom.productDescription.textContent = product.description;
   dom.productSoul.textContent = product.soul;

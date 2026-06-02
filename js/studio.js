@@ -113,6 +113,26 @@ const STORAGE = {
 const CATEGORIES = ["Everyday Grace","Modest Essence","Festive Glow","Workflow Elegance","Soft Statement","Evening Calm"];
 const SIZES      = ["XS","S","M","L","XL","XXL","Free Size"];
 const STATUS_OPTIONS = ["active","draft","sold-out","archived"];
+/* Premium product badges — editorial language only (no sale/discount wording). */
+const ABDAN_BADGES = [
+  "Limited Collection","Curated Selection","Circle Benefit","Member Advantage",
+  "Seasonal Edit","Early Access","New Arrival","Handpicked",
+  "Festival Selection","Exclusive Release",
+];
+/* Shared savings math — single source of truth for current/compare pricing.
+   Returns null when there is no genuine saving (keeps display honest). */
+function abdanSavings(price, comparePrice) {
+  const toNum = (v) => {
+    if (v === null || v === undefined) return NaN;
+    const m = String(v).replace(/[^\d.]/g, "");
+    return m ? parseFloat(m) : NaN;
+  };
+  const cur = toNum(price), cmp = toNum(comparePrice);
+  if (!isFinite(cur) || !isFinite(cmp) || cmp <= cur) return null;
+  const amount = Math.round(cmp - cur);
+  const pct = Math.floor((amount / cmp) * 100);   /* conservative — never overstates */
+  return { current: cur, compare: cmp, amount, pct };
+}
 
 /* ── Default data ───────────────────────────────────────────── */
 const DEFAULT_SETTINGS = {
@@ -617,7 +637,7 @@ function bindProductCards() {
 function openProductForm(product = null) {
   const isNew = !product;
   const p = product || {
-    id: uid(), name: "", price: "", comparePrice: "", category: "", sizes: [],
+    id: uid(), name: "", price: "", comparePrice: "", badge: "", category: "", sizes: [],
     image: "", image2: "", image3: "", description: "", curationLine: "",
     inStock: true, status: "active", tags: "", featured: false, updatedAt: new Date().toISOString(),
   };
@@ -625,8 +645,16 @@ function openProductForm(product = null) {
   openPanel(isNew ? "Add Piece" : "Edit Piece", `
     <div class="s-form-grid">
       ${field("Product Name", "text", "pfName", p.name, "e.g. Amal Abaya in Ivory")}
-      ${field("Price (₹)", "number", "pfPrice", p.price, "0")}
-      ${field("Compare Price (₹)", "number", "pfCompare", p.comparePrice, "optional")}
+      ${field("Current Price (₹)", "number", "pfPrice", p.price, "0")}
+      ${field("Compare At Price (₹)", "number", "pfCompare", p.comparePrice, "optional")}
+      <div class="s-field s-field--full s-savings-preview" id="pfSavingsPreview" aria-live="polite"></div>
+      <label class="s-field">
+        <span class="s-field__label">Badge</span>
+        <select id="pfBadge" class="s-field__select">
+          <option value="">No badge</option>
+          ${ABDAN_BADGES.map((b) => `<option value="${b}" ${p.badge === b ? "selected" : ""}>${b}</option>`).join("")}
+        </select>
+      </label>
       <label class="s-field">
         <span class="s-field__label">Category</span>
         <select id="pfCategory" class="s-field__select">
@@ -680,6 +708,7 @@ function openProductForm(product = null) {
       name,
       price:         val("pfPrice"),
       comparePrice:  val("pfCompare"),
+      badge:         val("pfBadge"),
       category:      val("pfCategory"),
       status:        val("pfStatus"),
       image:         val("pfImage"),
@@ -701,6 +730,24 @@ function openProductForm(product = null) {
     toast(isNew ? "Piece added 💛" : "Piece updated ✨");
     renderProducts();
   });
+
+  /* Live savings auto-calculation in the form (Premium Pricing System). */
+  const previewEl = document.getElementById("pfSavingsPreview");
+  const priceEl   = document.getElementById("pfPrice");
+  const cmpEl     = document.getElementById("pfCompare");
+  const renderSavingsPreview = () => {
+    if (!previewEl) return;
+    const s = abdanSavings(priceEl?.value, cmpEl?.value);
+    if (!s) { previewEl.innerHTML = ""; previewEl.classList.remove("is-active"); return; }
+    previewEl.classList.add("is-active");
+    previewEl.innerHTML = `
+      <span class="s-savings-preview__row"><span>Savings Amount</span><strong>${fmtCurrency(s.amount)}</strong></span>
+      <span class="s-savings-preview__row"><span>Savings</span><strong>${s.pct}%</strong></span>
+      <span class="s-savings-preview__note">${fmtCurrency(s.compare)} → ${fmtCurrency(s.current)} · You Save ${fmtCurrency(s.amount)}</span>`;
+  };
+  priceEl?.addEventListener("input", renderSavingsPreview);
+  cmpEl?.addEventListener("input", renderSavingsPreview);
+  renderSavingsPreview();
 }
 
 function confirmDelete(pid) {
