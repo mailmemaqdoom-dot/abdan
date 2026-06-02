@@ -17013,3 +17013,143 @@ html[data-theme="dark"] .space-entry-grid > .space-gift-visual::after {
   padding: 0 0.4rem;
   margin-right: auto;
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   MY WARDROBE — personal fashion archive (additive). Editorial, portrait,
+   cinematic spacing, soft transitions. Lives in the Your Space saved panel.
+   ════════════════════════════════════════════════════════════════════ */
+.ward-head { margin: 0.5rem 0 1.4rem; }
+.ward-head__kicker {
+  font-size: 0.7rem; letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--gold, #c5a13b); margin: 0 0 0.5rem;
+}
+.ward-head__title {
+  font-family: var(--font-display, serif); font-weight: 500;
+  font-size: clamp(1.7rem, 6vw, 2.3rem); letter-spacing: -0.02em;
+  margin: 0 0 0.5rem; color: var(--text-main);
+}
+.ward-head__intro {
+  font-family: var(--font-editorial, serif); font-style: italic;
+  font-size: 0.98rem; line-height: 1.5; color: var(--text-soft); margin: 0; max-width: 34rem;
+}
+.ward-subnav {
+  display: flex; gap: 0.4rem; overflow-x: auto; -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.5rem; margin-bottom: 1.4rem;
+  border-bottom: 1px solid var(--line); scrollbar-width: none;
+}
+.ward-subnav::-webkit-scrollbar { display: none; }
+.ward-subnav__btn {
+  flex: 0 0 auto; border: none; background: none; cursor: pointer;
+  font-size: 0.82rem; letter-spacing: 0.04em; color: var(--text-soft);
+  padding: 0.5rem 0.85rem; border-radius: 999px; white-space: nowrap;
+  transition: color 240ms ease, background 240ms ease;
+}
+.ward-subnav__btn.is-active {
+  color: var(--text-main);
+  background: color-mix(in srgb, var(--gold, #c5a13b) 12%, transparent);
+}
+.ward-body { animation: wardFade 360ms ease; }
+@keyframes wardFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .ward-body { animation: none; } }
+.ward-section { margin: 0 0 2rem; }
+.ward-section__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.ward-section__label {
+  font-family: var(--font-display, serif); font-size: 1.15rem; font-weight: 500;
+  letter-spacing: -0.01em; color: var(--text-main); margin: 0 0 0.2rem;
+}
+.ward-section__sub { font-size: 0.82rem; color: var(--text-soft); margin: 0 0 1rem; }
+.ward-grid {
+  display: grid; gap: clamp(0.7rem, 2.5vw, 1.1rem);
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+}
+.ward-piece {
+  display: flex; flex-direction: column; border-radius: var(--radius-lg, 1rem);
+  overflow: hidden; background: color-mix(in srgb, var(--gold, #c5a13b) 3%, transparent);
+  border: 1px solid var(--line); transition: transform 320ms cubic-bezier(0.16,1,0.3,1), box-shadow 320ms ease;
+}
+.ward-piece:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.08); }
+.ward-piece__img { position: relative; aspect-ratio: 3 / 4; overflow: hidden; }
+.ward-piece__img img { width: 100%; height: 100%; object-fit: cover; }
+.ward-piece__ph { width: 100%; height: 100%; background: linear-gradient(135deg, color-mix(in srgb, var(--gold,#c5a13b) 8%, transparent), transparent); }
+.ward-piece__body { padding: 0.7rem 0.8rem 0.85rem; }
+.ward-piece__name { font-size: 0.85rem; line-height: 1.3; color: var(--text-main); margin: 0; }
+.ward-piece__price { font-size: 0.78rem; color: var(--text-soft); margin: 0.25rem 0 0; }
+.ward-fav {
+  position: absolute; top: 0.5rem; right: 0.5rem; width: 2rem; height: 2rem;
+  border-radius: 50%; border: none; cursor: pointer; font-size: 1rem; line-height: 1;
+  display: grid; place-items: center; color: var(--gold, #c5a13b);
+  background: color-mix(in srgb, #fff 78%, transparent); backdrop-filter: blur(6px);
+  transition: transform 220ms ease;
+}
+.ward-fav:hover { transform: scale(1.1); }
+.ward-fav.is-fav { background: var(--gold, #c5a13b); color: #fff; }
+.ward-fav.is-remove { color: var(--text-soft); font-size: 1.1rem; }
+.ward-add-btn {
+  flex: 0 0 auto; border: 1px solid color-mix(in srgb, var(--gold,#c5a13b) 40%, transparent);
+  background: color-mix(in srgb, var(--gold,#c5a13b) 8%, transparent); color: var(--gold,#c5a13b);
+  border-radius: 999px; padding: 0.45rem 0.95rem; font-size: 0.78rem; letter-spacing: 0.03em; cursor: pointer;
+  transition: background 240ms ease;
+}
+.ward-add-btn:hover { background: color-mix(in srgb, var(--gold,#c5a13b) 16%, transparent); }
+.ward-form {
+  display: flex; flex-direction: column; gap: 0.6rem; margin: 0 0 1.2rem;
+  padding: 1rem; border: 1px solid var(--line); border-radius: var(--radius-lg, 1rem);
+  background: color-mix(in srgb, var(--gold,#c5a13b) 3%, transparent);
+}
+.ward-input {
+  padding: 0.6rem 0.8rem; border: 1px solid var(--line); border-radius: 0.6rem;
+  background: var(--surface, transparent); color: var(--text-main); font-size: 0.88rem; width: 100%;
+}
+.ward-upload {
+  display: inline-block; text-align: center; cursor: pointer;
+  padding: 0.6rem 0.8rem; border: 1px dashed color-mix(in srgb, var(--gold,#c5a13b) 45%, transparent);
+  border-radius: 0.6rem; color: var(--gold,#c5a13b); font-size: 0.82rem;
+}
+.ward-form__hint { font-size: 0.74rem; color: var(--text-soft); }
+.ward-save-btn {
+  align-self: flex-start; border: none; cursor: pointer; border-radius: 999px;
+  padding: 0.55rem 1.3rem; font-size: 0.8rem; letter-spacing: 0.04em;
+  background: var(--emerald, #023d3a); color: #fff; transition: opacity 220ms ease;
+}
+.ward-save-btn:disabled { opacity: 0.45; cursor: default; }
+.ward-looks, .ward-gallery {
+  display: grid; gap: clamp(0.7rem, 2.5vw, 1.1rem);
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+}
+.ward-look { border-radius: var(--radius-lg, 1rem); overflow: hidden; border: 1px solid var(--line); background: var(--surface, transparent); }
+.ward-look__img, .ward-mem { position: relative; aspect-ratio: 3 / 4; overflow: hidden; }
+.ward-look__img img, .ward-mem img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ward-look__tag {
+  position: absolute; left: 0.6rem; bottom: 0.6rem; font-size: 0.66rem; letter-spacing: 0.08em;
+  text-transform: uppercase; color: #fff; background: color-mix(in srgb, var(--emerald,#023d3a) 80%, transparent);
+  padding: 0.25rem 0.6rem; border-radius: 999px; backdrop-filter: blur(4px);
+}
+.ward-look__note { font-size: 0.8rem; color: var(--text-soft); margin: 0.5rem 0.7rem 0.8rem; font-style: italic; }
+.ward-mem { border-radius: var(--radius-lg, 1rem); border: 1px solid var(--line); }
+.ward-mem__cap {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: 1.2rem 0.6rem 0.5rem;
+  font-size: 0.7rem; color: #fff; background: linear-gradient(transparent, rgba(0,0,0,0.6));
+}
+.ward-mem__type { font-weight: 600; letter-spacing: 0.04em; }
+.ward-private { font-size: 0.66rem; color: var(--text-soft); letter-spacing: 0.04em; }
+.ward-pairings, .ward-notes { display: grid; gap: 0.8rem; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); }
+.ward-pairing, .ward-note {
+  position: relative; padding: 1.1rem 1.2rem; border-radius: var(--radius-lg, 1rem);
+  border: 1px solid var(--line); background: color-mix(in srgb, var(--gold,#c5a13b) 3%, transparent);
+}
+.ward-pairing__combo { font-family: var(--font-display, serif); font-size: 1.05rem; color: var(--text-main); margin: 0; }
+.ward-pairing__title { font-size: 0.8rem; color: var(--gold,#c5a13b); margin: 0.3rem 0 0; }
+.ward-pairing__note, .ward-note__text { font-size: 0.85rem; color: var(--text-soft); margin: 0.4rem 0 0; line-height: 1.5; }
+.ward-note__text { font-family: var(--font-editorial, serif); font-style: italic; }
+.ward-del {
+  position: absolute; top: 0.5rem; right: 0.5rem; width: 1.7rem; height: 1.7rem;
+  border-radius: 50%; border: none; cursor: pointer; font-size: 1rem; line-height: 1;
+  display: grid; place-items: center; color: var(--text-soft);
+  background: color-mix(in srgb, #fff 80%, transparent); backdrop-filter: blur(4px);
+}
+.ward-del--inline { background: none; backdrop-filter: none; }
+.ward-empty {
+  text-align: center; padding: 2rem 1rem; color: var(--text-soft);
+  font-family: var(--font-editorial, serif); font-style: italic; font-size: 0.95rem; line-height: 1.6;
+}
+.ward-empty .secondary-button { margin-top: 1rem; display: inline-block; font-style: normal; }

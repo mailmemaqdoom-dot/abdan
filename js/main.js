@@ -1172,6 +1172,14 @@ const SP_CONCIERGE_KEY = "abdan-sp-concierge";
 const SP_LOOKBOOK_KEY  = "abdan-sp-lookbook";
 const SP_JOURNAL_KEY   = "abdan-sp-journal";   /* §80 */
 const SP_THEME_KEY     = "abdan-sp-theme";     /* §80 */
+/* My Wardrobe ecosystem (additive) */
+const SP_WARD_FAVS     = "abdan-sp-ward-favs";     /* favourited purchased pieces */
+const SP_WARD_LOOKS    = "abdan-sp-ward-looks";    /* styled looks (photo + occasion) */
+const SP_WARD_PAIRINGS = "abdan-sp-ward-pairings"; /* outfit pairings */
+const SP_WARD_NOTES    = "abdan-sp-ward-notes";    /* private wardrobe notes */
+const SP_WARD_GALLERY  = "abdan-sp-ward-gallery";  /* private memory gallery */
+const WARD_OCCASIONS   = ["Wedding", "Temple Visit", "Eid", "Family Function", "Festive", "Everyday"];
+const WARD_GALLERY_TYPES = ["Unboxing", "Styling", "Occasion"];
 
 const SP_STYLE_IDENTITIES = [
   "Quiet Gold", "Temple Elegance", "Soft Minimal", "Monsoon Silk",
@@ -7004,87 +7012,304 @@ function updateSpaceTabBadges(email) {
 })();
 
 /* D-02 — My Wardrobe correction: differentiate purchases vs saved pieces */
+/* ════════════════════════════════════════════════════════════════════
+   MY WARDROBE — a personal fashion archive (additive ecosystem).
+   Lives inside the existing "saved" tab panel. Six sections behind a quiet
+   in-panel sub-navigation. No change to Your Space navigation.
+   ════════════════════════════════════════════════════════════════════ */
+let _wardTab = "pieces";
+function wardEsc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function wardUid()  { return "w" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function wardGarmentType(name) {
+  const n = (name || "").toLowerCase();
+  if (/saree|sari/.test(n))                                              return "Sarees";
+  if (/abaya|burqa|jilbab/.test(n))                                      return "Abayas";
+  if (/kurti|kurta|tunic|suit/.test(n))                                  return "Kurtis";
+  if (/dupatta|jewel|bag|handbag|clutch|accessor|scarf|stole|hijab|earring|neck|bangle/.test(n)) return "Accessories";
+  return "Collections";
+}
+function wardCompressImage(file, cb) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const max = 760; let w = img.width, h = img.height;
+      if (w > max || h > max) { const r = Math.min(max / w, max / h); w = Math.round(w * r); h = Math.round(h * r); }
+      const c = document.createElement("canvas"); c.width = w; c.height = h;
+      c.getContext("2d").drawImage(img, 0, 0, w, h);
+      try { cb(c.toDataURL("image/jpeg", 0.72)); } catch { cb(e.target.result); }
+    };
+    img.onerror = () => cb(null);
+    img.src = e.target.result;
+  };
+  reader.onerror = () => cb(null);
+  reader.readAsDataURL(file);
+}
+function wardPurchasedPieces(sess) {
+  if (typeof applyStudioOverrides === "function") applyStudioOverrides();
+  let orders = []; try { orders = JSON.parse(localStorage.getItem("abdan-studio-orders") || "[]"); } catch { orders = []; }
+  const email = String(sess && sess.email || "").toLowerCase();
+  const prof  = (typeof getSpaceProfiles === "function" ? getSpaceProfiles() : {})[email] || {};
+  const phones = [sess && sess.phone, prof.phone].map((p) => String(p || "").replace(/\D/g, "")).filter(Boolean);
+  const mine = orders.filter((o) => {
+    const op = String(o.customerPhone || "").replace(/\D/g, "");
+    const oe = String(o.customerEmail || "").toLowerCase();
+    return (op && phones.includes(op)) || (email && oe === email);
+  });
+  const map = {};
+  mine.forEach((o) => (o.items || []).forEach((it) => {
+    const key = it.id || it.name; if (!key) return;
+    if (!map[key]) {
+      const p = it.id ? PRODUCTS.find((x) => x.id === it.id) : null;
+      const nm = it.name || (p && p.name) || "ABDAN Piece";
+      map[key] = { id: it.id || key, name: nm, image: (p && p.image) || "", priceLabel: (p && p.priceLabel) || it.priceLabel || "", type: wardGarmentType(nm), qty: 0 };
+    }
+    map[key].qty += it.quantity || 1;
+  }));
+  return Object.values(map);
+}
+
 function renderSpaceWishlist() {
   const panel = document.getElementById("spaceWishlistPanel");
   if (!panel) return;
+  const sess  = getSpaceSession() || {};
+  const email = sess.email || "";
 
   const wishlistIds = getWishlist();
-  const saved       = PRODUCTS.filter(p => wishlistIds.has(String(p.id)));
+  const saved       = PRODUCTS.filter((p) => wishlistIds.has(String(p.id)));
+  const purchased   = wardPurchasedPieces(sess);
+  const favs        = spGet(email, SP_WARD_FAVS) || [];
+  const looks       = spGet(email, SP_WARD_LOOKS) || [];
+  const pairings    = spGet(email, SP_WARD_PAIRINGS) || [];
+  const notes       = spGet(email, SP_WARD_NOTES) || [];
+  const gallery     = spGet(email, SP_WARD_GALLERY) || [];
 
-  /* Get purchases from orders (using phone in session) */
-  const sess    = getSpaceSession();
-  const phone   = (() => {
-    if (!sess?.email) return "";
-    const profiles = getSpaceProfiles();
-    const p = profiles[(sess.email||"").toLowerCase()] || {};
-    return (p.phone||"").replace(/\D/g,"");
-  })();
-  const orders    = (() => { try { return JSON.parse(localStorage.getItem("abdan-studio-orders")||"[]"); } catch { return []; } })();
-  const myOrders  = phone ? orders.filter(o=>String(o.customerPhone||"").replace(/\D/g,"")===phone) : [];
-  const delivered = myOrders.filter(o=>o.status==="delivered");
+  const TABS = [
+    { id: "pieces",   label: "Pieces" },
+    { id: "looks",    label: "Styled Looks" },
+    { id: "pairings", label: "Pairings" },
+    { id: "notes",    label: "Notes" },
+    { id: "gallery",  label: "Gallery" },
+  ];
+  const subnav = `<div class="ward-subnav" role="tablist">
+    ${TABS.map((t) => `<button type="button" class="ward-subnav__btn${_wardTab === t.id ? " is-active" : ""}" data-ward-tab="${t.id}" role="tab" aria-selected="${_wardTab === t.id}">${t.label}</button>`).join("")}
+  </div>`;
 
-  /* Purchase section */
-  const purchaseHtml = delivered.length
-    ? `<div class="sp-wardrobe-section">
-        <p class="sp-wardrobe-section__label">My ABDAN Pieces</p>
-        <p class="sp-wardrobe-section__sub">Pieces you have brought home from ABDAN.</p>
-        <div class="space-saved-grid">
-          ${delivered.map(o=>`
-            <div class="space-saved-card">
-              <div class="space-saved-card__body" style="padding:1rem">
-                <p class="space-saved-card__name">${o.product||o.productName||"ABDAN Piece"}</p>
-                <p class="space-saved-card__price">${o.total?`₹${o.total}`:"—"}</p>
-                <p style="font-size:.68rem;color:var(--gold,#c5a13b);margin-top:.25rem">Delivered 💛</p>
-              </div>
-            </div>`).join("")}
-        </div>
-      </div>`
-    : `<div class="sp-wardrobe-section">
-        <p class="sp-wardrobe-section__label">My ABDAN Pieces</p>
-        <div class="space-saved-empty" style="padding:1rem 0">
-          <p style="font-size:.82rem;color:var(--muted)">Your ABDAN purchases will appear here once delivered.</p>
-          <a class="secondary-button" href="#products" style="margin-top:.75rem;display:inline-block">Browse the Collection</a>
-        </div>
-      </div>`;
+  const pieceCard = (p, isFav) => `
+    <article class="ward-piece">
+      <div class="ward-piece__img">${p.image ? `<img src="${p.image}" alt="" loading="lazy" />` : `<div class="ward-piece__ph"></div>`}
+        <button type="button" class="ward-fav${isFav ? " is-fav" : ""}" data-ward-fav="${wardEsc(p.id)}" aria-label="${isFav ? "Remove favourite" : "Mark as favourite"}">♡</button>
+      </div>
+      <div class="ward-piece__body">
+        <p class="ward-piece__name">${wardEsc(p.name)}</p>
+        ${p.priceLabel ? `<p class="ward-piece__price">${wardEsc(p.priceLabel)}</p>` : ""}
+      </div>
+    </article>`;
 
-  /* Saved pieces section */
-  const savedHtml = saved.length
-    ? `<div class="space-saved-grid">
-        ${saved.map(p=>`
-          <div class="space-saved-card">
-            <div class="space-saved-card__img" aria-hidden="true">
-              ${p.image ? `<img src="${p.image}" alt="" loading="lazy" />` : `<div class="space-saved-card__img-placeholder"></div>`}
+  /* ── PIECES: favourites + purchased (grouped) + saved ─────────────── */
+  function piecesView() {
+    const favList = purchased.filter((p) => favs.includes(String(p.id)));
+    const groupsOrder = ["Sarees", "Abayas", "Kurtis", "Accessories", "Collections"];
+    const grouped = {};
+    purchased.forEach((p) => { (grouped[p.type] = grouped[p.type] || []).push(p); });
+    const favHtml = favList.length ? `
+      <section class="ward-section">
+        <p class="ward-section__label">Favourites</p>
+        <p class="ward-section__sub">The pieces closest to your heart.</p>
+        <div class="ward-grid">${favList.map((p) => pieceCard(p, true)).join("")}</div>
+      </section>` : "";
+    const purchasedHtml = purchased.length
+      ? groupsOrder.filter((g) => grouped[g] && grouped[g].length).map((g) => `
+        <section class="ward-section">
+          <p class="ward-section__label">${g}</p>
+          <div class="ward-grid">${grouped[g].map((p) => pieceCard(p, favs.includes(String(p.id)))).join("")}</div>
+        </section>`).join("")
+      : `<div class="ward-empty"><p>Your purchased pieces gather here — each one, a chapter of how you dress.</p><a class="secondary-button" href="#products">Explore the collection</a></div>`;
+    const savedHtml = saved.length ? `
+      <section class="ward-section">
+        <p class="ward-section__label">Saved for Later</p>
+        <p class="ward-section__sub">Pieces you love — held for when the moment is right.</p>
+        <div class="ward-grid">${saved.map((p) => `
+          <article class="ward-piece">
+            <div class="ward-piece__img">${p.image ? `<img src="${p.image}" alt="" loading="lazy" />` : `<div class="ward-piece__ph"></div>`}
+              <button type="button" class="ward-fav is-remove" data-remove-saved="${p.id}" aria-label="Remove ${wardEsc(p.name)}">×</button>
             </div>
-            <div class="space-saved-card__body">
-              <p class="space-saved-card__name">${p.name}</p>
-              <p class="space-saved-card__price">${p.priceLabel||""}</p>
-            </div>
-            <button class="space-saved-card__remove" data-remove-saved="${p.id}"
-                    type="button" aria-label="Remove ${p.name} from saved pieces">
-              <i data-lucide="x" aria-hidden="true"></i>
-            </button>
-          </div>`).join("")}
-      </div>`
-    : `<p style="font-size:.82rem;color:var(--muted);padding:.5rem 0">Nothing saved yet — tap the heart on any piece to save it here.</p>`;
+            <div class="ward-piece__body"><p class="ward-piece__name">${wardEsc(p.name)}</p>${p.priceLabel ? `<p class="ward-piece__price">${wardEsc(p.priceLabel)}</p>` : ""}</div>
+          </article>`).join("")}</div>
+      </section>` : "";
+    return favHtml + purchasedHtml + savedHtml;
+  }
 
+  /* ── STYLED LOOKS ─────────────────────────────────────────────────── */
+  function looksView() {
+    const grid = looks.length ? `<div class="ward-looks">${looks.map((l) => `
+      <article class="ward-look">
+        <div class="ward-look__img">${l.photo ? `<img src="${l.photo}" alt="" loading="lazy" />` : `<div class="ward-piece__ph"></div>`}
+          <button type="button" class="ward-del" data-ward-del="looks:${l.id}" aria-label="Remove look">×</button>
+          <span class="ward-look__tag">${wardEsc(l.occasion || "Moment")}</span>
+        </div>
+        ${l.note ? `<p class="ward-look__note">${wardEsc(l.note)}</p>` : ""}
+      </article>`).join("")}</div>`
+      : `<div class="ward-empty"><p>Capture how you wore it — the occasion, the feeling, the memory.</p></div>`;
+    return `<section class="ward-section">
+      <div class="ward-section__head"><div><p class="ward-section__label">Styled Looks</p><p class="ward-section__sub">Your outfit moments — weddings, temple visits, Eid, family.</p></div>
+        <button type="button" class="ward-add-btn" data-ward-add="looks">＋ Add a look</button></div>
+      <form class="ward-form" id="wardFormLooks" hidden>
+        <select id="wardLookOccasion" class="ward-input">${WARD_OCCASIONS.map((o) => `<option value="${o}">${o}</option>`).join("")}</select>
+        <input type="text" id="wardLookNote" class="ward-input" placeholder="A word about this look (optional)" maxlength="120" />
+        <label class="ward-upload" for="wardLookPhoto">Add photo</label>
+        <input type="file" id="wardLookPhoto" accept="image/*" hidden />
+        <span class="ward-form__hint" id="wardLookHint">Choose a photo, then Save.</span>
+        <button type="button" class="ward-save-btn" id="wardLookSave" disabled>Save look</button>
+      </form>
+      ${grid}</section>`;
+  }
+
+  /* ── OUTFIT PAIRINGS ──────────────────────────────────────────────── */
+  function pairingsView() {
+    const list = pairings.length ? `<div class="ward-pairings">${pairings.map((pr) => `
+      <article class="ward-pairing">
+        <button type="button" class="ward-del ward-del--inline" data-ward-del="pairings:${pr.id}" aria-label="Remove pairing">×</button>
+        <p class="ward-pairing__combo">${wardEsc(pr.combo)}</p>
+        ${pr.title ? `<p class="ward-pairing__title">${wardEsc(pr.title)}</p>` : ""}
+        ${pr.note ? `<p class="ward-pairing__note">${wardEsc(pr.note)}</p>` : ""}
+      </article>`).join("")}</div>`
+      : `<div class="ward-empty"><p>Remember the combinations that felt just right — saree &amp; jewellery, abaya &amp; handbag.</p></div>`;
+    return `<section class="ward-section">
+      <div class="ward-section__head"><div><p class="ward-section__label">Outfit Pairings</p><p class="ward-section__sub">Combinations you’ll want to wear again.</p></div>
+        <button type="button" class="ward-add-btn" data-ward-add="pairings">＋ Save a pairing</button></div>
+      <form class="ward-form" id="wardFormPairings" hidden>
+        <input type="text" id="wardPairCombo" class="ward-input" placeholder="e.g. Saree + Jewellery" maxlength="80" />
+        <input type="text" id="wardPairTitle" class="ward-input" placeholder="Name it (optional)" maxlength="60" />
+        <input type="text" id="wardPairNote" class="ward-input" placeholder="A note (optional)" maxlength="120" />
+        <button type="button" class="ward-save-btn" id="wardPairSave">Save pairing</button>
+      </form>
+      ${list}</section>`;
+  }
+
+  /* ── WARDROBE NOTES ───────────────────────────────────────────────── */
+  function notesView() {
+    const list = notes.length ? `<div class="ward-notes">${notes.map((n) => `
+      <article class="ward-note">
+        <button type="button" class="ward-del ward-del--inline" data-ward-del="notes:${n.id}" aria-label="Remove note">×</button>
+        <p class="ward-note__text">${wardEsc(n.text)}</p>
+      </article>`).join("")}</div>`
+      : `<div class="ward-empty"><p>Private little reminders — “bought for the wedding”, “needs matching jewellery”.</p></div>`;
+    return `<section class="ward-section">
+      <div class="ward-section__head"><div><p class="ward-section__label">Wardrobe Notes</p><p class="ward-section__sub">Quiet, private — only ever for you.</p></div>
+        <button type="button" class="ward-add-btn" data-ward-add="notes">＋ Add a note</button></div>
+      <form class="ward-form" id="wardFormNotes" hidden>
+        <input type="text" id="wardNoteText" class="ward-input" placeholder="e.g. Favourite festive outfit" maxlength="160" />
+        <button type="button" class="ward-save-btn" id="wardNoteSave">Save note</button>
+      </form>
+      ${list}</section>`;
+  }
+
+  /* ── MEMORY GALLERY (private) ─────────────────────────────────────── */
+  function galleryView() {
+    const grid = gallery.length ? `<div class="ward-gallery">${gallery.map((g) => `
+      <figure class="ward-mem">
+        ${g.photo ? `<img src="${g.photo}" alt="" loading="lazy" />` : `<div class="ward-piece__ph"></div>`}
+        <button type="button" class="ward-del" data-ward-del="gallery:${g.id}" aria-label="Remove photo">×</button>
+        <figcaption class="ward-mem__cap"><span class="ward-mem__type">${wardEsc(g.type || "Memory")}</span>${g.caption ? ` · ${wardEsc(g.caption)}` : ""}</figcaption>
+      </figure>`).join("")}</div>`
+      : `<div class="ward-empty"><p>Unboxings, styling, occasions — your private gallery of moments.</p></div>`;
+    return `<section class="ward-section">
+      <div class="ward-section__head"><div><p class="ward-section__label">Memory Gallery <span class="ward-private">🔒 Private</span></p><p class="ward-section__sub">Kept private by default — yours alone.</p></div>
+        <button type="button" class="ward-add-btn" data-ward-add="gallery">＋ Add to gallery</button></div>
+      <form class="ward-form" id="wardFormGallery" hidden>
+        <select id="wardMemType" class="ward-input">${WARD_GALLERY_TYPES.map((t) => `<option value="${t}">${t}</option>`).join("")}</select>
+        <input type="text" id="wardMemCaption" class="ward-input" placeholder="A caption (optional)" maxlength="120" />
+        <label class="ward-upload" for="wardMemPhoto">Add photo</label>
+        <input type="file" id="wardMemPhoto" accept="image/*" hidden />
+        <span class="ward-form__hint" id="wardMemHint">Choose a photo, then Save.</span>
+        <button type="button" class="ward-save-btn" id="wardMemSave" disabled>Save to gallery</button>
+      </form>
+      ${grid}</section>`;
+  }
+
+  const views = { pieces: piecesView, looks: looksView, pairings: pairingsView, notes: notesView, gallery: galleryView };
   panel.innerHTML = `
-    <div class="sp-wardrobe-head">
-      <h3 class="sp-wardrobe-head__title">My Wardrobe</h3>
+    <div class="ward-head">
+      <p class="ward-head__kicker">A personal archive</p>
+      <h3 class="ward-head__title">My Wardrobe</h3>
+      <p class="ward-head__intro">Not a list of orders — a quiet record of how you dress, and the moments you dressed for.</p>
     </div>
-    ${purchaseHtml}
-    <hr class="sp-section-divider" style="margin:1.25rem 0" />
-    <div class="sp-wardrobe-section">
-      <p class="sp-wardrobe-section__label">Saved Pieces</p>
-      <p class="sp-wardrobe-section__sub">Pieces you love — saved for when the moment is right.</p>
-      ${savedHtml}
-    </div>`;
+    ${subnav}
+    <div class="ward-body">${(views[_wardTab] || piecesView)()}</div>`;
 
-  panel.querySelectorAll("[data-remove-saved]").forEach(btn=>{
-    btn.addEventListener("click",()=>{
-      const wl=getWishlist(); wl.delete(btn.dataset.removeSaved); saveWishlist(wl);
-      renderSpaceWishlist(); updateSavedPiecesCount(); safeCreateIcons();
-    });
+  /* ── Wiring ──────────────────────────────────────────────────────── */
+  panel.querySelectorAll("[data-ward-tab]").forEach((b) => b.addEventListener("click", () => { _wardTab = b.dataset.wardTab; renderSpaceWishlist(); }));
+  panel.querySelectorAll("[data-remove-saved]").forEach((b) => b.addEventListener("click", () => {
+    const wl = getWishlist(); wl.delete(b.dataset.removeSaved); saveWishlist(wl);
+    renderSpaceWishlist(); updateSavedPiecesCount();
+  }));
+  panel.querySelectorAll("[data-ward-fav]").forEach((b) => b.addEventListener("click", () => {
+    const id = b.dataset.wardFav; const cur = spGet(email, SP_WARD_FAVS) || [];
+    const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
+    spSet(email, SP_WARD_FAVS, next); renderSpaceWishlist();
+    showToast(cur.includes(id) ? "Removed from favourites" : "Added to favourites 💛");
+  }));
+  panel.querySelectorAll("[data-ward-add]").forEach((b) => b.addEventListener("click", () => {
+    const f = document.getElementById("wardForm" + b.dataset.wardAdd.charAt(0).toUpperCase() + b.dataset.wardAdd.slice(1));
+    if (f) f.hidden = !f.hidden;
+  }));
+  panel.querySelectorAll("[data-ward-del]").forEach((b) => b.addEventListener("click", () => {
+    const [kind, id] = b.dataset.wardDel.split(":");
+    const map = { looks: SP_WARD_LOOKS, pairings: SP_WARD_PAIRINGS, notes: SP_WARD_NOTES, gallery: SP_WARD_GALLERY };
+    const key = map[kind]; if (!key) return;
+    spSet(email, key, (spGet(email, key) || []).filter((x) => x.id !== id));
+    renderSpaceWishlist(); showToast("Removed");
+  }));
+
+  /* Styled look — photo + save */
+  let _lookPhoto = null;
+  const lookFile = document.getElementById("wardLookPhoto");
+  lookFile && lookFile.addEventListener("change", (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    document.getElementById("wardLookHint").textContent = "Preparing…";
+    wardCompressImage(file, (data) => { _lookPhoto = data; const h = document.getElementById("wardLookHint"); const s = document.getElementById("wardLookSave"); if (h) h.textContent = data ? "Photo ready 💛" : "Couldn’t read that image."; if (s) s.disabled = !data; });
   });
+  document.getElementById("wardLookSave")?.addEventListener("click", () => {
+    if (!_lookPhoto) return;
+    const list = (spGet(email, SP_WARD_LOOKS) || []);
+    list.unshift({ id: wardUid(), photo: _lookPhoto, occasion: document.getElementById("wardLookOccasion").value, note: document.getElementById("wardLookNote").value.trim(), createdAt: new Date().toISOString() });
+    spSet(email, SP_WARD_LOOKS, list.slice(0, 30)); renderSpaceWishlist(); showToast("Look saved 💛");
+  });
+
+  /* Pairing — save */
+  document.getElementById("wardPairSave")?.addEventListener("click", () => {
+    const combo = document.getElementById("wardPairCombo").value.trim();
+    if (!combo) { showToast("Add a combination first"); return; }
+    const list = (spGet(email, SP_WARD_PAIRINGS) || []);
+    list.unshift({ id: wardUid(), combo, title: document.getElementById("wardPairTitle").value.trim(), note: document.getElementById("wardPairNote").value.trim(), createdAt: new Date().toISOString() });
+    spSet(email, SP_WARD_PAIRINGS, list.slice(0, 50)); renderSpaceWishlist(); showToast("Pairing saved 💛");
+  });
+
+  /* Note — save */
+  document.getElementById("wardNoteSave")?.addEventListener("click", () => {
+    const text = document.getElementById("wardNoteText").value.trim();
+    if (!text) { showToast("Write a note first"); return; }
+    const list = (spGet(email, SP_WARD_NOTES) || []);
+    list.unshift({ id: wardUid(), text, createdAt: new Date().toISOString() });
+    spSet(email, SP_WARD_NOTES, list.slice(0, 60)); renderSpaceWishlist(); showToast("Note saved 💛");
+  });
+
+  /* Gallery — photo + save */
+  let _memPhoto = null;
+  const memFile = document.getElementById("wardMemPhoto");
+  memFile && memFile.addEventListener("change", (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    document.getElementById("wardMemHint").textContent = "Preparing…";
+    wardCompressImage(file, (data) => { _memPhoto = data; const h = document.getElementById("wardMemHint"); const s = document.getElementById("wardMemSave"); if (h) h.textContent = data ? "Photo ready 💛" : "Couldn’t read that image."; if (s) s.disabled = !data; });
+  });
+  document.getElementById("wardMemSave")?.addEventListener("click", () => {
+    if (!_memPhoto) return;
+    const list = (spGet(email, SP_WARD_GALLERY) || []);
+    list.unshift({ id: wardUid(), photo: _memPhoto, type: document.getElementById("wardMemType").value, caption: document.getElementById("wardMemCaption").value.trim(), createdAt: new Date().toISOString() });
+    spSet(email, SP_WARD_GALLERY, list.slice(0, 24)); renderSpaceWishlist(); showToast("Saved to your gallery 💛");
+  });
+
   safeCreateIcons();
 }
 
