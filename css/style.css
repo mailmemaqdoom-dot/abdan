@@ -16771,32 +16771,36 @@ html[data-theme="dark"] .story-card h3 {
   box-shadow:      none !important;
 }
 .space-entry-grid > .space-gift-visual img:hover { transform: none; }
-/* legibility scrim — strongest on the left (copy), eases right toward the photo */
+/* legibility scrim — localised wash behind the top-left copy that falls off
+   quickly so the photograph reads through the centre, lower-left figure, and
+   the right (behind the glass cards, which carry their own legibility). */
 .space-entry-grid > .space-gift-visual::after {
   content:    "";
   position:   absolute;
   inset:      0;
   background: linear-gradient(
-    100deg,
-    rgba(244, 239, 228, 0.95) 0%,
-    rgba(244, 239, 228, 0.84) 30%,
-    rgba(244, 239, 228, 0.52) 58%,
-    rgba(244, 239, 228, 0.30) 100%
+    105deg,
+    rgba(244, 239, 228, 0.90) 0%,
+    rgba(244, 239, 228, 0.74) 22%,
+    rgba(244, 239, 228, 0.40) 48%,
+    rgba(244, 239, 228, 0.16) 72%,
+    rgba(244, 239, 228, 0.08) 100%
   );
 }
 html[data-theme="dark"] .space-entry-grid > .space-gift-visual::after {
   background: linear-gradient(
-    100deg,
-    rgba(4, 18, 17, 0.92) 0%,
-    rgba(4, 18, 17, 0.80) 32%,
-    rgba(4, 18, 17, 0.56) 60%,
-    rgba(4, 18, 17, 0.32) 100%
+    105deg,
+    rgba(4, 18, 17, 0.88) 0%,
+    rgba(4, 18, 17, 0.72) 24%,
+    rgba(4, 18, 17, 0.44) 50%,
+    rgba(4, 18, 17, 0.18) 74%,
+    rgba(4, 18, 17, 0.10) 100%
   );
 }
-/* feature cards stay solid enough to read over the photo */
+/* feature cards: glass over a now-more-visible photo — keep them readable */
 .space-entry-grid .feature-card {
-  background:               color-mix(in srgb, var(--surface-soft, #ffffff) 90%, transparent) !important;
-  backdrop-filter:          blur(7px);
-  -webkit-backdrop-filter:  blur(7px);
+  background:               color-mix(in srgb, var(--surface-soft, #ffffff) 92%, transparent) !important;
+  backdrop-filter:          blur(8px);
+  -webkit-backdrop-filter:  blur(8px);
   border-color:             color-mix(in srgb, var(--line) 70%, transparent) !important;
 }
