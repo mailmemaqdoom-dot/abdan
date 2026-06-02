@@ -830,6 +830,16 @@ function applyStudioOverrides() {
   });
 }
 
+/* Total savings across the current cart (sum of per-item compare-at savings). */
+function abdanCartSavings() {
+  if (typeof applyStudioOverrides === "function") applyStudioOverrides();
+  return (state.cart || []).reduce((sum, item) => {
+    const p = PRODUCTS.find((x) => x.id === item.id);
+    const sv = abdanSavings(p);
+    return sum + (sv ? sv.amount * (item.quantity || 1) : 0);
+  }, 0);
+}
+
 /* Compact price markup for product cards — elegant strikethrough + saving. */
 function abdanCardPriceHtml(product) {
   const s = abdanSavings(product);
@@ -3010,6 +3020,8 @@ function renderCart() {
     dom.cartCheckoutButton.disabled = true;
     dom.cartCheckoutButton.style.opacity = "0.45";
     dom.bagCheckoutPanel.hidden = true;
+    const saveLineEmpty = document.getElementById("cartSavingsLine");
+    if (saveLineEmpty) saveLineEmpty.hidden = true;
     return;
   }
 
@@ -3045,6 +3057,15 @@ function renderCart() {
 
   dom.cartTotal.textContent = formatCurrency(total);
   dom.cartCount.textContent = String(state.cart.reduce((sum, item) => sum + item.quantity, 0));
+
+  /* ── Total Savings line (Part 3) ─────────────────────────────────────── */
+  const cartSave = abdanCartSavings();
+  const saveLine = document.getElementById("cartSavingsLine");
+  const saveVal  = document.getElementById("cartSavings");
+  if (saveLine && saveVal) {
+    if (cartSave > 0) { saveVal.textContent = formatCurrency(cartSave); saveLine.hidden = false; }
+    else { saveLine.hidden = true; }
+  }
 
   /* ── Cart image fade-in — same pattern as product cards ─────────────── */
   dom.cartItems.querySelectorAll(".cart-item__thumb img").forEach((img) => {
@@ -3089,6 +3110,7 @@ function showOrderSuccess(customerName, order) {
       ${checkSvg}
       <p class="cart-success__title">Carefully reserved, ${first}</p>
       <p class="cart-success__body">Every piece you have chosen is now quietly held — awaiting personal confirmation and thoughtful preparation before it begins its journey to you.</p>
+      ${order && order.savings > 0 ? `<p class="cart-success__savings">ABDAN helped you save ${formatCurrency(order.savings)} on this order 💛</p>` : ""}
       <p class="cart-success__note">Opening WhatsApp so you can stay in touch with ABDAN directly. 💛</p>
       ${ref ? `<p class="cart-success__ref">Ref · ${ref}</p>` : ""}
       ${timeline}
@@ -3372,6 +3394,13 @@ function attachSwipe(container, panel, opts) {
    Returns the generated order object.                                      */
 function lxCreateOrder(details, items, paymentMethod, extra = {}) {
   const total = items.reduce((sum, item) => sum + getNumericPrice(item.priceLabel) * item.quantity, 0);
+  /* Savings captured on the order — powers confirmation, Your Space & analytics. */
+  if (typeof applyStudioOverrides === "function") applyStudioOverrides();
+  const savings = items.reduce((sum, item) => {
+    const p = PRODUCTS.find((x) => x.id === item.id);
+    const sv = abdanSavings(p);
+    return sum + (sv ? sv.amount * (item.quantity || 1) : 0);
+  }, 0);
   const ref   = `ABD-${Date.now().toString(36).toUpperCase().slice(-6)}`;
   const order = {
     id:            ref,
@@ -3383,7 +3412,9 @@ function lxCreateOrder(details, items, paymentMethod, extra = {}) {
     paymentMethod,
     paymentId:     extra.paymentId || "",
     total,
+    savings,
     items: items.map((item) => ({
+      id:         item.id || "",
       name:       item.name,
       size:       item.size,
       color:      item.color,
@@ -3572,6 +3603,13 @@ function closeCart() {
 function toggleBagCheckout() {
   if (!state.cart.length) return;
   if (dom.bagCheckoutPanel.hidden) {
+    /* You Saved ₹X On This Order (Part 3 — checkout) */
+    const cs = abdanCartSavings();
+    const el = document.getElementById("bagCheckoutSavings");
+    if (el) {
+      if (cs > 0) { el.textContent = `You Saved ${formatCurrency(cs)} On This Order`; el.hidden = false; }
+      else { el.hidden = true; }
+    }
     lxShowCheckoutPanel(dom.bagCheckoutPanel);
   } else {
     lxHideCheckoutPanel(dom.bagCheckoutPanel);

@@ -16868,3 +16868,28 @@ html[data-theme="dark"] .space-entry-grid > .space-gift-visual::after {
 .product-savings__now { color: var(--text-main); font-weight: 600; }
 .product-savings__row--accent { color: var(--text-main); }
 .product-savings__row--accent strong { color: var(--gold, #c5a13b); font-weight: 700; }
+
+/* RC-10 Phase 2 — Savings visibility (cart / checkout / order confirmation).
+   Quiet, editorial — gold accent, never a discount-banner. */
+.drawer-savings {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     baseline;
+  margin-bottom:   0.5rem;
+  font-size:       0.92rem;
+  color:           var(--gold, #c5a13b);
+}
+.drawer-savings strong { font-weight: 700; }
+.checkout-savings {
+  margin-top:     0.5rem;
+  font-size:      0.9rem;
+  letter-spacing: 0.01em;
+  color:          var(--gold, #c5a13b);
+}
+.cart-success__savings {
+  margin:        0.4rem 0 0.2rem;
+  font-family:   var(--font-editorial, inherit);
+  font-style:    italic;
+  font-size:     1.02rem;
+  color:         var(--gold, #c5a13b);
+}
