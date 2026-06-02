@@ -17153,3 +17153,5 @@ html[data-theme="dark"] .space-entry-grid > .space-gift-visual::after {
   font-family: var(--font-editorial, serif); font-style: italic; font-size: 0.95rem; line-height: 1.6;
 }
 .ward-empty .secondary-button { margin-top: 1rem; display: inline-block; font-style: normal; }
+
+.ward-form[hidden] { display: none !important; }
