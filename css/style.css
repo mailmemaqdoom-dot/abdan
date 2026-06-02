@@ -16730,3 +16730,73 @@ html[data-theme="dark"] .story-card h3 {
     padding:       clamp(1.5rem, 2.4vw, 1.9rem) clamp(1.6rem, 2.6vw, 2rem) !important;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   RC-9 — Your Space teaser: editorial image as the section background.
+   The gift visual now fills the entry panel; the heading/copy/actions and
+   the four feature cards layer on top over a legibility scrim.
+   ════════════════════════════════════════════════════════════════════ */
+.space-entry-grid {
+  position:      relative;
+  overflow:      hidden;
+  border-radius: var(--radius-xl, 1.25rem);
+  padding:       clamp(1.75rem, 4vw, 3.25rem);
+  min-height:    clamp(460px, 64vh, 680px);
+  align-items:   center;
+  isolation:     isolate;
+}
+.space-entry-grid > .space-editorial,
+.space-entry-grid > .account-features {
+  position: relative;
+  z-index:  1;
+}
+/* background image layer */
+.space-entry-grid > .space-gift-visual {
+  position:      absolute !important;
+  inset:         0;
+  margin:        0 !important;
+  padding:       0;
+  z-index:       0;
+  border-radius: inherit;
+  overflow:      hidden;
+}
+.space-entry-grid > .space-gift-visual img {
+  width:           100% !important;
+  height:          100% !important;
+  aspect-ratio:    auto !important;
+  object-fit:      cover;
+  object-position: center 22%;
+  opacity:         1 !important;
+  border-radius:   0 !important;
+  box-shadow:      none !important;
+}
+.space-entry-grid > .space-gift-visual img:hover { transform: none; }
+/* legibility scrim — strongest on the left (copy), eases right toward the photo */
+.space-entry-grid > .space-gift-visual::after {
+  content:    "";
+  position:   absolute;
+  inset:      0;
+  background: linear-gradient(
+    100deg,
+    rgba(244, 239, 228, 0.95) 0%,
+    rgba(244, 239, 228, 0.84) 30%,
+    rgba(244, 239, 228, 0.52) 58%,
+    rgba(244, 239, 228, 0.30) 100%
+  );
+}
+html[data-theme="dark"] .space-entry-grid > .space-gift-visual::after {
+  background: linear-gradient(
+    100deg,
+    rgba(4, 18, 17, 0.92) 0%,
+    rgba(4, 18, 17, 0.80) 32%,
+    rgba(4, 18, 17, 0.56) 60%,
+    rgba(4, 18, 17, 0.32) 100%
+  );
+}
+/* feature cards stay solid enough to read over the photo */
+.space-entry-grid .feature-card {
+  background:               color-mix(in srgb, var(--surface-soft, #ffffff) 90%, transparent) !important;
+  backdrop-filter:          blur(7px);
+  -webkit-backdrop-filter:  blur(7px);
+  border-color:             color-mix(in srgb, var(--line) 70%, transparent) !important;
+}
