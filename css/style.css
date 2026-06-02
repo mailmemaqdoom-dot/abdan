@@ -11445,7 +11445,7 @@ html[data-theme="dark"] .lx-breath__statement {
 }
 @media (min-width: 900px) {
   #wsy .story-grid .story-card:nth-child(2) {
-    margin-top: clamp(1rem, 2.2vw, 1.625rem);
+    margin-top: 0;   /* RC-8.1: removed center-card stagger so all three align */
   }
 }
 @media (min-width: 900px) {
