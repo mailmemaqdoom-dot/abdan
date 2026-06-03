@@ -80,6 +80,7 @@ const STUDIO_VIEWS = [
   /* ── HER CIRCLE ──────────────────────────────────────────── */
   { id: "customers",   label: "Her Circle 💛",       icon: "users",            group: "Her Circle"   },
   { id: "messaging",   label: "Circle Updates",     icon: "send",             group: "Her Circle"   },
+  { id: "shareearn",   label: "Share & Earn",       icon: "gift",             group: "Her Circle"   },
   { id: "reviews",     label: "Reviews",            icon: "star",             group: "Her Circle"   },
   { id: "requests",    label: "Sourcing Requests",  icon: "search",           group: "Her Circle"   },
   { id: "concierge",   label: "Concierge Queue",    icon: "message-circle",   group: "Her Circle"   },
@@ -108,6 +109,8 @@ const STORAGE = {
   offers:      "abdan-studio-offers",
   coupons:     "abdan-studio-coupons",
   rules:       "abdan-studio-rules",
+  shareEarn:   "abdan-studio-shareearn",
+  referrals:   "abdan-referrals",
   reviews:     "abdan-studio-reviews",
   campaigns:   "abdan-studio-campaigns",
   founder:     "abdan-studio-founder",
@@ -457,6 +460,7 @@ function renderView(id) {
     offers:      renderOffers,
     coupons:     renderCoupons,
     rules:       renderRules,
+    shareearn:   renderShareEarnAdmin,
     reviews:     renderReviews,
     requests:    renderRequests,
     concierge:   renderConciergeQueue,
@@ -2236,6 +2240,77 @@ function renderRules() {
       renderRules();
     });
   }
+}
+
+/* ── HER CIRCLE: Share & Earn Management (referrals → Circle Points) ── */
+function getShareEarnSettingsAdmin() {
+  const s = load(STORAGE.shareEarn, {}) || {};
+  return Object.assign({ enabled: true, base: 100, tier5000: 250, tier10000: 500, bonusMultiplier: 1, seasonalMultiplier: 1, validityDays: 60, maxPerMember: 50, campaignName: "" }, s);
+}
+function renderShareEarnAdmin() {
+  setTitle("Share & Earn");
+  const s = getShareEarnSettingsAdmin();
+  const referrals = load(STORAGE.referrals, []) || [];
+  const invited    = referrals.length;
+  const successful = referrals.filter((r) => r.status === "rewarded" || r.ordered).length;
+  const pointsGiven = referrals.filter((r) => r.status === "rewarded").reduce((a, r) => a + (Number(r.points) || 0), 0);
+
+  const rows = referrals.length ? referrals.slice(0, 50).map((r) => {
+    const cls = { invited: "s-badge--amber", joined: "s-badge--blue", ordered: "s-badge--emerald", rewarded: "s-badge--green" }[r.status] || "";
+    return `<div class="s-list-item">
+      <div class="s-list-item__main">
+        <strong>${esc(r.referredEmail || "Invited friend")}</strong>
+        <span class="s-list-item__sub">via ${esc(r.code || "—")} · ${r.createdAt ? fmtDate(r.createdAt) : ""}${r.points ? ` · +${r.points} pts` : ""}</span>
+      </div>
+      <span class="s-badge ${cls}">${capitalise(r.status || "invited")}</span>
+    </div>`;
+  }).join("") : empty("No referrals yet. Members can invite friends from Your Space → Share & Earn.", "gift");
+
+  dom.content.innerHTML = `
+    <div class="s-zone-header s-zone-header--circle">
+      <i data-lucide="gift" class="s-icon"></i>
+      <span>Share &amp; Earn — Circle Points advocacy</span>
+    </div>
+    <div class="s-stats-row">
+      ${stat("users",       "Invited Friends",      invited,     "s-stat--blue")}
+      ${stat("check-circle","Successful Referrals",  successful,  "s-stat--green")}
+      ${stat("award",       "Circle Points Given",   pointsGiven, "s-stat--gold")}
+    </div>
+    <div class="s-card s-form-card">
+      <h3 class="s-card__title">Points Rules</h3>
+      <div class="s-form-grid">
+        ${field("Purchase Completed (pts)", "number", "seBase", s.base, "100")}
+        ${field("₹5,000+ Order (pts)", "number", "seT5", s.tier5000, "250")}
+        ${field("₹10,000+ Order (pts)", "number", "seT10", s.tier10000, "500")}
+        ${field("Bonus Campaign Multiplier", "number", "seBonus", s.bonusMultiplier, "1")}
+        ${field("Seasonal Multiplier", "number", "seSeason", s.seasonalMultiplier, "1")}
+        ${field("Referral Validity (days)", "number", "seValid", s.validityDays, "60")}
+        ${field("Referral Limit (per member)", "number", "seMax", s.maxPerMember, "50")}
+        ${field("Bonus Campaign Name", "text", "seCampaign", s.campaignName, "e.g. Festive Circle")}
+      </div>
+      <div class="s-field s-field--full s-toggle-row" style="margin-top:0.75rem">
+        <span class="s-field__label">Share &amp; Earn enabled</span>
+        <label class="s-toggle"><input type="checkbox" id="seEnabled" ${s.enabled ? "checked" : ""} /><span class="s-toggle__track"></span></label>
+      </div>
+      <div style="margin-top:1rem">
+        <button class="s-btn s-btn--primary" id="seSave"><i data-lucide="save" class="s-icon"></i> Save Rules</button>
+      </div>
+    </div>
+    <div class="s-zone-header s-zone-header--circle" style="margin-top:1.5rem">
+      <i data-lucide="share-2" class="s-icon"></i><span>Referral Activity</span>
+    </div>
+    <div class="s-list">${rows}</div>`;
+
+  document.getElementById("seSave")?.addEventListener("click", () => {
+    save(STORAGE.shareEarn, {
+      enabled: !!document.getElementById("seEnabled")?.checked,
+      base: Number(val("seBase")) || 0, tier5000: Number(val("seT5")) || 0, tier10000: Number(val("seT10")) || 0,
+      bonusMultiplier: Number(val("seBonus")) || 1, seasonalMultiplier: Number(val("seSeason")) || 1,
+      validityDays: Number(val("seValid")) || 0, maxPerMember: Number(val("seMax")) || 0,
+      campaignName: val("seCampaign"),
+    });
+    lxSaveGlow("seSave", "Share & Earn rules saved 💛");
+  });
 }
 
 /* ── HER CIRCLE: Reviews ─────────────────────────────────────── */

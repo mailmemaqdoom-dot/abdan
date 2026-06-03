@@ -1340,6 +1340,8 @@ async function createSpaceProfile(data) {
   };
   profiles[email] = profile;
   localStorage.setItem(SPACE_STORAGE_KEY, JSON.stringify(profiles));
+  /* Share & Earn — attribute a pending referral to this new member. */
+  if (typeof attributeReferral === "function") { try { attributeReferral(email, profile.phone); } catch {} }
   return profile;
 }
 
@@ -1666,7 +1668,9 @@ function showSpaceTab(tabId) {
     messages:     "spaceTabMessages",
     membership:   "spaceTabMembership",
     settings:     "spaceTabSettings",
+    shareearn:    "spaceTabShareEarn",
   };
+  if (tabId === "shareearn" && typeof renderShareEarn === "function") renderShareEarn();
   document.querySelectorAll("[data-space-tab]").forEach((t) => {
     t.classList.toggle("is-active", t.dataset.spaceTab === tabId);
     t.setAttribute("aria-selected", t.dataset.spaceTab === tabId ? "true" : "false");
@@ -2157,6 +2161,7 @@ function renderSpaceOverview(profile) {
     { tab:"requests",    sym:"◇", title:"My Requests",    desc:"Source a piece" },
     { tab:"messages",    sym:"◇", title:"Messages",       desc:"Your conversations" },
     { tab:"journal",     sym:"✦", title:"Journal",        desc:"Your style diary" },
+    { tab:"shareearn",   sym:"✦", title:"Share & Earn",   desc:"Invite friends · earn Circle Points" },
   ];
 
   panel.innerHTML = `
@@ -3643,6 +3648,9 @@ function lxCreateOrder(details, items, paymentMethod, extra = {}) {
     } catch { /* ignore */ }
   }
   state.appliedCoupon = null;   /* reset for the next order */
+  /* Share & Earn — attribute referral on order, then reconcile any rewards. */
+  if (typeof attributeReferral === "function") { try { attributeReferral(order.customerEmail, order.customerPhone); } catch {} }
+  if (typeof reconcileReferralRewards === "function") { try { reconcileReferralRewards(); } catch {} }
   return order;
 }
 
@@ -4837,6 +4845,10 @@ function init() {
   if (memory.visitCount === 2) {
     setTimeout(() => showToast("Welcome back 💛"), 2800);
   }
+
+  /* ── Share & Earn — capture inbound referral + reconcile rewards ────── */
+  try { captureReferralFromUrl(); } catch {}
+  try { reconcileReferralRewards(); } catch {}
 
   /* ── Seed studio product catalog (first run only) ──────────────────── */
   if (!localStorage.getItem("abdan-studio-products")) {
@@ -7311,6 +7323,211 @@ function renderSpaceWishlist() {
   });
 
   safeCreateIcons();
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   SHARE & EARN — Circle Points referral & advocacy (additive).
+   Rewards advocacy with Circle Points only (never money/commission). Awards
+   land ONLY after a referred order is delivered. Anti-abuse: no self / same
+   device / same email / same phone.
+   ════════════════════════════════════════════════════════════════════ */
+const SHARE_EARN_KEY  = "abdan-studio-shareearn";  /* admin-configurable rules */
+const REFERRALS_KEY   = "abdan-referrals";         /* referral records (global) */
+const PENDING_REF_KEY = "abdan-pending-ref";       /* captured inbound ref (device) */
+const DEVICE_ID_KEY   = "abdan-device-id";
+const SP_SHARE_COUNTS = "abdan-sp-shares";
+
+function getDeviceId() {
+  let id = null; try { id = localStorage.getItem(DEVICE_ID_KEY); } catch {}
+  if (!id) { id = "dev" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); try { localStorage.setItem(DEVICE_ID_KEY, id); } catch {} }
+  return id;
+}
+function getShareEarnSettings() {
+  let s = {}; try { s = JSON.parse(localStorage.getItem(SHARE_EARN_KEY) || "{}") || {}; } catch {}
+  return Object.assign({ enabled: true, base: 100, tier5000: 250, tier10000: 500, bonusMultiplier: 1, seasonalMultiplier: 1, validityDays: 60, maxPerMember: 50, campaignName: "" }, s);
+}
+function genReferralCode(email) {
+  const e = String(email || "").toLowerCase();
+  let h = 0; for (let i = 0; i < e.length; i++) h = (h * 31 + e.charCodeAt(i)) >>> 0;
+  const base = (e.split("@")[0].replace(/[^a-z0-9]/g, "").slice(0, 6).toUpperCase()) || "ABDAN";
+  return base + (h % 1000).toString().padStart(3, "0");
+}
+function getReferrals()      { try { return JSON.parse(localStorage.getItem(REFERRALS_KEY) || "[]"); } catch { return []; } }
+function saveReferrals(list) { try { localStorage.setItem(REFERRALS_KEY, JSON.stringify(list)); } catch {} }
+function referrerEmailForCode(code) {
+  const profiles = getSpaceProfiles(); const target = String(code || "").toUpperCase();
+  for (const email of Object.keys(profiles)) if (genReferralCode(email) === target) return email;
+  return "";
+}
+function buildReferralLink(code, type, id) {
+  let q = "?ref=" + encodeURIComponent(code);
+  if (type) q += "&t=" + encodeURIComponent(type);
+  if (id)   q += "&i=" + encodeURIComponent(id);
+  return "https://abdan.pages.dev/" + q;
+}
+function captureReferralFromUrl() {
+  let code = null; try { code = new URLSearchParams(location.search).get("ref"); } catch {}
+  if (!code) return;
+  code = code.toUpperCase();
+  if (!getShareEarnSettings().enabled) return;
+  const referrerEmail = referrerEmailForCode(code);
+  if (!referrerEmail) return;
+  const sess = getSpaceSession();
+  if (sess && sess.email && genReferralCode(sess.email) === code) return; /* self */
+  const deviceId = getDeviceId();
+  try { localStorage.setItem(PENDING_REF_KEY, JSON.stringify({ code, referrerEmail, deviceId, at: Date.now() })); } catch {}
+  const list = getReferrals();
+  if (!list.find((r) => r.code === code && r.referredDeviceId === deviceId)) {
+    list.unshift({ id: "ref" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), code, referrerEmail, referredDeviceId: deviceId, referredEmail: "", referredPhone: "", status: "invited", ordered: false, createdAt: new Date().toISOString(), points: 0, rewardedOrderRef: "" });
+    saveReferrals(list);
+  }
+}
+function attributeReferral(email, phone) {
+  let pending = null; try { pending = JSON.parse(localStorage.getItem(PENDING_REF_KEY) || "null"); } catch {}
+  if (!pending) return;
+  const settings = getShareEarnSettings();
+  if (settings.validityDays && pending.at && (Date.now() - pending.at) > settings.validityDays * 864e5) return;
+  const em = String(email || "").toLowerCase(); const ph = String(phone || "").replace(/\D/g, "");
+  if (em && em === pending.referrerEmail) return;                          /* self email */
+  const profiles = getSpaceProfiles();
+  const referrerPhone = String((profiles[pending.referrerEmail] || {}).phone || "").replace(/\D/g, "");
+  if (ph && referrerPhone && ph === referrerPhone) return;                  /* self phone */
+  const list = getReferrals();
+  if (em && list.some((r) => String(r.referredEmail || "").toLowerCase() === em && r.code !== pending.code)) return; /* email already referred */
+  if (settings.maxPerMember && list.filter((r) => r.code === pending.code && r.referredEmail).length >= settings.maxPerMember) return;
+  const rec = list.find((r) => r.code === pending.code && r.referredDeviceId === pending.deviceId);
+  if (rec) {
+    if (!rec.referredEmail) rec.referredEmail = em;
+    if (!rec.referredPhone) rec.referredPhone = ph;
+    if (rec.status === "invited") rec.status = "joined";
+    saveReferrals(list);
+  }
+}
+function reconcileReferralRewards() {
+  let orders = []; try { orders = JSON.parse(localStorage.getItem("abdan-studio-orders") || "[]"); } catch {}
+  if (!orders.length) return;
+  const settings = getShareEarnSettings();
+  const list = getReferrals(); let changed = false;
+  list.forEach((r) => {
+    if (r.status === "rewarded") return;
+    const em = String(r.referredEmail || "").toLowerCase(); const ph = String(r.referredPhone || "").replace(/\D/g, "");
+    if (!em && !ph) return;
+    const ord = orders.find((o) => o.status === "delivered" && (
+      (em && String(o.customerEmail || "").toLowerCase() === em) ||
+      (ph && String(o.customerPhone || "").replace(/\D/g, "") === ph)
+    ));
+    if (!ord) { if (r.status === "invited" && (em || ph)) { r.status = "joined"; changed = true; } return; }
+    const total = Number(ord.total) || 0;
+    let pts = total >= 10000 ? settings.tier10000 : total >= 5000 ? settings.tier5000 : settings.base;
+    pts = Math.round(pts * (settings.bonusMultiplier || 1) * (settings.seasonalMultiplier || 1));
+    if (typeof spAddLoyalty === "function") spAddLoyalty(r.referrerEmail, pts);
+    r.status = "rewarded"; r.ordered = true; r.points = pts; r.rewardedOrderRef = ord.ref || ord.id || "";
+    changed = true;
+  });
+  if (changed) saveReferrals(list);
+}
+function getMyReferrals(email) {
+  const code = genReferralCode(email);
+  const list = getReferrals().filter((r) => r.code === code);
+  return {
+    code, list,
+    invited:    list.length,
+    successful: list.filter((r) => r.status === "rewarded" || r.ordered).length,
+    points:     list.filter((r) => r.status === "rewarded").reduce((s, r) => s + (r.points || 0), 0),
+  };
+}
+function wardShareCount(email, label) {
+  const m = spGet(email, SP_SHARE_COUNTS) || {};
+  m[label] = (m[label] || 0) + 1; spSet(email, SP_SHARE_COUNTS, m);
+}
+
+let _shareTarget = { type: "Products", label: "ABDAN" };
+function renderShareEarn() {
+  const panel = document.getElementById("spaceShareEarnPanel");
+  if (!panel) return;
+  reconcileReferralRewards();
+  const sess  = getSpaceSession() || {};
+  const email = sess.email || "";
+  const first = (sess.displayName || sess.fullName || "").split(" ")[0] || "you";
+  const code  = genReferralCode(email);
+  const settings = getShareEarnSettings();
+  const my   = getMyReferrals(email);
+  const link = buildReferralLink(code, _shareTarget.type, "");
+  const shares = spGet(email, SP_SHARE_COUNTS) || {};
+  const topShared = Object.entries(shares).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const TARGETS = ["Products", "Collections", "Lookbooks", "Occasion Boards", "Curated Collections"];
+
+  const statusLabel = { invited: "Invited", joined: "Joined", ordered: "Ordered", rewarded: "Rewarded 💛" };
+  const history = my.list.length ? my.list.slice(0, 12).map((r) => `
+    <div class="se-hist">
+      <div><p class="se-hist__who">${wardEsc(r.referredEmail || "A friend")}</p>
+      <p class="se-hist__when">${new Date(r.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p></div>
+      <div class="se-hist__right"><span class="se-hist__status se-hist__status--${r.status}">${statusLabel[r.status] || r.status}</span>
+      ${r.points ? `<span class="se-hist__pts">+${r.points}</span>` : ""}</div>
+    </div>`).join("") : `<p class="se-empty">No invitations yet — your first share begins the story.</p>`;
+
+  panel.innerHTML = `
+    <div class="se-head">
+      <p class="se-head__kicker">The Circle grows by invitation</p>
+      <h3 class="se-head__title">Share &amp; Earn Circle Points</h3>
+      <p class="se-head__intro">Introduce ABDAN to someone you love. When their first order is delivered, you receive Circle Points — never cash, only belonging.</p>
+    </div>
+
+    <section class="se-card se-card--invite">
+      <p class="se-card__label">Your personal invitation</p>
+      <div class="se-link"><span class="se-link__url" id="seLink">${link}</span></div>
+      <div class="se-targets" role="tablist">
+        ${TARGETS.map((t) => `<button type="button" class="se-target${_shareTarget.type === t ? " is-active" : ""}" data-se-target="${t}">${t}</button>`).join("")}
+      </div>
+      <div class="se-actions">
+        <button type="button" class="se-btn se-btn--primary" id="seShareWa">Share on WhatsApp</button>
+        <button type="button" class="se-btn" id="seCopy">Copy link</button>
+        ${navigator.share ? `<button type="button" class="se-btn" id="seNative">Share…</button>` : ""}
+      </div>
+      <p class="se-code">Your code · <strong>${code}</strong></p>
+    </section>
+
+    <p class="se-section-label">My Referrals</p>
+    <div class="se-stats">
+      <div class="se-stat"><span class="se-stat__v">${my.invited}</span><span class="se-stat__l">Invited Friends</span></div>
+      <div class="se-stat"><span class="se-stat__v">${my.successful}</span><span class="se-stat__l">Successful Referrals</span></div>
+      <div class="se-stat se-stat--gold"><span class="se-stat__v">${my.points}</span><span class="se-stat__l">Circle Points Earned</span></div>
+    </div>
+
+    ${settings.campaignName ? `<p class="se-campaign">✦ ${wardEsc(settings.campaignName)}</p>` : ""}
+
+    <div class="se-reward-note">
+      <p>Purchase completed — <strong>${settings.base} pts</strong> · ₹5,000+ — <strong>${settings.tier5000} pts</strong> · ₹10,000+ — <strong>${settings.tier10000} pts</strong></p>
+      <p class="se-reward-note__fine">Awarded only after your friend’s order is delivered.</p>
+    </div>
+
+    ${topShared.length ? `<p class="se-section-label">Top Shared</p>
+    <div class="se-top">${topShared.map(([l, n]) => `<div class="se-top__row"><span>${wardEsc(l)}</span><span>${n} share${n !== 1 ? "s" : ""}</span></div>`).join("")}</div>` : ""}
+
+    <p class="se-section-label">Referral History</p>
+    <div class="se-history">${history}</div>`;
+
+  /* Wiring */
+  panel.querySelectorAll("[data-se-target]").forEach((b) => b.addEventListener("click", () => {
+    _shareTarget = { type: b.dataset.seTarget, label: b.dataset.seTarget };
+    renderShareEarn();
+  }));
+  const shareText = `${first === "you" ? "I" : first} thought you'd love ABDAN 💛 — thoughtfully curated modest fashion. Begin here: ${link}`;
+  document.getElementById("seShareWa")?.addEventListener("click", () => {
+    wardShareCount(email, _shareTarget.type);
+    window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, "_blank", "noopener,noreferrer");
+    renderShareEarn();
+  });
+  document.getElementById("seCopy")?.addEventListener("click", () => {
+    wardShareCount(email, _shareTarget.type);
+    try { navigator.clipboard.writeText(link); } catch {}
+    showToast("Invitation link copied 💛"); renderShareEarn();
+  });
+  document.getElementById("seNative")?.addEventListener("click", () => {
+    wardShareCount(email, _shareTarget.type);
+    try { navigator.share({ title: "ABDAN", text: shareText, url: link }); } catch {}
+    renderShareEarn();
+  });
 }
 
 /* D-03 — Profile quote: add to renderSpaceProfile override */
