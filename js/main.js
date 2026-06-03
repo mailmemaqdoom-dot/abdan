@@ -1322,12 +1322,17 @@ async function createSpaceProfile(data) {
   if (profiles[email]) {
     throw new Error("Your space already exists for this email. Come back in through Your Space — it is waiting for you. 💛");
   }
+  /* Phone is required — it is how ABDAN confirms each order personally. */
+  const phone = (data.phone || "").trim();
+  if (phone.replace(/\D/g, "").length < 7) {
+    throw new Error("A mobile number is needed to create your space — it’s how ABDAN reaches you to confirm each order personally. 💛");
+  }
   const passwordHash = await hashValue(data.password);
   const profile = {
     fullName:    data.fullName.trim(),
     displayName: data.displayName.trim(),
     email,
-    phone:       data.phone?.trim() || "",
+    phone,
     passwordHash,
     createdAt:   new Date().toISOString(),
     /* §38 — Trust & consent record */
@@ -1902,8 +1907,8 @@ function renderSpaceProfile(email) {
         </label>
         <label class="space-field">
           <span class="space-field__label">A number for gentle updates</span>
-          <small class="space-field__hint">Mobile Number (optional)</small>
-          <input type="tel" name="phone" value="${profile.phone || ""}" autocomplete="tel" placeholder="+91 00000 00000" />
+          <small class="space-field__hint">Mobile Number</small>
+          <input type="tel" name="phone" value="${profile.phone || ""}" autocomplete="tel" placeholder="+91 00000 00000" required />
         </label>
         <p class="space-profile-form__note">Your email address cannot be changed. For help, reach out on WhatsApp 💛</p>
         <p class="space-form__error" id="spaceProfileError" role="alert" hidden></p>
@@ -2030,6 +2035,10 @@ function renderSpaceProfile(email) {
 
     if (!displayName) {
       if (errEl) { errEl.textContent = "Please tell us what to call you."; errEl.hidden = false; }
+      return;
+    }
+    if (phone.replace(/\D/g, "").length < 7) {
+      if (errEl) { errEl.textContent = "A mobile number is needed — it’s how ABDAN confirms your orders personally. 💛"; errEl.hidden = false; }
       return;
     }
     if (errEl) errEl.hidden = true;
