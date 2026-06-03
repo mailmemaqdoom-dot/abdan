@@ -17216,3 +17216,21 @@ html[data-theme="dark"] .space-entry-grid > .space-gift-visual::after {
 .se-hist__pts { font-weight: 700; color: var(--gold, #c5a13b); font-size: 0.85rem; }
 .se-empty { text-align: center; padding: 1.6rem 1rem; color: var(--text-soft); font-family: var(--font-editorial, serif); font-style: italic; }
 @media (max-width: 380px) { .se-stats { grid-template-columns: 1fr; } }
+
+/* ── Contrast fixes (RC-13) ───────────────────────────────────────────
+   1) Brand tagline mark "YOUR DEVOTION DESERVES TO BE SEEN" was too faint
+      in both modes. 2) Promise-band quote rendered dark-green text on the
+      emerald band in light mode (invisible) — force ivory on the band.    */
+html:not([data-theme="dark"]) .hero-tagline-mark { color: rgba(120, 92, 24, 0.92) !important; }
+html[data-theme="dark"] .hero-tagline-mark       { color: rgba(216, 186, 122, 0.92) !important; }
+
+.promise-band__inner blockquote,
+.promise-band__inner p,
+.promise-band__inner cite {
+  color: var(--ivory, #faf6ef) !important;
+}
+html[data-theme="dark"] .promise-band__inner blockquote,
+html[data-theme="dark"] .promise-band__inner p,
+html[data-theme="dark"] .promise-band__inner cite {
+  color: rgba(236, 229, 210, 0.95) !important;
+}
