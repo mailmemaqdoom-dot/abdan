@@ -1674,8 +1674,10 @@ function showSpaceTab(tabId) {
     membership:   "spaceTabMembership",
     settings:     "spaceTabSettings",
     shareearn:    "spaceTabShareEarn",
+    myjourney:    "spaceTabMyJourney",
   };
   if (tabId === "shareearn" && typeof renderShareEarn === "function") renderShareEarn();
+  if (tabId === "myjourney" && typeof renderMyJourney === "function") renderMyJourney();
   document.querySelectorAll("[data-space-tab]").forEach((t) => {
     t.classList.toggle("is-active", t.dataset.spaceTab === tabId);
     t.setAttribute("aria-selected", t.dataset.spaceTab === tabId ? "true" : "false");
@@ -2174,6 +2176,7 @@ function renderSpaceOverview(profile) {
     { tab:"messages",    sym:"◇", title:"Messages",       desc:"Your conversations" },
     { tab:"journal",     sym:"✦", title:"Journal",        desc:"Your style diary" },
     { tab:"shareearn",   sym:"💛", title:"Share the Love",  desc:"Invite friends · earn Circle Points" },
+    { tab:"myjourney",   sym:"✨", title:"My Journey",      desc:"Your milestones with ABDAN" },
   ];
 
   panel.innerHTML = `
@@ -7575,6 +7578,140 @@ function renderShareEarn() {
     (channels[ch] || channels.copy)();
     renderShareEarn();
   }));
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   MY JOURNEY ✨ — a personal milestone timeline (additive).
+   Milestones are derived from existing data (orders, loyalty, wardrobe,
+   referrals, concierge) — no gamification, no XP, no streaks, no ranking.
+   ════════════════════════════════════════════════════════════════════ */
+const DEFAULT_MILESTONES = [
+  { id: "welcome",        category: "First Steps",            title: "Welcome to ABDAN",            description: "Your story with ABDAN begins.",                       metric: "profile",          threshold: 1,  points: 10,  active: true },
+  { id: "created-space",  category: "First Steps",            title: "Created Your Space",          description: "A private home for all that you love.",               metric: "profile",          threshold: 1,  points: 10,  active: true },
+  { id: "first-save",     category: "Shopping Journey",       title: "First Collection Saved",      description: "The first piece that caught your heart.",             metric: "wishlist",         threshold: 1,  points: 15,  active: true },
+  { id: "first-purchase", category: "Shopping Journey",       title: "First Purchase",              description: "Your first ABDAN piece, chosen with care.",           metric: "orders",           threshold: 1,  points: 50,  active: true },
+  { id: "festival",       category: "Shopping Journey",       title: "Festival Collection",         description: "A piece for the season of light.",                    metric: "festival",         threshold: 1,  points: 30,  active: true },
+  { id: "five-orders",    category: "Shopping Journey",       title: "5 Orders Completed",          description: "A wardrobe quietly growing.",                         metric: "orders",           threshold: 5,  points: 100, active: true },
+  { id: "trusted-patron", category: "Shopping Journey",       title: "Trusted Patron",              description: "A cherished member of the ABDAN family.",             metric: "orders",           threshold: 10, points: 200, active: true },
+  { id: "first-look",     category: "Style Journey",          title: "First Styled Look",           description: "You shared how you wear it.",                         metric: "looks",            threshold: 1,  points: 20,  active: true },
+  { id: "wardrobe-builder",category: "Style Journey",         title: "Wardrobe Builder",            description: "Your archive is quietly taking shape.",               metric: "purchased",        threshold: 3,  points: 40,  active: true },
+  { id: "style-curator",  category: "Style Journey",          title: "Style Curator",               description: "Pairings made with an eye for grace.",                metric: "pairings",         threshold: 1,  points: 25,  active: true },
+  { id: "collection-creator",category: "Style Journey",       title: "Collection Creator",          description: "Lookbooks composed with love.",                       metric: "lookbooks",        threshold: 1,  points: 25,  active: true },
+  { id: "memory-keeper",  category: "Style Journey",          title: "Memory Keeper",               description: "Moments kept, privately treasured.",                  metric: "gallery",          threshold: 1,  points: 25,  active: true },
+  { id: "first-concierge",category: "Community Journey",      title: "First Concierge Conversation",description: "You reached out, and ABDAN listened.",                metric: "concierge",        threshold: 1,  points: 20,  active: true },
+  { id: "first-friend",   category: "Share the Love Journey", title: "First Friend Invited",        description: "You opened the door for someone you love.",           metric: "referralsInvited", threshold: 1,  points: 20,  active: true },
+  { id: "people-inspired",category: "Share the Love Journey", title: "People Inspired",             description: "Someone discovered ABDAN through you.",               metric: "peopleInspired",   threshold: 1,  points: 50,  active: true },
+  { id: "circle-ambassador",category: "Share the Love Journey",title: "Circle Ambassador",          description: "Your warmth brings the Circle together.",             metric: "peopleInspired",   threshold: 3,  points: 150, active: true },
+  { id: "circle-member",  category: "Inner Circle Journey",   title: "Circle Member",               description: "Welcome to the Circle.",                              metric: "loyaltyPts",       threshold: 1,  points: 0,   active: true },
+  { id: "inner-circle",   category: "Inner Circle Journey",   title: "Inner Circle",                description: "Among ABDAN's most devoted.",                         metric: "loyaltyPts",       threshold: 150,points: 0,   active: true },
+  { id: "patron",         category: "Inner Circle Journey",   title: "Patron",                      description: "A patron of the house.",                              metric: "loyaltyPts",       threshold: 300,points: 0,   active: true },
+  { id: "founders-circle",category: "Inner Circle Journey",   title: "Founder's Circle",            description: "Forever part of ABDAN's beginning.",                  metric: "loyaltyPts",       threshold: 500,points: 0,   active: true },
+];
+const JOURNEY_METRIC_UNITS = {
+  wishlist: "saved piece", orders: "purchase", looks: "styled look", pairings: "pairing",
+  gallery: "memory", lookbooks: "lookbook", purchased: "piece", concierge: "conversation",
+  referralsInvited: "invitation", peopleInspired: "friend inspired", loyaltyPts: "Circle Point",
+};
+const JOURNEY_COUNTABLE = Object.keys(JOURNEY_METRIC_UNITS);
+function getEffectiveMilestones() {
+  try { const s = JSON.parse(localStorage.getItem("abdan-studio-journey") || "null"); if (Array.isArray(s) && s.length) return s; } catch {}
+  return DEFAULT_MILESTONES;
+}
+function journeyStats(profile) {
+  const email = String(profile && profile.email || "").toLowerCase();
+  let orders = []; try { orders = JSON.parse(localStorage.getItem("abdan-studio-orders") || "[]"); } catch {}
+  const prof = ((typeof getSpaceProfiles === "function" ? getSpaceProfiles() : {})[email]) || {};
+  const phones = [profile && profile.phone, prof.phone].map((p) => String(p || "").replace(/\D/g, "")).filter(Boolean);
+  const mine = orders.filter((o) => {
+    const op = String(o.customerPhone || "").replace(/\D/g, ""); const oe = String(o.customerEmail || "").toLowerCase();
+    return (op && phones.includes(op)) || (email && oe === email);
+  });
+  const ref = (typeof getMyReferrals === "function") ? getMyReferrals(email) : { invited: 0, successful: 0 };
+  return {
+    profile:          email ? 1 : 0,
+    wishlist:         (typeof getWishlist === "function") ? getWishlist().size : 0,
+    orders:           mine.length,
+    festival:         mine.some((o) => (o.items || []).some((it) => /festiv/i.test(it.name || ""))) ? 1 : 0,
+    looks:            (spGet(email, SP_WARD_LOOKS) || []).length,
+    pairings:         (spGet(email, SP_WARD_PAIRINGS) || []).length,
+    gallery:          (spGet(email, SP_WARD_GALLERY) || []).length,
+    lookbooks:        (typeof spGetLookbook === "function" ? spGetLookbook(email) : []).length,
+    purchased:        (typeof wardPurchasedPieces === "function") ? wardPurchasedPieces(profile).length : 0,
+    concierge:        (typeof spGetConcierge === "function" ? spGetConcierge(email) : []).length,
+    referralsInvited: ref.invited || 0,
+    peopleInspired:   ref.successful || 0,
+    loyaltyPts:       (typeof spGetLoyalty === "function") ? spGetLoyalty(email) : 0,
+  };
+}
+function evaluateJourney(profile) {
+  const email = String(profile && profile.email || "").toLowerCase();
+  const stats = journeyStats(profile);
+  const ms = getEffectiveMilestones().filter((m) => m.active !== false);
+  const dates = spGet(email, "abdan-sp-journey") || {};
+  let dirty = false; const unlocked = [], locked = [];
+  ms.forEach((m) => {
+    const val = Number(stats[m.metric] || 0);
+    if (val >= Number(m.threshold || 1)) {
+      if (!dates[m.id]) { dates[m.id] = new Date().toISOString(); dirty = true; }
+      unlocked.push({ ...m, date: dates[m.id] });
+    } else {
+      locked.push({ ...m, current: val, remaining: Math.max(0, Number(m.threshold || 1) - val) });
+    }
+  });
+  if (dirty) spSet(email, "abdan-sp-journey", dates);
+  unlocked.sort((a, b) => new Date(a.date) - new Date(b.date));
+  const next = locked
+    .filter((m) => m.remaining > 0 && JOURNEY_COUNTABLE.includes(m.metric))
+    .sort((a, b) => a.remaining - b.remaining)[0] || null;
+  return { stats, unlocked, locked, next, total: ms.length };
+}
+function renderMyJourney() {
+  const panel = document.getElementById("spaceMyJourneyPanel");
+  if (!panel) return;
+  const sess = getSpaceSession() || {};
+  const j = evaluateJourney(sess);
+  const fmtD = (d) => new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+
+  const nextCard = j.next ? (() => {
+    const unit = JOURNEY_METRIC_UNITS[j.next.metric] || "step";
+    const n = j.next.remaining;
+    const plural = n === 1 ? unit : (unit.endsWith("inspired") ? "friends inspired" : unit + "s");
+    return `<section class="jr-next">
+      <p class="jr-next__label">Your next milestone</p>
+      <p class="jr-next__title">${j.next.title}</p>
+      <p class="jr-next__desc">${j.next.description}</p>
+      <p class="jr-next__progress">${n} more ${plural} to unlock — gently, in your own time 💛</p>
+    </section>`;
+  })() : "";
+
+  const timeline = j.unlocked.length ? `<div class="jr-timeline">${j.unlocked.map((m) => `
+    <article class="jr-node">
+      <span class="jr-node__dot" aria-hidden="true"></span>
+      <div class="jr-node__card">
+        <p class="jr-node__cat">${m.category}</p>
+        <h4 class="jr-node__title">${m.title}</h4>
+        <p class="jr-node__desc">${m.description}</p>
+        <p class="jr-node__date">${fmtD(m.date)}</p>
+      </div>
+    </article>`).join("")}</div>`
+    : `<div class="jr-empty"><p>Your journey is just beginning. Each quiet step with ABDAN will gather here.</p></div>`;
+
+  const lockedLater = j.locked.filter((m) => !j.next || m.id !== j.next.id);
+  const future = lockedLater.length ? `<p class="jr-section-label">Still to come</p>
+    <div class="jr-future">${lockedLater.map((m) => `
+      <div class="jr-future__item"><span class="jr-future__title">${m.title}</span><span class="jr-future__cat">${m.category}</span></div>`).join("")}</div>` : "";
+
+  panel.innerHTML = `
+    <div class="jr-head">
+      <p class="jr-head__kicker">Your story with ABDAN</p>
+      <h3 class="jr-head__title">My Journey ✨</h3>
+      <p class="jr-head__intro">Not a game, not a score — simply the quiet milestones of your time with ABDAN, gathered with care.</p>
+      <p class="jr-head__count">${j.unlocked.length} of ${j.total} milestones reached</p>
+    </div>
+    ${nextCard}
+    <p class="jr-section-label">Your milestones</p>
+    ${timeline}
+    ${future}`;
 }
 
 /* D-03 — Profile quote: add to renderSpaceProfile override */

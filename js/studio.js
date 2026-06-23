@@ -81,6 +81,7 @@ const STUDIO_VIEWS = [
   { id: "customers",   label: "Her Circle 💛",       icon: "users",            group: "Her Circle"   },
   { id: "messaging",   label: "Circle Updates",     icon: "send",             group: "Her Circle"   },
   { id: "shareearn",   label: "Share & Earn",       icon: "gift",             group: "Her Circle"   },
+  { id: "journey",     label: "Journey Management", icon: "map",              group: "Her Circle"   },
   { id: "reviews",     label: "Reviews",            icon: "star",             group: "Her Circle"   },
   { id: "requests",    label: "Sourcing Requests",  icon: "search",           group: "Her Circle"   },
   { id: "concierge",   label: "Concierge Queue",    icon: "message-circle",   group: "Her Circle"   },
@@ -111,6 +112,7 @@ const STORAGE = {
   rules:       "abdan-studio-rules",
   shareEarn:   "abdan-studio-shareearn",
   referrals:   "abdan-referrals",
+  journey:     "abdan-studio-journey",
   reviews:     "abdan-studio-reviews",
   campaigns:   "abdan-studio-campaigns",
   founder:     "abdan-studio-founder",
@@ -461,6 +463,7 @@ function renderView(id) {
     coupons:     renderCoupons,
     rules:       renderRules,
     shareearn:   renderShareEarnAdmin,
+    journey:     renderJourneyAdmin,
     reviews:     renderReviews,
     requests:    renderRequests,
     concierge:   renderConciergeQueue,
@@ -2352,6 +2355,132 @@ function renderShareEarnAdmin() {
     });
     lxSaveGlow("seSave", "Share the Love rules saved 💛");
   });
+}
+
+/* ── HER CIRCLE: Journey Management (My Journey milestones) ───── */
+const JOURNEY_DEFAULT_MILESTONES = [
+  { id: "welcome",        category: "First Steps",            title: "Welcome to ABDAN",            description: "Your story with ABDAN begins.",            metric: "profile",          threshold: 1,  points: 10,  active: true },
+  { id: "created-space",  category: "First Steps",            title: "Created Your Space",          description: "A private home for all that you love.",    metric: "profile",          threshold: 1,  points: 10,  active: true },
+  { id: "first-save",     category: "Shopping Journey",       title: "First Collection Saved",      description: "The first piece that caught your heart.",  metric: "wishlist",         threshold: 1,  points: 15,  active: true },
+  { id: "first-purchase", category: "Shopping Journey",       title: "First Purchase",              description: "Your first ABDAN piece, chosen with care.",metric: "orders",           threshold: 1,  points: 50,  active: true },
+  { id: "festival",       category: "Shopping Journey",       title: "Festival Collection",         description: "A piece for the season of light.",         metric: "festival",         threshold: 1,  points: 30,  active: true },
+  { id: "five-orders",    category: "Shopping Journey",       title: "5 Orders Completed",          description: "A wardrobe quietly growing.",              metric: "orders",           threshold: 5,  points: 100, active: true },
+  { id: "trusted-patron", category: "Shopping Journey",       title: "Trusted Patron",              description: "A cherished member of the ABDAN family.",  metric: "orders",           threshold: 10, points: 200, active: true },
+  { id: "first-look",     category: "Style Journey",          title: "First Styled Look",           description: "You shared how you wear it.",              metric: "looks",            threshold: 1,  points: 20,  active: true },
+  { id: "wardrobe-builder",category: "Style Journey",         title: "Wardrobe Builder",            description: "Your archive is quietly taking shape.",    metric: "purchased",        threshold: 3,  points: 40,  active: true },
+  { id: "style-curator",  category: "Style Journey",          title: "Style Curator",               description: "Pairings made with an eye for grace.",     metric: "pairings",         threshold: 1,  points: 25,  active: true },
+  { id: "collection-creator",category: "Style Journey",       title: "Collection Creator",          description: "Lookbooks composed with love.",            metric: "lookbooks",        threshold: 1,  points: 25,  active: true },
+  { id: "memory-keeper",  category: "Style Journey",          title: "Memory Keeper",               description: "Moments kept, privately treasured.",       metric: "gallery",          threshold: 1,  points: 25,  active: true },
+  { id: "first-concierge",category: "Community Journey",      title: "First Concierge Conversation",description: "You reached out, and ABDAN listened.",     metric: "concierge",        threshold: 1,  points: 20,  active: true },
+  { id: "first-friend",   category: "Share the Love Journey", title: "First Friend Invited",        description: "You opened the door for someone you love.",metric: "referralsInvited", threshold: 1,  points: 20,  active: true },
+  { id: "people-inspired",category: "Share the Love Journey", title: "People Inspired",             description: "Someone discovered ABDAN through you.",     metric: "peopleInspired",   threshold: 1,  points: 50,  active: true },
+  { id: "circle-ambassador",category: "Share the Love Journey",title: "Circle Ambassador",          description: "Your warmth brings the Circle together.",  metric: "peopleInspired",   threshold: 3,  points: 150, active: true },
+  { id: "circle-member",  category: "Inner Circle Journey",   title: "Circle Member",               description: "Welcome to the Circle.",                   metric: "loyaltyPts",       threshold: 1,  points: 0,   active: true },
+  { id: "inner-circle",   category: "Inner Circle Journey",   title: "Inner Circle",                description: "Among ABDAN's most devoted.",              metric: "loyaltyPts",       threshold: 150,points: 0,   active: true },
+  { id: "patron",         category: "Inner Circle Journey",   title: "Patron",                      description: "A patron of the house.",                   metric: "loyaltyPts",       threshold: 300,points: 0,   active: true },
+  { id: "founders-circle",category: "Inner Circle Journey",   title: "Founder's Circle",            description: "Forever part of ABDAN's beginning.",       metric: "loyaltyPts",       threshold: 500,points: 0,   active: true },
+];
+const JOURNEY_METRICS = ["profile","wishlist","orders","festival","looks","pairings","gallery","lookbooks","purchased","concierge","referralsInvited","peopleInspired","loyaltyPts"];
+function getJourneyMilestones() {
+  const s = load(STORAGE.journey, null);
+  return (Array.isArray(s) && s.length) ? s : JOURNEY_DEFAULT_MILESTONES.slice();
+}
+function renderJourneyAdmin() {
+  setTitle("Journey Management", `
+    <button class="s-btn s-btn--primary s-btn--sm" id="sAddMilestone">
+      <i data-lucide="plus" class="s-icon"></i> New Milestone
+    </button>`);
+  const milestones = getJourneyMilestones();
+
+  /* Completion analytics — tally member journey data across all members. */
+  const earned = {}; let members = 0;
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.indexOf("abdan-sp-journey:") === 0) {
+        members++;
+        const m = JSON.parse(localStorage.getItem(k) || "{}") || {};
+        Object.keys(m).forEach((id) => { earned[id] = (earned[id] || 0) + 1; });
+      }
+    }
+  } catch {}
+  const titleOf = (id) => (milestones.find((x) => x.id === id) || {}).title || id;
+  const ranked = milestones.map((m) => ({ id: m.id, title: m.title, count: earned[m.id] || 0 }));
+  const mostEarned = [...ranked].sort((a, b) => b.count - a.count).slice(0, 5);
+  const rarest     = [...ranked].sort((a, b) => a.count - b.count).slice(0, 5);
+
+  dom.content.innerHTML = `
+    <div class="s-zone-header s-zone-header--circle">
+      <i data-lucide="map" class="s-icon"></i><span>My Journey — milestones &amp; completion</span>
+    </div>
+    <div class="s-stats-row">
+      ${stat("flag", "Active Milestones", milestones.filter((m) => m.active !== false).length, "s-stat--blue")}
+      ${stat("users", "Members on a Journey", members, "s-stat--purple")}
+      ${stat("award", "Milestones Earned", Object.values(earned).reduce((a, b) => a + b, 0), "s-stat--gold")}
+    </div>
+    <div class="s-analytics-grid">
+      <div class="s-card"><h3 class="s-card__title">Most Earned Milestones</h3>
+        ${mostEarned.some((m) => m.count) ? `<div class="s-rank-list">${mostEarned.map((m) => `<div class="s-rank-row"><span class="s-rank-row__name">${esc(m.title)}</span><span class="s-rank-row__val">${m.count}${members ? ` · ${Math.round((m.count / members) * 100)}%` : ""}</span></div>`).join("")}</div>` : empty("No milestones earned yet.", "award")}
+      </div>
+      <div class="s-card"><h3 class="s-card__title">Rarest Milestones</h3>
+        <div class="s-rank-list">${rarest.map((m) => `<div class="s-rank-row"><span class="s-rank-row__name">${esc(m.title)}</span><span class="s-rank-row__val">${m.count}${members ? ` · ${Math.round((m.count / members) * 100)}%` : ""}</span></div>`).join("")}</div>
+      </div>
+    </div>
+    <div class="s-zone-header s-zone-header--circle" style="margin-top:1.5rem">
+      <i data-lucide="flag" class="s-icon"></i><span>Milestones</span>
+    </div>
+    <div class="s-list" id="sMilestoneList">
+      ${milestones.map((m) => `
+        <div class="s-list-item">
+          <div class="s-list-item__main">
+            <strong>${esc(m.title)}</strong>
+            <span class="s-list-item__sub">${esc(m.category)} · ${esc(m.metric)} ≥ ${m.threshold} · ${m.points || 0} pts</span>
+          </div>
+          <div class="s-list-item__actions">
+            <span class="s-badge ${m.active !== false ? "s-badge--green" : ""}">${m.active !== false ? "Active" : "Off"}</span>
+            <button class="s-btn s-btn--ghost s-btn--sm s-btn--icon" data-edit-ms="${m.id}"><i data-lucide="pencil" class="s-icon"></i></button>
+          </div>
+        </div>`).join("")}
+    </div>
+    <p class="s-muted" style="margin-top:0.75rem;font-size:0.78rem">Reset to defaults clears all customisations.</p>
+    <button class="s-btn s-btn--ghost s-btn--sm" id="sJourneyReset" style="margin-top:0.5rem">Reset to defaults</button>`;
+
+  document.getElementById("sJourneyReset")?.addEventListener("click", () => {
+    if (!confirm("Reset all milestones to defaults?")) return;
+    save(STORAGE.journey, JOURNEY_DEFAULT_MILESTONES.slice());
+    toast("Milestones reset"); renderJourneyAdmin();
+  });
+  document.getElementById("sAddMilestone")?.addEventListener("click", () => openMilestonePanel());
+  dom.content.querySelectorAll("[data-edit-ms]").forEach((b) => b.addEventListener("click", () => {
+    openMilestonePanel(getJourneyMilestones().find((x) => x.id === b.dataset.editMs));
+  }));
+
+  function openMilestonePanel(ms = null) {
+    const isNew = !ms;
+    const m = ms || { id: "ms" + Date.now().toString(36), category: "Shopping Journey", title: "", description: "", metric: "orders", threshold: 1, points: 0, active: true };
+    openPanel(isNew ? "New Milestone" : "Edit Milestone", `
+      <div class="s-form-grid">
+        ${field("Title", "text", "msTitle", m.title, "e.g. Trusted Patron")}
+        ${fieldFull("Description", "text", "msDesc", m.description, "A short, warm line")}
+        ${field("Category", "text", "msCat", m.category, "e.g. Shopping Journey")}
+        <label class="s-field"><span class="s-field__label">Unlock metric</span>
+          <select id="msMetric" class="s-field__select">${JOURNEY_METRICS.map((x) => `<option value="${x}" ${m.metric === x ? "selected" : ""}>${x}</option>`).join("")}</select>
+        </label>
+        ${field("Unlock threshold (≥)", "number", "msThr", m.threshold, "1")}
+        ${field("Circle Points", "number", "msPts", m.points || 0, "0")}
+        <div class="s-field s-field--full s-toggle-row"><span class="s-field__label">Active</span>
+          <label class="s-toggle"><input type="checkbox" id="msActive" ${m.active !== false ? "checked" : ""} /><span class="s-toggle__track"></span></label>
+        </div>
+      </div>`, () => {
+      const title = val("msTitle"); if (!title) { toast("Title is required", "error"); return; }
+      const updated = { ...m, title, description: val("msDesc"), category: val("msCat"), metric: val("msMetric"), threshold: Number(val("msThr")) || 1, points: Number(val("msPts")) || 0, active: !!document.getElementById("msActive")?.checked };
+      const list = getJourneyMilestones();
+      const idx = list.findIndex((x) => x.id === m.id);
+      if (idx >= 0) list[idx] = updated; else list.push(updated);
+      save(STORAGE.journey, list);
+      closePanel(); toast(isNew ? "Milestone created 💛" : "Milestone updated"); renderJourneyAdmin();
+    });
+  }
 }
 
 /* ── HER CIRCLE: Reviews ─────────────────────────────────────── */

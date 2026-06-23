@@ -17277,3 +17277,42 @@ html[data-theme="dark"] .promise-band__inner cite {
   flex-shrink: 0;
 }
 .ghost-button .wa-glyph { vertical-align: -0.16em; }
+
+/* ════════════════════════════════════════════════════════════════════
+   MY JOURNEY ✨ — editorial milestone timeline (additive). Calm, luxury,
+   emerald accents, soft motion — not gamified.
+   ════════════════════════════════════════════════════════════════════ */
+.jr-head { margin: 0.5rem 0 1.4rem; }
+.jr-head__kicker { font-size: 0.7rem; letter-spacing: 0.24em; text-transform: uppercase; color: var(--gold, #c5a13b); margin: 0 0 0.5rem; }
+.jr-head__title { font-family: var(--font-display, serif); font-weight: 500; font-size: clamp(1.7rem, 6vw, 2.3rem); letter-spacing: -0.02em; margin: 0 0 0.5rem; color: var(--text-main); }
+.jr-head__intro { font-family: var(--font-editorial, serif); font-style: italic; font-size: 0.96rem; line-height: 1.55; color: var(--text-soft); margin: 0 0 0.6rem; max-width: 34rem; }
+.jr-head__count { font-size: 0.78rem; letter-spacing: 0.04em; color: var(--gold, #c5a13b); margin: 0; }
+.jr-section-label { font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-soft); margin: 1.6rem 0 1rem; }
+/* Next milestone — encouraging, soft */
+.jr-next {
+  margin: 0 0 0.6rem; padding: 1.3rem 1.4rem; border-radius: var(--radius-lg, 1rem);
+  border: 1px solid color-mix(in srgb, var(--emerald, #023d3a) 22%, transparent);
+  background: color-mix(in srgb, var(--emerald, #023d3a) 6%, transparent);
+}
+.jr-next__label { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--emerald, #023d3a); margin: 0 0 0.4rem; }
+.jr-next__title { font-family: var(--font-display, serif); font-size: 1.3rem; color: var(--text-main); margin: 0 0 0.2rem; }
+.jr-next__desc { font-size: 0.88rem; color: var(--text-soft); margin: 0 0 0.5rem; }
+.jr-next__progress { font-family: var(--font-editorial, serif); font-style: italic; font-size: 0.9rem; color: var(--gold, #c5a13b); margin: 0; }
+/* Timeline */
+.jr-timeline { position: relative; margin: 0; padding: 0 0 0 1.4rem; }
+.jr-timeline::before { content: ""; position: absolute; left: 0.32rem; top: 0.4rem; bottom: 0.4rem; width: 1.5px; background: linear-gradient(var(--gold, #c5a13b), color-mix(in srgb, var(--gold,#c5a13b) 20%, transparent)); }
+.jr-node { position: relative; margin: 0 0 1rem; animation: jrFade 420ms ease both; }
+@keyframes jrFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .jr-node { animation: none; } }
+.jr-node__dot { position: absolute; left: -1.4rem; top: 0.55rem; width: 0.7rem; height: 0.7rem; border-radius: 50%; background: var(--gold, #c5a13b); box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold,#c5a13b) 16%, transparent); }
+.jr-node__card { border: 1px solid var(--line); border-radius: var(--radius-lg, 1rem); padding: 1rem 1.15rem; background: color-mix(in srgb, var(--gold, #c5a13b) 3%, transparent); }
+.jr-node__cat { font-size: 0.64rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold, #c5a13b); margin: 0 0 0.3rem; }
+.jr-node__title { font-family: var(--font-display, serif); font-size: 1.15rem; font-weight: 500; color: var(--text-main); margin: 0 0 0.25rem; }
+.jr-node__desc { font-family: var(--font-editorial, serif); font-style: italic; font-size: 0.9rem; color: var(--text-soft); margin: 0 0 0.5rem; line-height: 1.5; }
+.jr-node__date { font-size: 0.72rem; letter-spacing: 0.04em; color: var(--text-soft); margin: 0; }
+.jr-empty { text-align: center; padding: 2rem 1rem; color: var(--text-soft); font-family: var(--font-editorial, serif); font-style: italic; line-height: 1.6; }
+/* Still to come */
+.jr-future { display: grid; gap: 0.5rem; }
+.jr-future__item { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; padding: 0.7rem 0.9rem; border: 1px dashed var(--line); border-radius: 0.7rem; opacity: 0.72; }
+.jr-future__title { font-size: 0.88rem; color: var(--text-main); }
+.jr-future__cat { font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-soft); }
