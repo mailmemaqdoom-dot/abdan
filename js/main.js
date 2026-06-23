@@ -2483,7 +2483,7 @@ function renderSpaceConcierge(email) {
               &nbsp;·&nbsp;
               <a class="sp-msg__wa-link"
                  href="https://wa.me/918760595307?text=${encodeURIComponent((m.text||"").substring(0,200))}"
-                 target="_blank" rel="noreferrer">Continue on WhatsApp ↗</a>
+                 target="_blank" rel="noreferrer"><svg class="social-icon wa-glyph" aria-hidden="true"><use href="#icon-whatsapp"/></svg>Continue ↗</a>
             </span>
           </div>`;
       }).join("")
@@ -2958,10 +2958,9 @@ function renderShareButtons(product) {
        ${btn.native || btn.copy ? "" : 'target="_blank" rel="noreferrer"'}
        ${btn.native ? 'data-native-share="true"' : ""}
        ${btn.copy   ? 'data-copy-link="true"'    : ""}
-       aria-label="Share on ${btn.label}"
+       aria-label="Share on ${btn.label}" title="${btn.label}"
        role="listitem">
       <svg class="social-icon" aria-hidden="true"><use href="#${btn.icon}"/></svg>
-      <span>${btn.label}</span>
     </a>
   `).join("");
 
@@ -6407,7 +6406,7 @@ function renderSpaceMessages(email) {
       </div>
       <a class="sp-conv-group__wa"
          href="https://wa.me/918760595307?text=${encodeURIComponent(`[ABDAN ${cat}] ${msgs[msgs.length-1]?.text||""}`.substring(0,200))}"
-         target="_blank" rel="noreferrer">Continue on WhatsApp ↗</a>
+         target="_blank" rel="noreferrer"><svg class="social-icon wa-glyph" aria-hidden="true"><use href="#icon-whatsapp"/></svg>Continue ↗</a>
     </div>`).join("");
 
   panel.innerHTML = `
@@ -6493,7 +6492,7 @@ function renderSpaceConcierge(email) {
               &nbsp;·&nbsp;
               <a class="sp-msg__wa-link"
                  href="https://wa.me/918760595307?text=${encodeURIComponent((m.text||"").substring(0,200))}"
-                 target="_blank" rel="noreferrer">Continue on WhatsApp ↗</a>
+                 target="_blank" rel="noreferrer"><svg class="social-icon wa-glyph" aria-hidden="true"><use href="#icon-whatsapp"/></svg>Continue ↗</a>
             </span>
           </div>`;
       }).join("")
@@ -6942,7 +6941,7 @@ function renderSpaceMessages(email) {
       </div>
       <a class="sp-conv-group__wa"
          href="https://wa.me/918760595307?text=${encodeURIComponent(`[ABDAN ${cat}] ${msgs[msgs.length-1]?.text||""}`.substring(0,200))}"
-         target="_blank" rel="noreferrer">Continue on WhatsApp ↗</a>
+         target="_blank" rel="noreferrer"><svg class="social-icon wa-glyph" aria-hidden="true"><use href="#icon-whatsapp"/></svg>Continue ↗</a>
     </div>`).join("");
 
   panel.innerHTML = `

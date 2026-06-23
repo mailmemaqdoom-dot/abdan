@@ -1925,16 +1925,15 @@ html[data-theme="dark"] .teaser-modal__backdrop {
 .share-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.42rem;
-  padding: 0.48rem 0.88rem;
-  border-radius: var(--radius-pill);
+  justify-content: center;
+  gap: 0;
+  width: 2.9rem;
+  height: 2.9rem;
+  padding: 0;
+  border-radius: 50%;
   border: 1.5px solid var(--line);
   background: var(--paper);
   color: var(--text-main);
-  font-family: var(--font-body);
-  font-size: var(--type-body-sm);
-  font-weight: 600;
-  letter-spacing: 0.01em;
   text-decoration: none;
   white-space: nowrap;
   scroll-snap-align: start;
@@ -1964,6 +1963,16 @@ html[data-theme="dark"] .share-btn[data-platform="x"]:hover {
   background: var(--paper);
   color: var(--text-main);
 }
+/* Icon-only share buttons — brand-colour logos at rest (currentColor fill) */
+.share-btn .social-icon { width: 1.4rem; height: 1.4rem; }
+.share-btn[data-platform="whatsapp"]  { color: #25D366; }
+.share-btn[data-platform="telegram"]  { color: #26A5E4; }
+.share-btn[data-platform="instagram"] { color: #E4405F; }
+.share-btn[data-platform="facebook"]  { color: #1877F2; }
+.share-btn[data-platform="pinterest"] { color: #E60023; }
+.share-btn[data-platform="x"]         { color: var(--text-main); }
+.share-btn[data-platform="copy"],
+.share-btn[data-platform="native"]    { color: var(--emerald, #023d3a); }
 .footer-socials {
   display: flex;
   flex-wrap: wrap;
@@ -17256,3 +17265,15 @@ html[data-theme="dark"] .promise-band__inner cite {
 }
 @media (min-width: 560px) { .se-impact { grid-template-columns: repeat(4, 1fr); } }
 .se-impact .se-stat { text-align: center; padding: 1rem 0.7rem; }
+
+/* RC-14.2 — inline WhatsApp glyph on contact CTAs (logo, not the word) */
+.wa-glyph {
+  width: 1.05em;
+  height: 1.05em;
+  display: inline-block;
+  vertical-align: -0.18em;
+  margin-right: 0.4em;
+  color: #25D366;
+  flex-shrink: 0;
+}
+.ghost-button .wa-glyph { vertical-align: -0.16em; }
