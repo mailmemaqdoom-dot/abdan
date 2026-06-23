@@ -17237,16 +17237,20 @@ html[data-theme="dark"] .promise-band__inner cite {
 
 /* ── Share the Love 💛 — channels + impact grid (additive, RC-14) ──────── */
 .se-card__hint { font-size: 0.72rem; letter-spacing: 0.04em; color: var(--text-soft); margin: 0.9rem 0 0.5rem; }
-.se-channels { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.3rem; }
+.se-channels { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 0.3rem; }
 .se-chan {
-  flex: 0 0 auto; border: 1px solid var(--line); background: var(--surface, transparent);
-  color: var(--text-main); cursor: pointer; border-radius: 999px;
-  padding: 0.55rem 1rem; font-size: 0.8rem; letter-spacing: 0.01em;
-  transition: transform 200ms ease, background 200ms ease, border-color 200ms ease;
+  flex: 0 0 auto; width: 3rem; height: 3rem; padding: 0;
+  display: grid; place-items: center;
+  border: 1px solid var(--line); background: var(--surface, #fff);
+  cursor: pointer; border-radius: 50%;
+  transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
 }
-.se-chan:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--gold, #c5a13b) 45%, transparent); }
-.se-chan--wa { background: var(--emerald, #023d3a); color: #fff; border-color: var(--emerald, #023d3a); }
-.se-chan--copy { border-style: dashed; }
+.se-chan svg { width: 1.4rem; height: 1.4rem; display: block; }
+.se-chan:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--gold, #c5a13b) 45%, transparent);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
 .se-impact {
   display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.7rem;
 }
