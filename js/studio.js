@@ -2245,15 +2245,30 @@ function renderRules() {
 /* ── HER CIRCLE: Share & Earn Management (referrals → Circle Points) ── */
 function getShareEarnSettingsAdmin() {
   const s = load(STORAGE.shareEarn, {}) || {};
-  return Object.assign({ enabled: true, base: 100, tier5000: 250, tier10000: 500, bonusMultiplier: 1, seasonalMultiplier: 1, validityDays: 60, maxPerMember: 50, campaignName: "" }, s);
+  return Object.assign({ enabled: true, linksActive: true, base: 100, tier5000: 250, tier10000: 500, bonusMultiplier: 1, seasonalMultiplier: 1, validityDays: 60, maxPerMember: 50, campaignName: "" }, s);
 }
 function renderShareEarnAdmin() {
   setTitle("Share & Earn");
   const s = getShareEarnSettingsAdmin();
   const referrals = load(STORAGE.referrals, []) || [];
-  const invited    = referrals.length;
-  const successful = referrals.filter((r) => r.status === "rewarded" || r.ordered).length;
-  const pointsGiven = referrals.filter((r) => r.status === "rewarded").reduce((a, r) => a + (Number(r.points) || 0), 0);
+  const invited      = referrals.length;
+  const peopleInspired = referrals.filter((r) => r.status === "rewarded" || r.ordered).length;
+  const ordersGenerated = referrals.filter((r) => r.rewardedOrderRef || r.ordered).length;
+  const pointsGiven  = referrals.filter((r) => r.status === "rewarded").reduce((a, r) => a + (Number(r.points) || 0), 0);
+  const conversion   = invited ? Math.round((peopleInspired / invited) * 100) : 0;
+
+  /* Aggregate shares across all members (Top Shared / Shares Generated). */
+  let sharesGenerated = 0; const shareAgg = {};
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.indexOf("abdan-sp-shares:") === 0) {
+        const m = JSON.parse(localStorage.getItem(k) || "{}") || {};
+        Object.entries(m).forEach(([cat, n]) => { sharesGenerated += Number(n) || 0; shareAgg[cat] = (shareAgg[cat] || 0) + (Number(n) || 0); });
+      }
+    }
+  } catch {}
+  const topShared = Object.entries(shareAgg).sort((a, b) => b[1] - a[1]).slice(0, 6);
 
   const rows = referrals.length ? referrals.slice(0, 50).map((r) => {
     const cls = { invited: "s-badge--amber", joined: "s-badge--blue", ordered: "s-badge--emerald", rewarded: "s-badge--green" }[r.status] || "";
@@ -2264,24 +2279,30 @@ function renderShareEarnAdmin() {
       </div>
       <span class="s-badge ${cls}">${capitalise(r.status || "invited")}</span>
     </div>`;
-  }).join("") : empty("No referrals yet. Members can invite friends from Your Space → Share & Earn.", "gift");
+  }).join("") : empty("No referrals yet. Members invite friends from Your Space → Share the Love.", "gift");
 
   dom.content.innerHTML = `
     <div class="s-zone-header s-zone-header--circle">
       <i data-lucide="gift" class="s-icon"></i>
-      <span>Share &amp; Earn — Circle Points advocacy</span>
+      <span>Share &amp; Earn — Circle Points advocacy ${s.enabled ? "" : "· <em style='color:#c5742f'>PAUSED</em>"}</span>
     </div>
     <div class="s-stats-row">
-      ${stat("users",       "Invited Friends",      invited,     "s-stat--blue")}
-      ${stat("check-circle","Successful Referrals",  successful,  "s-stat--green")}
-      ${stat("award",       "Circle Points Given",   pointsGiven, "s-stat--gold")}
+      ${stat("share-2",     "Shares Generated",     sharesGenerated, "s-stat--blue")}
+      ${stat("users",       "People Inspired",      peopleInspired,  "s-stat--purple")}
+      ${stat("receipt",     "Orders Generated",     ordersGenerated, "s-stat--green")}
+      ${stat("award",       "Circle Points Awarded",pointsGiven,     "s-stat--gold")}
+    </div>
+    <div class="s-stats-row">
+      ${stat("users",       "Friends Invited",      invited,          "s-stat--blue")}
+      ${stat("trending-up", "Conversion Rate",      conversion + "%", "s-stat--green")}
+      ${stat("zap",         "Seasonal Multiplier",  (s.seasonalMultiplier || 1) + "×", "s-stat--gold")}
     </div>
     <div class="s-card s-form-card">
       <h3 class="s-card__title">Points Rules</h3>
       <div class="s-form-grid">
-        ${field("Purchase Completed (pts)", "number", "seBase", s.base, "100")}
-        ${field("₹5,000+ Order (pts)", "number", "seT5", s.tier5000, "250")}
-        ${field("₹10,000+ Order (pts)", "number", "seT10", s.tier10000, "500")}
+        ${field("Successful Purchase (pts)", "number", "seBase", s.base, "100")}
+        ${field("Order Above ₹5,000 (pts)", "number", "seT5", s.tier5000, "250")}
+        ${field("Order Above ₹10,000 (pts)", "number", "seT10", s.tier10000, "500")}
         ${field("Bonus Campaign Multiplier", "number", "seBonus", s.bonusMultiplier, "1")}
         ${field("Seasonal Multiplier", "number", "seSeason", s.seasonalMultiplier, "1")}
         ${field("Referral Validity (days)", "number", "seValid", s.validityDays, "60")}
@@ -2289,27 +2310,47 @@ function renderShareEarnAdmin() {
         ${field("Bonus Campaign Name", "text", "seCampaign", s.campaignName, "e.g. Festive Circle")}
       </div>
       <div class="s-field s-field--full s-toggle-row" style="margin-top:0.75rem">
-        <span class="s-field__label">Share &amp; Earn enabled</span>
+        <span class="s-field__label">Campaign active <small class="s-card__hint">(uncheck to pause)</small></span>
         <label class="s-toggle"><input type="checkbox" id="seEnabled" ${s.enabled ? "checked" : ""} /><span class="s-toggle__track"></span></label>
+      </div>
+      <div class="s-field s-field--full s-toggle-row">
+        <span class="s-field__label">Share links active <small class="s-card__hint">(uncheck to deactivate all links)</small></span>
+        <label class="s-toggle"><input type="checkbox" id="seLinks" ${s.linksActive ? "checked" : ""} /><span class="s-toggle__track"></span></label>
       </div>
       <div style="margin-top:1rem">
         <button class="s-btn s-btn--primary" id="seSave"><i data-lucide="save" class="s-icon"></i> Save Rules</button>
       </div>
     </div>
+    <div class="s-zone-header s-zone-header--intel" style="margin-top:1.5rem">
+      <i data-lucide="bar-chart-2" class="s-icon"></i><span>Performance Analytics</span>
+    </div>
+    <div class="s-analytics-grid">
+      <div class="s-card">
+        <h3 class="s-card__title">Top Shared Products &amp; Collections</h3>
+        ${topShared.length ? `<div class="s-rank-list">${topShared.map(([l, n]) => `<div class="s-rank-row"><span class="s-rank-row__name">${esc(l)}</span><span class="s-rank-row__val">${n}</span></div>`).join("")}</div>` : empty("No shares yet.", "share-2")}
+      </div>
+      <div class="s-card">
+        <h3 class="s-card__title">Top Performing Campaign</h3>
+        ${s.campaignName ? `<div class="s-rank-list"><div class="s-rank-row"><span class="s-rank-row__name">${esc(s.campaignName)}</span><span class="s-rank-row__val">${s.bonusMultiplier || 1}×</span></div></div>`
+          : empty("No bonus campaign configured.", "megaphone")}
+        <p class="s-muted" style="margin-top:0.6rem;font-size:0.78rem">Seasonal performance: ${(s.seasonalMultiplier || 1)}× on ${pointsGiven} pts awarded.</p>
+      </div>
+    </div>
     <div class="s-zone-header s-zone-header--circle" style="margin-top:1.5rem">
-      <i data-lucide="share-2" class="s-icon"></i><span>Referral Activity</span>
+      <i data-lucide="share-2" class="s-icon"></i><span>Circle Connections</span>
     </div>
     <div class="s-list">${rows}</div>`;
 
   document.getElementById("seSave")?.addEventListener("click", () => {
     save(STORAGE.shareEarn, {
       enabled: !!document.getElementById("seEnabled")?.checked,
+      linksActive: !!document.getElementById("seLinks")?.checked,
       base: Number(val("seBase")) || 0, tier5000: Number(val("seT5")) || 0, tier10000: Number(val("seT10")) || 0,
       bonusMultiplier: Number(val("seBonus")) || 1, seasonalMultiplier: Number(val("seSeason")) || 1,
       validityDays: Number(val("seValid")) || 0, maxPerMember: Number(val("seMax")) || 0,
       campaignName: val("seCampaign"),
     });
-    lxSaveGlow("seSave", "Share & Earn rules saved 💛");
+    lxSaveGlow("seSave", "Share the Love rules saved 💛");
   });
 }
 

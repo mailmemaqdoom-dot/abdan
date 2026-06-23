@@ -2103,6 +2103,9 @@ function abdanMemberSavings(profile) {
 function renderSpaceOverview(profile) {
   const panel = document.getElementById("spaceOverviewPanel");
   if (!panel) return;
+  /* Share the Love — surface any "discovered ABDAN through you" awards. */
+  if (typeof reconcileReferralRewards === "function") { try { reconcileReferralRewards(); } catch {} }
+  if (typeof flushShareNotifications === "function") { try { flushShareNotifications(profile.email || ""); } catch {} }
 
   const email    = profile.email || "";
   const first    = (profile.displayName || profile.fullName || "").split(" ")[0] || "you";
@@ -2170,7 +2173,7 @@ function renderSpaceOverview(profile) {
     { tab:"requests",    sym:"◇", title:"My Requests",    desc:"Source a piece" },
     { tab:"messages",    sym:"◇", title:"Messages",       desc:"Your conversations" },
     { tab:"journal",     sym:"✦", title:"Journal",        desc:"Your style diary" },
-    { tab:"shareearn",   sym:"✦", title:"Share & Earn",   desc:"Invite friends · earn Circle Points" },
+    { tab:"shareearn",   sym:"💛", title:"Share the Love",  desc:"Invite friends · earn Circle Points" },
   ];
 
   panel.innerHTML = `
@@ -7353,7 +7356,7 @@ function getDeviceId() {
 }
 function getShareEarnSettings() {
   let s = {}; try { s = JSON.parse(localStorage.getItem(SHARE_EARN_KEY) || "{}") || {}; } catch {}
-  return Object.assign({ enabled: true, base: 100, tier5000: 250, tier10000: 500, bonusMultiplier: 1, seasonalMultiplier: 1, validityDays: 60, maxPerMember: 50, campaignName: "" }, s);
+  return Object.assign({ enabled: true, linksActive: true, base: 100, tier5000: 250, tier10000: 500, bonusMultiplier: 1, seasonalMultiplier: 1, validityDays: 60, maxPerMember: 50, campaignName: "" }, s);
 }
 function genReferralCode(email) {
   const e = String(email || "").toLowerCase();
@@ -7378,7 +7381,8 @@ function captureReferralFromUrl() {
   let code = null; try { code = new URLSearchParams(location.search).get("ref"); } catch {}
   if (!code) return;
   code = code.toUpperCase();
-  if (!getShareEarnSettings().enabled) return;
+  const seSettings = getShareEarnSettings();
+  if (!seSettings.enabled || seSettings.linksActive === false) return;  /* paused / links deactivated */
   const referrerEmail = referrerEmailForCode(code);
   if (!referrerEmail) return;
   const sess = getSpaceSession();
@@ -7430,10 +7434,28 @@ function reconcileReferralRewards() {
     let pts = total >= 10000 ? settings.tier10000 : total >= 5000 ? settings.tier5000 : settings.base;
     pts = Math.round(pts * (settings.bonusMultiplier || 1) * (settings.seasonalMultiplier || 1));
     if (typeof spAddLoyalty === "function") spAddLoyalty(r.referrerEmail, pts);
+    pushShareNotify(r.referrerEmail, pts);
     r.status = "rewarded"; r.ordered = true; r.points = pts; r.rewardedOrderRef = ord.ref || ord.id || "";
     changed = true;
   });
   if (changed) saveReferrals(list);
+}
+/* Emotional award notification — "Someone discovered ABDAN through you." */
+function pushShareNotify(email, points) {
+  try {
+    const n = JSON.parse(localStorage.getItem("abdan-se-notify") || "[]");
+    n.push({ email: String(email || "").toLowerCase(), points, at: Date.now() });
+    localStorage.setItem("abdan-se-notify", JSON.stringify(n));
+  } catch {}
+}
+function flushShareNotifications(email) {
+  const em = String(email || "").toLowerCase(); if (!em) return;
+  let n = []; try { n = JSON.parse(localStorage.getItem("abdan-se-notify") || "[]"); } catch { return; }
+  const mine = n.filter((x) => x.email === em);
+  if (!mine.length) return;
+  const total = mine.reduce((s, x) => s + (x.points || 0), 0);
+  try { localStorage.setItem("abdan-se-notify", JSON.stringify(n.filter((x) => x.email !== em))); } catch {}
+  setTimeout(() => showToast(`Someone discovered ABDAN through you. ${total} Circle Points added 💛`, 4200), 600);
 }
 function getMyReferrals(email) {
   const code = genReferralCode(email);
@@ -7451,6 +7473,7 @@ function wardShareCount(email, label) {
 }
 
 let _shareTarget = { type: "Products", label: "ABDAN" };
+const SHARE_TARGETS = ["Products", "Collections", "Curated Collections", "Lookbooks", "Stories From Her World", "Occasion Boards", "Community Content"];
 function renderShareEarn() {
   const panel = document.getElementById("spaceShareEarnPanel");
   if (!panel) return;
@@ -7458,62 +7481,70 @@ function renderShareEarn() {
   const sess  = getSpaceSession() || {};
   const email = sess.email || "";
   const first = (sess.displayName || sess.fullName || "").split(" ")[0] || "you";
+  flushShareNotifications(email);
   const code  = genReferralCode(email);
   const settings = getShareEarnSettings();
   const my   = getMyReferrals(email);
   const link = buildReferralLink(code, _shareTarget.type, "");
   const shares = spGet(email, SP_SHARE_COUNTS) || {};
+  const totalShares = Object.values(shares).reduce((s, n) => s + n, 0);
   const topShared = Object.entries(shares).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  const TARGETS = ["Products", "Collections", "Lookbooks", "Occasion Boards", "Curated Collections"];
+  const mostLoved = topShared.length ? topShared[0][0] : "—";
 
-  const statusLabel = { invited: "Invited", joined: "Joined", ordered: "Ordered", rewarded: "Rewarded 💛" };
-  const history = my.list.length ? my.list.slice(0, 12).map((r) => `
-    <div class="se-hist">
+  const history = my.list.length ? my.list.slice(0, 12).map((r) => {
+    const line = r.status === "rewarded" ? "discovered ABDAN through you" : r.ordered ? "is exploring ABDAN" : r.status === "joined" ? "joined the Circle through you" : "was invited by you";
+    return `<div class="se-hist">
       <div><p class="se-hist__who">${wardEsc(r.referredEmail || "A friend")}</p>
-      <p class="se-hist__when">${new Date(r.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p></div>
-      <div class="se-hist__right"><span class="se-hist__status se-hist__status--${r.status}">${statusLabel[r.status] || r.status}</span>
-      ${r.points ? `<span class="se-hist__pts">+${r.points}</span>` : ""}</div>
-    </div>`).join("") : `<p class="se-empty">No invitations yet — your first share begins the story.</p>`;
+      <p class="se-hist__when">${line} · ${new Date(r.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p></div>
+      ${r.points ? `<span class="se-hist__pts">+${r.points} 💛</span>` : `<span class="se-hist__status se-hist__status--${r.status}">${r.status === "rewarded" ? "Inspired" : r.ordered ? "Exploring" : "Invited"}</span>`}
+    </div>`; }).join("") : `<p class="se-empty">No one yet — your first share begins a quiet, lovely ripple.</p>`;
 
   panel.innerHTML = `
     <div class="se-head">
-      <p class="se-head__kicker">The Circle grows by invitation</p>
-      <h3 class="se-head__title">Share &amp; Earn Circle Points</h3>
-      <p class="se-head__intro">Introduce ABDAN to someone you love. When their first order is delivered, you receive Circle Points — never cash, only belonging.</p>
+      <p class="se-head__kicker">An invitation, not an advertisement</p>
+      <h3 class="se-head__title">Share the Love 💛</h3>
+      <p class="se-head__intro">Some pieces are too beautiful to keep to yourself. Share ABDAN with the women you love — and when their first order arrives, Circle Points quietly find their way to you. Never cash, only belonging.</p>
     </div>
 
     <section class="se-card se-card--invite">
       <p class="se-card__label">Your personal invitation</p>
       <div class="se-link"><span class="se-link__url" id="seLink">${link}</span></div>
+      <p class="se-card__hint">Choose what you’re sharing</p>
       <div class="se-targets" role="tablist">
-        ${TARGETS.map((t) => `<button type="button" class="se-target${_shareTarget.type === t ? " is-active" : ""}" data-se-target="${t}">${t}</button>`).join("")}
+        ${SHARE_TARGETS.map((t) => `<button type="button" class="se-target${_shareTarget.type === t ? " is-active" : ""}" data-se-target="${t}">${t}</button>`).join("")}
       </div>
-      <div class="se-actions">
-        <button type="button" class="se-btn se-btn--primary" id="seShareWa">Share on WhatsApp</button>
-        <button type="button" class="se-btn" id="seCopy">Copy link</button>
-        ${navigator.share ? `<button type="button" class="se-btn" id="seNative">Share…</button>` : ""}
+      <div class="se-channels">
+        <button type="button" class="se-chan se-chan--wa" data-se-chan="whatsapp">WhatsApp</button>
+        <button type="button" class="se-chan" data-se-chan="facebook">Facebook</button>
+        <button type="button" class="se-chan" data-se-chan="instagram">Instagram</button>
+        <button type="button" class="se-chan" data-se-chan="telegram">Telegram</button>
+        <button type="button" class="se-chan" data-se-chan="x">X</button>
+        <button type="button" class="se-chan" data-se-chan="email">Email</button>
+        <button type="button" class="se-chan se-chan--copy" data-se-chan="copy">Copy link</button>
+        ${navigator.share ? `<button type="button" class="se-chan" data-se-chan="native">Share…</button>` : ""}
       </div>
       <p class="se-code">Your code · <strong>${code}</strong></p>
     </section>
 
-    <p class="se-section-label">My Referrals</p>
-    <div class="se-stats">
-      <div class="se-stat"><span class="se-stat__v">${my.invited}</span><span class="se-stat__l">Invited Friends</span></div>
-      <div class="se-stat"><span class="se-stat__v">${my.successful}</span><span class="se-stat__l">Successful Referrals</span></div>
+    <p class="se-section-label">My Impact</p>
+    <div class="se-impact">
+      <div class="se-stat"><span class="se-stat__v">${my.invited}</span><span class="se-stat__l">Friends Invited</span></div>
+      <div class="se-stat"><span class="se-stat__v">${my.successful}</span><span class="se-stat__l">People Inspired</span></div>
       <div class="se-stat se-stat--gold"><span class="se-stat__v">${my.points}</span><span class="se-stat__l">Circle Points Earned</span></div>
+      <div class="se-stat"><span class="se-stat__v">${totalShares}</span><span class="se-stat__l">Collections Shared</span></div>
     </div>
 
     ${settings.campaignName ? `<p class="se-campaign">✦ ${wardEsc(settings.campaignName)}</p>` : ""}
 
     <div class="se-reward-note">
-      <p>Purchase completed — <strong>${settings.base} pts</strong> · ₹5,000+ — <strong>${settings.tier5000} pts</strong> · ₹10,000+ — <strong>${settings.tier10000} pts</strong></p>
-      <p class="se-reward-note__fine">Awarded only after your friend’s order is delivered.</p>
+      <p>A purchase completed — <strong>${settings.base} Circle Points</strong> · ₹5,000+ — <strong>${settings.tier5000}</strong> · ₹10,000+ — <strong>${settings.tier10000}</strong></p>
+      <p class="se-reward-note__fine">Circle Points arrive only after your friend’s order is delivered — never before.</p>
     </div>
 
-    ${topShared.length ? `<p class="se-section-label">Top Shared</p>
+    ${topShared.length ? `<p class="se-section-label">Most Loved Shares</p>
     <div class="se-top">${topShared.map(([l, n]) => `<div class="se-top__row"><span>${wardEsc(l)}</span><span>${n} share${n !== 1 ? "s" : ""}</span></div>`).join("")}</div>` : ""}
 
-    <p class="se-section-label">Referral History</p>
+    <p class="se-section-label">Your ABDAN Discoveries</p>
     <div class="se-history">${history}</div>`;
 
   /* Wiring */
@@ -7521,22 +7552,25 @@ function renderShareEarn() {
     _shareTarget = { type: b.dataset.seTarget, label: b.dataset.seTarget };
     renderShareEarn();
   }));
-  const shareText = `${first === "you" ? "I" : first} thought you'd love ABDAN 💛 — thoughtfully curated modest fashion. Begin here: ${link}`;
-  document.getElementById("seShareWa")?.addEventListener("click", () => {
+  const descriptor = "Personally curated by ABDAN — thoughtfully made modest fashion.";
+  const shareText = `${first === "you" ? "I" : first} thought of you 💛 ${descriptor} Begin here: ${link}`;
+  const eLink = encodeURIComponent(link), eText = encodeURIComponent(shareText), eDesc = encodeURIComponent(descriptor);
+  const channels = {
+    whatsapp: () => window.open(`https://wa.me/?text=${eText}`, "_blank", "noopener,noreferrer"),
+    facebook: () => window.open(`https://www.facebook.com/sharer/sharer.php?u=${eLink}&quote=${eDesc}`, "_blank", "noopener,noreferrer"),
+    telegram: () => window.open(`https://t.me/share/url?url=${eLink}&text=${eDesc}`, "_blank", "noopener,noreferrer"),
+    x:        () => window.open(`https://twitter.com/intent/tweet?text=${eDesc}&url=${eLink}`, "_blank", "noopener,noreferrer"),
+    email:    () => window.open(`mailto:?subject=${encodeURIComponent("I thought you'd love ABDAN 💛")}&body=${eText}`, "_blank", "noopener,noreferrer"),
+    instagram:() => { try { navigator.clipboard.writeText(link); } catch {} showToast("Link copied — paste it into your Instagram story or DM 💛"); },
+    copy:     () => { try { navigator.clipboard.writeText(link); } catch {} showToast("Invitation link copied 💛"); },
+    native:   () => { try { navigator.share({ title: "ABDAN", text: shareText, url: link }); } catch {} },
+  };
+  panel.querySelectorAll("[data-se-chan]").forEach((b) => b.addEventListener("click", () => {
+    const ch = b.dataset.seChan;
     wardShareCount(email, _shareTarget.type);
-    window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, "_blank", "noopener,noreferrer");
+    (channels[ch] || channels.copy)();
     renderShareEarn();
-  });
-  document.getElementById("seCopy")?.addEventListener("click", () => {
-    wardShareCount(email, _shareTarget.type);
-    try { navigator.clipboard.writeText(link); } catch {}
-    showToast("Invitation link copied 💛"); renderShareEarn();
-  });
-  document.getElementById("seNative")?.addEventListener("click", () => {
-    wardShareCount(email, _shareTarget.type);
-    try { navigator.share({ title: "ABDAN", text: shareText, url: link }); } catch {}
-    renderShareEarn();
-  });
+  }));
 }
 
 /* D-03 — Profile quote: add to renderSpaceProfile override */
