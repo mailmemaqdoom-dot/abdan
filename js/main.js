@@ -1679,10 +1679,12 @@ function showSpaceTab(tabId) {
     shareearn:    "spaceTabShareEarn",
     myjourney:    "spaceTabMyJourney",
     moments:      "spaceTabMyMoments",
+    edits:        "spaceTabMyEdits",
   };
   if (tabId === "shareearn" && typeof renderShareEarn === "function") renderShareEarn();
   if (tabId === "myjourney" && typeof renderMyJourney === "function") renderMyJourney();
   if (tabId === "moments" && typeof renderMyMoments === "function") renderMyMoments();
+  if (tabId === "edits" && typeof renderMyEdits === "function") renderMyEdits();
   document.querySelectorAll("[data-space-tab]").forEach((t) => {
     t.classList.toggle("is-active", t.dataset.spaceTab === tabId);
     t.setAttribute("aria-selected", t.dataset.spaceTab === tabId ? "true" : "false");
@@ -2183,6 +2185,7 @@ function renderSpaceOverview(profile) {
     { tab:"shareearn",   sym:"💛", title:"Share the Love",  desc:"Invite friends · earn Circle Points" },
     { tab:"myjourney",   sym:"✨", title:"My Journey",      desc:"Your milestones with ABDAN" },
     { tab:"moments",     sym:"❀", title:"My Moments",      desc:"Prepare for what matters" },
+    { tab:"edits",       sym:"✎", title:"My Edits",        desc:"Curate &amp; share your collections" },
   ];
 
   panel.innerHTML = `
@@ -7393,7 +7396,11 @@ function buildReferralLink(code, type, id) {
   return "https://abdan.pages.dev/" + q;
 }
 function captureReferralFromUrl() {
-  let code = null; try { code = new URLSearchParams(location.search).get("ref"); } catch {}
+  let code = null, refType = "", refId = "";
+  try {
+    const qp = new URLSearchParams(location.search);
+    code = qp.get("ref"); refType = qp.get("t") || ""; refId = qp.get("i") || "";
+  } catch {}
   if (!code) return;
   code = code.toUpperCase();
   const seSettings = getShareEarnSettings();
@@ -7403,10 +7410,10 @@ function captureReferralFromUrl() {
   const sess = getSpaceSession();
   if (sess && sess.email && genReferralCode(sess.email) === code) return; /* self */
   const deviceId = getDeviceId();
-  try { localStorage.setItem(PENDING_REF_KEY, JSON.stringify({ code, referrerEmail, deviceId, at: Date.now() })); } catch {}
+  try { localStorage.setItem(PENDING_REF_KEY, JSON.stringify({ code, referrerEmail, deviceId, at: Date.now(), type: refType, refId })); } catch {}
   const list = getReferrals();
   if (!list.find((r) => r.code === code && r.referredDeviceId === deviceId)) {
-    list.unshift({ id: "ref" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), code, referrerEmail, referredDeviceId: deviceId, referredEmail: "", referredPhone: "", status: "invited", ordered: false, createdAt: new Date().toISOString(), points: 0, rewardedOrderRef: "" });
+    list.unshift({ id: "ref" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), code, referrerEmail, referredDeviceId: deviceId, referredEmail: "", referredPhone: "", status: "invited", ordered: false, createdAt: new Date().toISOString(), points: 0, rewardedOrderRef: "", type: refType, refId });
     saveReferrals(list);
   }
 }
@@ -7481,6 +7488,13 @@ function getMyReferrals(email) {
     successful: list.filter((r) => r.status === "rewarded" || r.ordered).length,
     points:     list.filter((r) => r.status === "rewarded").reduce((s, r) => s + (r.points || 0), 0),
   };
+}
+/* Reuses the exact same Share the Love reward pipeline — filtered to a single
+   origin type (e.g. "edit", "moment") for Journey milestones & admin analytics. */
+function getMyReferralsByType(email, type) {
+  const code = genReferralCode(email);
+  const list = getReferrals().filter((r) => r.code === code && r.type === type);
+  return { successful: list.filter((r) => r.status === "rewarded" || r.ordered).length, list };
 }
 function wardShareCount(email, label) {
   const m = spGet(email, SP_SHARE_COUNTS) || {};
@@ -7624,13 +7638,19 @@ const DEFAULT_MILESTONES = [
   { id: "festival-curator",category: "Moments Journey",       title: "Festival Curator",            description: "Curating beauty for the season of light.",           metric: "festivalMoments",  threshold: 1,  points: 30,  active: true },
   { id: "celebration-creator",category: "Moments Journey",    title: "Celebration Creator",         description: "Three Moments, each held with care.",                metric: "momentsCreated",   threshold: 3,  points: 60,  active: true },
   { id: "style-organizer",category: "Moments Journey",        title: "Style Organizer",             description: "Five pieces, thoughtfully gathered for your Moments.",metric: "momentPieces",     threshold: 5,  points: 40,  active: true },
+  { id: "first-edit",     category: "Editorial Journey",      title: "First Edit Created",          description: "Your first curated collection, ready to share.",     metric: "editsCreated",     threshold: 1,  points: 20,  active: true },
+  { id: "edit-collection-creator",category: "Editorial Journey",title: "Collection Creator",        description: "Three Edits, beautifully composed.",                  metric: "editsCreated",     threshold: 3,  points: 50,  active: true },
+  { id: "edit-style-curator",category: "Editorial Journey",   title: "Style Curator",               description: "Ten pieces, thoughtfully arranged into your Edits.",  metric: "editItemsCount",   threshold: 10, points: 40,  active: true },
+  { id: "community-inspiration",category: "Editorial Journey",title: "Community Inspiration",       description: "Someone discovered ABDAN through an Edit you curated.",metric: "editInspired",    threshold: 1,  points: 60,  active: true },
+  { id: "editorial-collector",category: "Editorial Journey",  title: "Editorial Collector",         description: "Five Edits, each a chapter of your story.",           metric: "editsCreated",     threshold: 5,  points: 80,  active: true },
 ];
 const JOURNEY_METRIC_UNITS = {
   wishlist: "saved piece", orders: "purchase", looks: "styled look", pairings: "pairing",
   gallery: "memory", lookbooks: "lookbook", purchased: "piece", concierge: "conversation",
   referralsInvited: "invitation", peopleInspired: "friend inspired", loyaltyPts: "Circle Point",
   momentsCreated: "moment", weddingMoments: "wedding moment", festivalMoments: "festival moment",
-  momentPieces: "gathered piece",
+  momentPieces: "gathered piece", editsCreated: "edit", editItemsCount: "curated piece",
+  editInspired: "friend inspired",
 };
 const JOURNEY_COUNTABLE = Object.keys(JOURNEY_METRIC_UNITS);
 function getEffectiveMilestones() {
@@ -7668,6 +7688,9 @@ function journeyStats(profile) {
     weddingMoments:   moments.filter((m) => weddingTypes.includes(m.type)).length,
     festivalMoments:  moments.filter((m) => festivalTypes.includes(m.type)).length,
     momentPieces:     moments.reduce((s, m) => s + ((m.board && m.board.owned ? m.board.owned.length : 0) + (m.board && m.board.products ? m.board.products.length : 0)), 0),
+    editsCreated:     (typeof spGetEdits === "function") ? spGetEdits(email).length : 0,
+    editItemsCount:   (typeof spGetEdits === "function") ? spGetEdits(email).reduce((s, e) => s + (e.items ? e.items.length : 0), 0) : 0,
+    editInspired:     (typeof getMyReferralsByType === "function") ? getMyReferralsByType(email, "edit").successful : 0,
   };
 }
 function evaluateJourney(profile) {
@@ -7993,8 +8016,15 @@ function renderMomentDetail(panel, email, id) {
       </div>
     </section>
 
+    <section class="mom-section mom-section--convert">
+      <p class="mom-section__label">Turn Into an Edit</p>
+      <p class="mom-section__sub">Carry this board's pieces, looks, and inspirations into a curated, shareable Edit.</p>
+      <button type="button" class="ward-add-btn" id="momToEdit">✎ Turn into an Edit ✨</button>
+    </section>
+
     <button type="button" class="mom-delete-btn" id="momDelete">Delete this Moment</button>`;
 
+  panel.querySelector("#momToEdit")?.addEventListener("click", () => convertMomentToEdit(m.id));
   panel.querySelector("#momBack")?.addEventListener("click", () => { _momActiveId = null; renderMyMoments(); });
   panel.querySelectorAll("[data-mom-add]").forEach((b) => b.addEventListener("click", () => {
     const map = { owned: "momOwnedPick", looks: "momLooksPick", insp: "momInspForm" };
@@ -8170,6 +8200,446 @@ function addProductToMoment(email, momentId, product) {
   document.querySelectorAll("[data-close-moment-picker]").forEach((b) => b.addEventListener("click", closeMomentPicker));
 })();
 
+/* ════════════════════════════════════════════════════════════════════
+   MY EDITS ✨ — a luxury editorial collection-curation & sharing space
+   (additive). Think fashion editor, not content creator: no feeds, no
+   followers, no popularity metrics. Reuses Share the Love's referral
+   engine for Circle Points — no parallel referral system.
+   ════════════════════════════════════════════════════════════════════ */
+let _editActiveId = null;
+
+const SP_EDITS_KEY      = "abdan-sp-edits";
+const EDIT_FLAGS_KEY    = "abdan-studio-edit-flags";   /* admin feature/hide flags (shared) */
+const EDIT_SAVES_KEY    = "abdan-edit-saves";          /* "save to my edits" counters (shared) */
+const EDIT_TYPES = [
+  "Wedding Edit", "Temple Elegance", "Everyday Grace", "Quiet Gold", "Festive Collection",
+  "Eid Favorites", "Travel Edit", "Gift Ideas", "Family Function Collection", "Custom Edit",
+];
+const EDIT_MOODS = MOMENT_MOODS;
+const EDIT_ITEM_KIND_LABEL = {
+  product: "Product", look: "Styled Look", wardrobe: "Wardrobe Piece",
+  momentboard: "From a Moment", inspiration: "Inspiration", community: "Community Discovery",
+};
+const EDIT_MOMENT_TYPE_MAP = {
+  wedding: "Wedding Edit", engagement: "Wedding Edit", temple: "Temple Elegance",
+  eid: "Eid Favorites", ramadan: "Eid Favorites", diwali: "Festive Collection",
+  family: "Family Function Collection", travel: "Travel Edit",
+  birthday: "Custom Edit", anniversary: "Custom Edit", office: "Custom Edit", custom: "Custom Edit",
+};
+
+function eduid() { return "edt" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function slugify(s) {
+  const base = String(s || "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-+|-+$)/g, "");
+  return base || "edit";
+}
+function spGetEdits(email)        { return spGet(email, SP_EDITS_KEY) || []; }
+function spSaveEdits(email, list) { spSet(email, SP_EDITS_KEY, list); }
+function getEditFlags() { try { return JSON.parse(localStorage.getItem(EDIT_FLAGS_KEY) || "{}") || {}; } catch { return {}; } }
+function getEditSaveCounts() { try { return JSON.parse(localStorage.getItem(EDIT_SAVES_KEY) || "{}") || {}; } catch { return {}; } }
+function bumpEditSaveCount(ownerEmail, editId) {
+  const m = getEditSaveCounts(); const k = `${ownerEmail}::${editId}`;
+  m[k] = (m[k] || 0) + 1;
+  try { localStorage.setItem(EDIT_SAVES_KEY, JSON.stringify(m)); } catch {}
+}
+/* Admin-curated showcase only — no followers, no public profiles, no ranking. */
+function getFeaturedEdits(excludeEmail) {
+  const flags = getEditFlags();
+  const out = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || k.indexOf("abdan-sp-edits:") !== 0) continue;
+      const ownerEmail = k.slice("abdan-sp-edits:".length);
+      if (ownerEmail === String(excludeEmail || "").toLowerCase()) continue;
+      let list = []; try { list = JSON.parse(localStorage.getItem(k) || "[]") || []; } catch { list = []; }
+      list.forEach((e) => {
+        if (e.status !== "published") return;
+        const f = flags[`${ownerEmail}::${e.id}`];
+        if (f && f.featured && !f.hidden) out.push(Object.assign({}, e, { ownerEmail }));
+      });
+    }
+  } catch {}
+  return out.slice(0, 12);
+}
+
+function editCardHtml(e) {
+  const cover = e.coverImage || (e.items && e.items.find((it) => it.image) || {}).image || "";
+  return `
+    <button type="button" class="edt-card" data-edt-open="${e.id}">
+      <div class="edt-card__cover">${cover ? `<img src="${cover}" alt="" loading="lazy" />` : `<div class="edt-card__cover-ph"></div>`}
+        <span class="edt-card__status edt-card__status--${e.status}">${e.status === "published" ? "Published" : e.status === "archived" ? "Archived" : "Draft"}</span>
+      </div>
+      <p class="edt-card__type">${wardEsc(e.type)}</p>
+      <p class="edt-card__name">${wardEsc(e.name)}</p>
+      ${e.mood ? `<p class="edt-card__mood">${wardEsc(e.mood)}</p>` : ""}
+      <p class="edt-card__count">${(e.items || []).length} piece${(e.items || []).length !== 1 ? "s" : ""} curated</p>
+    </button>`;
+}
+
+function renderMyEdits() {
+  const panel = document.getElementById("spaceMyEditsPanel");
+  if (!panel) return;
+  const sess  = getSpaceSession() || {};
+  const email = sess.email || "";
+  const edits = spGetEdits(email);
+
+  if (_editActiveId && edits.find((e) => e.id === _editActiveId)) {
+    renderEditDetail(panel, email, _editActiveId);
+    return;
+  }
+
+  const live     = edits.filter((e) => e.status !== "archived");
+  const archived = edits.filter((e) => e.status === "archived");
+  const featured = getFeaturedEdits(email);
+
+  const grid = live.length
+    ? `<div class="edt-grid">${live.map((e) => editCardHtml(e)).join("")}</div>`
+    : `<div class="edt-empty"><p>An Edit is your own quiet magazine spread — pieces, looks, and ideas, curated the way you'd want them remembered. Begin your first one.</p></div>`;
+
+  const archivedHtml = archived.length ? `
+    <p class="edt-section-label" style="margin-top:1.4rem">Archived</p>
+    <div class="edt-grid edt-grid--archived">${archived.map((e) => editCardHtml(e)).join("")}</div>` : "";
+
+  const discoverHtml = featured.length ? `
+    <p class="edt-section-label" style="margin-top:1.6rem">Discover Edits</p>
+    <p class="edt-section-sub">A small, curated showcase — chosen by ABDAN, never ranked.</p>
+    <div class="edt-grid">${featured.map((e) => `
+      <article class="edt-card edt-card--discover">
+        <div class="edt-card__cover">${e.coverImage ? `<img src="${e.coverImage}" alt="" loading="lazy" />` : `<div class="edt-card__cover-ph"></div>`}</div>
+        <p class="edt-card__type">${wardEsc(e.type)}</p>
+        <p class="edt-card__name">${wardEsc(e.name)}</p>
+        ${e.description ? `<p class="edt-card__desc">${wardEsc(e.description)}</p>` : ""}
+        <button type="button" class="ward-add-btn" data-edt-save="${e.ownerEmail}|${e.id}">＋ Save to My Edits</button>
+      </article>`).join("")}</div>` : "";
+
+  panel.innerHTML = `
+    <div class="edt-head">
+      <p class="edt-head__kicker">Curated by you, not for an audience</p>
+      <h3 class="edt-head__title">My Edits ✨</h3>
+      <p class="edt-head__intro">A personal editorial space — collections you curate the way a fashion editor would, ready to keep privately or share with the people you love.</p>
+    </div>
+    <button type="button" class="mom-add-btn" id="edtAddBtn">＋ Begin a New Edit</button>
+    <form class="mom-form" id="edtCreateForm" hidden>
+      <select id="edtNewType" class="ward-input">${EDIT_TYPES.map((t) => `<option value="${t}">${t}</option>`).join("")}</select>
+      <input type="text" id="edtNewName" class="ward-input" placeholder="Name this Edit — e.g. Quiet Gold" maxlength="60" />
+      <select id="edtNewMood" class="ward-input">
+        <option value="">Choose a mood (optional)</option>
+        ${EDIT_MOODS.map((mo) => `<option value="${mo}">${mo}</option>`).join("")}
+      </select>
+      <textarea id="edtNewDesc" class="ward-input" placeholder="A line about this Edit (optional)" maxlength="200" rows="2"></textarea>
+      <button type="button" class="ward-save-btn" id="edtNewSave">Begin this Edit</button>
+    </form>
+    ${grid}
+    ${archivedHtml}
+    ${discoverHtml}`;
+
+  panel.querySelector("#edtAddBtn")?.addEventListener("click", () => {
+    const f = document.getElementById("edtCreateForm"); if (f) f.hidden = !f.hidden;
+  });
+  panel.querySelector("#edtNewSave")?.addEventListener("click", () => {
+    const name = document.getElementById("edtNewName").value.trim();
+    if (!name) { showToast("Give this Edit a name first"); return; }
+    const nowIso = new Date().toISOString();
+    const e = {
+      id: eduid(), name, type: document.getElementById("edtNewType").value,
+      mood: document.getElementById("edtNewMood").value || "", description: document.getElementById("edtNewDesc").value.trim(),
+      quote: "", coverImage: "", items: [], status: "draft", shareSlug: "", shareCount: 0,
+      createdAt: nowIso, updatedAt: nowIso, lastViewedAt: nowIso,
+    };
+    const list = spGetEdits(email); list.unshift(e); spSaveEdits(email, list);
+    showToast("Your Edit has begun ✨");
+    _editActiveId = e.id; renderMyEdits();
+  });
+  panel.querySelectorAll("[data-edt-open]").forEach((b) => b.addEventListener("click", () => { _editActiveId = b.dataset.edtOpen; renderMyEdits(); }));
+  panel.querySelectorAll("[data-edt-save]").forEach((b) => b.addEventListener("click", () => {
+    const [ownerEmail, editId] = b.dataset.edtSave.split("|");
+    const src = getFeaturedEdits(email).find((e) => e.ownerEmail === ownerEmail && e.id === editId);
+    if (!src) return;
+    const nowIso = new Date().toISOString();
+    const copy = Object.assign({}, src, {
+      id: eduid(), status: "draft", shareSlug: "", shareCount: 0,
+      items: (src.items || []).map((it) => Object.assign({}, it, { id: eduid() })),
+      createdAt: nowIso, updatedAt: nowIso, lastViewedAt: nowIso, ownerEmail: undefined,
+    });
+    const list = spGetEdits(email); list.unshift(copy); spSaveEdits(email, list);
+    bumpEditSaveCount(ownerEmail, editId);
+    showToast("Saved to My Edits 💛"); renderMyEdits();
+  }));
+}
+
+function renderEditDetail(panel, email, id) {
+  const list = spGetEdits(email);
+  const e = list.find((x) => x.id === id);
+  if (!e) { _editActiveId = null; renderMyEdits(); return; }
+  e.lastViewedAt = new Date().toISOString();
+  spSaveEdits(email, list);
+
+  const itemsHtml = (e.items || []).length ? `<div class="edt-item-list">${e.items.map((it, idx) => `
+      <article class="edt-item">
+        <div class="edt-item__img">${it.image ? `<img src="${it.image}" alt="" loading="lazy" />` : `<div class="ward-piece__ph"></div>`}</div>
+        <div class="edt-item__body">
+          <p class="edt-item__kind">${EDIT_ITEM_KIND_LABEL[it.kind] || "Piece"}</p>
+          <p class="edt-item__name">${wardEsc(it.name)}</p>
+          <input type="text" class="edt-item__note" data-edt-note="${it.id}" placeholder="Add a note…" value="${(it.note || "").replace(/"/g, "&quot;")}" maxlength="120" />
+        </div>
+        <div class="edt-item__actions">
+          <button type="button" class="edt-item__move" data-edt-move="${it.id}:up" ${idx === 0 ? "disabled" : ""} aria-label="Move up">↑</button>
+          <button type="button" class="edt-item__move" data-edt-move="${it.id}:down" ${idx === e.items.length - 1 ? "disabled" : ""} aria-label="Move down">↓</button>
+          <button type="button" class="edt-item__cover" data-edt-cover="${wardEsc(it.image || "")}" ${it.image ? "" : "disabled"} aria-label="Use as cover">▢</button>
+          <button type="button" class="ward-del" data-edt-removeitem="${it.id}" aria-label="Remove">×</button>
+        </div>
+      </article>`).join("")}</div>`
+    : `<div class="mom-piece-empty"><p>Nothing curated yet — add products, wardrobe pieces, styled looks, or Moments below.</p></div>`;
+
+  const owned = wardPurchasedPieces(Object.assign({}, getSpaceSession() || {}, { email }));
+  const wishlistIds = (typeof getWishlist === "function") ? getWishlist() : new Set();
+  const saved = (typeof PRODUCTS !== "undefined") ? PRODUCTS.filter((p) => wishlistIds.has(String(p.id))) : [];
+  const looks = spGet(email, SP_WARD_LOOKS) || [];
+  const moments = spGetMoments(email);
+  const inEdit = (kind, refId) => (e.items || []).some((it) => it.kind === kind && String(it.refId) === String(refId));
+
+  const pickRow = (kind, refId, label) => `<button type="button" class="mom-pick-row" data-edt-pick="${kind}|${wardEsc(refId)}">${wardEsc(label)}</button>`;
+  const wishlistPick = saved.filter((p) => !inEdit("product", p.id)).map((p) => pickRow("product", p.id, p.name)).join("") || `<p class="mom-piece-empty-text">No saved pieces yet.</p>`;
+  const wardrobePick  = owned.filter((p) => !inEdit("wardrobe", p.id)).map((p) => pickRow("wardrobe", p.id, p.name)).join("") || `<p class="mom-piece-empty-text">No purchased pieces yet.</p>`;
+  const looksPick     = looks.filter((l) => !inEdit("look", l.id)).map((l) => pickRow("look", l.id, l.occasion || "Styled Look")).join("") || `<p class="mom-piece-empty-text">No styled looks yet.</p>`;
+  const momentsPick   = moments.filter((m) => !inEdit("momentboard", m.id)).map((m) => pickRow("momentboard", m.id, m.name)).join("") || `<p class="mom-piece-empty-text">No Moments yet.</p>`;
+
+  const coverChoices = (e.items || []).filter((it) => it.image).map((it) => `
+    <button type="button" class="edt-cover-pick${e.coverImage === it.image ? " is-active" : ""}" data-edt-cover="${wardEsc(it.image)}">
+      <img src="${it.image}" alt="" loading="lazy" /></button>`).join("");
+
+  const code = (typeof genReferralCode === "function") ? genReferralCode(email) : "";
+  const link = (typeof buildReferralLink === "function") ? buildReferralLink(code, "edit", e.id) : "";
+  const shareChannels = ["whatsapp", "telegram", "facebook", "instagram", "email", "copy"];
+
+  panel.innerHTML = `
+    <button type="button" class="mom-back" id="edtBack">← My Edits</button>
+    <div class="edt-detail-head">
+      ${e.coverImage ? `<div class="edt-detail-head__cover"><img src="${e.coverImage}" alt="" loading="lazy" /></div>` : ""}
+      <p class="edt-detail-head__type">${wardEsc(e.type)}${e.mood ? ` · ${wardEsc(e.mood)}` : ""}</p>
+      <input type="text" class="edt-name-input" id="edtNameInput" value="${wardEsc(e.name)}" maxlength="60" />
+      ${e.quote ? `<p class="edt-detail-head__quote">"${wardEsc(e.quote)}"</p>` : ""}
+      <span class="edt-status-pill edt-status-pill--${e.status}">${e.status === "published" ? "Published" : e.status === "archived" ? "Archived" : "Draft"}</span>
+    </div>
+
+    <section class="mom-section">
+      <p class="mom-section__label">Description &amp; Quote</p>
+      <textarea class="ward-input" id="edtDescInput" maxlength="220" rows="2" placeholder="A few words about this Edit">${wardEsc(e.description || "")}</textarea>
+      <input type="text" class="ward-input" id="edtQuoteInput" maxlength="120" placeholder="An optional quote — e.g. “A collection inspired by understated elegance.”" value="${wardEsc(e.quote || "")}" style="margin-top:.5rem" />
+      <select class="ward-input" id="edtMoodInput" style="margin-top:.5rem">
+        <option value="">Choose a mood (optional)</option>
+        ${EDIT_MOODS.map((mo) => `<option value="${mo}" ${e.mood === mo ? "selected" : ""}>${mo}</option>`).join("")}
+      </select>
+      <button type="button" class="ward-save-btn" id="edtFieldsSave" style="margin-top:.5rem">Save</button>
+    </section>
+
+    ${coverChoices ? `<section class="mom-section"><p class="mom-section__label">Cover Image</p><div class="edt-cover-row">${coverChoices}</div></section>` : ""}
+
+    <section class="mom-section">
+      <p class="mom-section__label">Curated Pieces</p>
+      ${itemsHtml}
+    </section>
+
+    <section class="mom-section">
+      <div class="mom-section__head"><p class="mom-section__label">Add to this Edit</p></div>
+      <div class="edt-add-tabs" role="tablist">
+        <button type="button" class="ward-subnav__btn is-active" data-edt-addtab="wishlist">Saved Pieces</button>
+        <button type="button" class="ward-subnav__btn" data-edt-addtab="wardrobe">Wardrobe</button>
+        <button type="button" class="ward-subnav__btn" data-edt-addtab="looks">Styled Looks</button>
+        <button type="button" class="ward-subnav__btn" data-edt-addtab="moments">Moment Boards</button>
+        <button type="button" class="ward-subnav__btn" data-edt-addtab="custom">Inspiration</button>
+      </div>
+      <div class="mom-pick-list" data-edt-addpanel="wishlist">${wishlistPick}</div>
+      <div class="mom-pick-list" data-edt-addpanel="wardrobe" hidden>${wardrobePick}</div>
+      <div class="mom-pick-list" data-edt-addpanel="looks" hidden>${looksPick}</div>
+      <div class="mom-pick-list" data-edt-addpanel="moments" hidden>${momentsPick}</div>
+      <form class="ward-form" data-edt-addpanel="custom" hidden>
+        <select id="edtCustomKind" class="ward-input">
+          <option value="inspiration">Saved Inspiration</option>
+          <option value="community">Community Discovery</option>
+        </select>
+        <input type="text" id="edtCustomText" class="ward-input" placeholder="A name, idea, or discovery worth keeping…" maxlength="140" />
+        <button type="button" class="ward-save-btn" id="edtCustomSave">Add</button>
+      </form>
+    </section>
+
+    <section class="mom-section">
+      <p class="mom-section__label">Curation Tools</p>
+      <div class="edt-tools-row">
+        <button type="button" class="ward-add-btn" id="edtDuplicate">⧉ Duplicate Edit</button>
+        ${e.status === "archived"
+          ? `<button type="button" class="ward-add-btn" id="edtRestore">↺ Restore to Draft</button>`
+          : `<button type="button" class="ward-add-btn" id="edtArchive">▤ Archive Edit</button>`}
+        ${e.status !== "published"
+          ? `<button type="button" class="mom-add-btn" id="edtPublish" style="flex:1 1 100%">Publish Edit</button>`
+          : ""}
+      </div>
+    </section>
+
+    ${e.status === "published" ? `
+    <section class="mom-section mom-section--share">
+      <p class="mom-section__label">Share This Edit</p>
+      <p class="mom-section__sub">abdan.in/edit/${wardEsc(e.shareSlug || slugify(e.name))}</p>
+      <div class="mom-share-row">
+        ${shareChannels.map((c) => {
+          const def = (typeof SE_CHANNELS !== "undefined") ? SE_CHANNELS.find((x) => x.id === c) : null;
+          if (c === "copy") return `<button type="button" class="mom-share-btn" data-edt-share="copy" aria-label="Copy direct link">⎘</button>`;
+          if (!def) return "";
+          return `<button type="button" class="mom-share-btn" data-edt-share="${c}" aria-label="Share via ${def.label}"><svg viewBox="0 0 24 24" fill="${def.color}" aria-hidden="true">${def.svg}</svg></button>`;
+        }).join("")}
+      </div>
+      <p class="edt-share-count">${e.shareCount || 0} share${(e.shareCount || 0) !== 1 ? "s" : ""}</p>
+    </section>` : `<p class="mom-piece-empty-text" style="margin-top:.5rem">Publish this Edit to share it with the people you love.</p>`}
+
+    <button type="button" class="mom-delete-btn" id="edtDelete">Delete this Edit</button>`;
+
+  panel.querySelector("#edtBack")?.addEventListener("click", () => { _editActiveId = null; renderMyEdits(); });
+  panel.querySelector("#edtNameInput")?.addEventListener("change", (ev) => { e.name = ev.target.value.trim() || e.name; e.updatedAt = new Date().toISOString(); spSaveEdits(email, list); });
+  panel.querySelector("#edtFieldsSave")?.addEventListener("click", () => {
+    e.description = document.getElementById("edtDescInput").value.trim();
+    e.quote = document.getElementById("edtQuoteInput").value.trim();
+    e.mood = document.getElementById("edtMoodInput").value;
+    e.updatedAt = new Date().toISOString();
+    spSaveEdits(email, list); showToast("Saved 💛"); renderMyEdits();
+  });
+  panel.querySelectorAll("[data-edt-cover]").forEach((b) => b.addEventListener("click", () => {
+    const url = b.dataset.edtCover; if (!url) return;
+    e.coverImage = url; e.updatedAt = new Date().toISOString();
+    spSaveEdits(email, list); renderMyEdits();
+  }));
+  panel.querySelectorAll("[data-edt-note]").forEach((inp) => inp.addEventListener("change", () => {
+    const it = (e.items || []).find((x) => x.id === inp.dataset.edtNote);
+    if (it) { it.note = inp.value.trim(); e.updatedAt = new Date().toISOString(); spSaveEdits(email, list); }
+  }));
+  panel.querySelectorAll("[data-edt-move]").forEach((b) => b.addEventListener("click", () => {
+    const [itemId, dir] = b.dataset.edtMove.split(":");
+    const idx = (e.items || []).findIndex((x) => x.id === itemId); if (idx < 0) return;
+    const swap = dir === "up" ? idx - 1 : idx + 1;
+    if (swap < 0 || swap >= e.items.length) return;
+    [e.items[idx], e.items[swap]] = [e.items[swap], e.items[idx]];
+    e.updatedAt = new Date().toISOString(); spSaveEdits(email, list); renderMyEdits();
+  }));
+  panel.querySelectorAll("[data-edt-removeitem]").forEach((b) => b.addEventListener("click", () => {
+    e.items = (e.items || []).filter((x) => x.id !== b.dataset.edtRemoveitem);
+    e.updatedAt = new Date().toISOString(); spSaveEdits(email, list); renderMyEdits();
+  }));
+  panel.querySelectorAll("[data-edt-addtab]").forEach((b) => b.addEventListener("click", () => {
+    panel.querySelectorAll("[data-edt-addtab]").forEach((x) => x.classList.toggle("is-active", x === b));
+    panel.querySelectorAll("[data-edt-addpanel]").forEach((x) => { x.hidden = x.dataset.edtAddpanel !== b.dataset.edtAddtab; });
+  }));
+  panel.querySelectorAll("[data-edt-pick]").forEach((b) => b.addEventListener("click", () => {
+    const [kind, refId] = b.dataset.edtPick.split("|");
+    let item = null;
+    if (kind === "product") { const p = saved.find((x) => String(x.id) === refId); if (p) item = { name: p.name, image: p.image || "", priceLabel: p.priceLabel || "" }; }
+    if (kind === "wardrobe") { const p = owned.find((x) => String(x.id) === refId); if (p) item = { name: p.name, image: p.image || "", priceLabel: p.priceLabel || "" }; }
+    if (kind === "look") { const l = looks.find((x) => x.id === refId); if (l) item = { name: l.occasion || "Styled Look", image: l.photo || "", priceLabel: "" }; }
+    if (kind === "momentboard") { const m = moments.find((x) => x.id === refId); if (m) item = { name: m.name, image: (m.board.products && m.board.products[0] && m.board.products[0].image) || "", priceLabel: "" }; }
+    if (!item) return;
+    e.items = e.items || [];
+    e.items.push(Object.assign({ id: eduid(), kind, refId, note: "" }, item));
+    if (!e.coverImage && item.image) e.coverImage = item.image;
+    e.updatedAt = new Date().toISOString(); spSaveEdits(email, list);
+    showToast("Added to your Edit ✨"); renderMyEdits();
+  }));
+  panel.querySelector("#edtCustomSave")?.addEventListener("click", () => {
+    const text = document.getElementById("edtCustomText").value.trim();
+    if (!text) { showToast("Write something first"); return; }
+    const kind = document.getElementById("edtCustomKind").value;
+    e.items = e.items || [];
+    e.items.push({ id: eduid(), kind, refId: "", name: text, image: "", priceLabel: "", note: "" });
+    e.updatedAt = new Date().toISOString(); spSaveEdits(email, list);
+    showToast("Added to your Edit ✨"); renderMyEdits();
+  });
+  panel.querySelector("#edtPublish")?.addEventListener("click", () => {
+    e.status = "published"; e.publishedAt = new Date().toISOString();
+    if (!e.shareSlug) e.shareSlug = slugify(e.name) + "-" + e.id.slice(-4);
+    e.updatedAt = new Date().toISOString(); spSaveEdits(email, list);
+    showToast("Your Edit is published ✨"); renderMyEdits();
+  });
+  panel.querySelector("#edtArchive")?.addEventListener("click", () => {
+    e.status = "archived"; e.updatedAt = new Date().toISOString(); spSaveEdits(email, list);
+    showToast("Edit archived"); renderMyEdits();
+  });
+  panel.querySelector("#edtRestore")?.addEventListener("click", () => {
+    e.status = "draft"; e.updatedAt = new Date().toISOString(); spSaveEdits(email, list);
+    showToast("Restored to drafts"); renderMyEdits();
+  });
+  panel.querySelector("#edtDuplicate")?.addEventListener("click", () => {
+    const nowIso = new Date().toISOString();
+    const copy = Object.assign({}, e, {
+      id: eduid(), name: e.name + " (Copy)", status: "draft", shareSlug: "", shareCount: 0,
+      items: (e.items || []).map((it) => Object.assign({}, it, { id: eduid() })),
+      createdAt: nowIso, updatedAt: nowIso, lastViewedAt: nowIso,
+    });
+    list.unshift(copy); spSaveEdits(email, list);
+    showToast("Edit duplicated 💛"); _editActiveId = copy.id; renderMyEdits();
+  });
+  panel.querySelectorAll("[data-edt-share]").forEach((b) => b.addEventListener("click", () => shareEditBoard(e.id, b.dataset.edtShare)));
+  panel.querySelector("#edtDelete")?.addEventListener("click", () => {
+    if (!window.confirm(`Delete "${e.name}"? This cannot be undone.`)) return;
+    spSaveEdits(email, list.filter((x) => x.id !== e.id));
+    _editActiveId = null; renderMyEdits(); showToast("Edit deleted");
+  });
+}
+
+function shareEditBoard(editId, channel) {
+  const sess = getSpaceSession() || {};
+  const email = sess.email || "";
+  const list = spGetEdits(email);
+  const e = list.find((x) => x.id === editId);
+  if (!e) return;
+  const code = (typeof genReferralCode === "function") ? genReferralCode(email) : "";
+  const link = (typeof buildReferralLink === "function") ? buildReferralLink(code, "edit", editId) : "https://abdan.pages.dev/";
+  const text = `I curated something beautiful — "${e.name}" 💛 Discover it on ABDAN: ${link}`;
+  if (typeof wardShareCount === "function") wardShareCount(email, "Curated Collections");
+  e.shareCount = (e.shareCount || 0) + 1; spSaveEdits(email, list);
+  const eLink = encodeURIComponent(link), eText = encodeURIComponent(text), eDesc = encodeURIComponent(`"${e.name}" — curated on ABDAN`);
+  const acts = {
+    whatsapp:  () => window.open(`https://wa.me/?text=${eText}`, "_blank", "noopener,noreferrer"),
+    telegram:  () => window.open(`https://t.me/share/url?url=${eLink}&text=${eDesc}`, "_blank", "noopener,noreferrer"),
+    facebook:  () => window.open(`https://www.facebook.com/sharer/sharer.php?u=${eLink}&quote=${eDesc}`, "_blank", "noopener,noreferrer"),
+    instagram: () => { try { navigator.clipboard.writeText(link); } catch {} showToast("Link copied — paste it into your Instagram story or DM 💛"); },
+    email:     () => window.open(`mailto:?subject=${encodeURIComponent(`I curated "${e.name}" for you 💛`)}&body=${eText}`, "_blank", "noopener,noreferrer"),
+    copy:      () => { try { navigator.clipboard.writeText(link); } catch {} showToast("Edit link copied 💛"); },
+  };
+  (acts[channel] || acts.copy)();
+}
+
+/* ── My Moments integration: "Turn into an Edit" ──────────────────────── */
+function convertMomentToEdit(momentId) {
+  const sess  = getSpaceSession() || {};
+  const email = sess.email || "";
+  const moments = spGetMoments(email);
+  const m = moments.find((x) => x.id === momentId);
+  if (!m) return;
+  const owned = wardPurchasedPieces(Object.assign({}, sess, { email }));
+  const looks = spGet(email, SP_WARD_LOOKS) || [];
+  const items = [];
+  (m.board.owned || []).forEach((pid) => {
+    const p = owned.find((x) => String(x.id) === String(pid));
+    if (p) items.push({ id: eduid(), kind: "wardrobe", refId: String(p.id), name: p.name, image: p.image || "", priceLabel: p.priceLabel || "", note: "" });
+  });
+  (m.board.products || []).forEach((p) => items.push({ id: eduid(), kind: "product", refId: String(p.id), name: p.name, image: p.image || "", priceLabel: p.priceLabel || "", note: "" }));
+  (m.board.looks || []).forEach((lid) => {
+    const l = looks.find((x) => x.id === lid);
+    if (l) items.push({ id: eduid(), kind: "look", refId: l.id, name: l.occasion || "Styled Look", image: l.photo || "", priceLabel: "", note: l.note || "" });
+  });
+  (m.board.inspirations || []).forEach((i) => items.push({ id: eduid(), kind: "inspiration", refId: i.id, name: i.text, image: "", priceLabel: "", note: "" }));
+
+  const nowIso = new Date().toISOString();
+  const edit = {
+    id: eduid(), name: m.name, type: EDIT_MOMENT_TYPE_MAP[m.type] || "Custom Edit",
+    mood: m.mood || "", description: m.description || "", quote: "",
+    coverImage: (items.find((it) => it.image) || {}).image || "",
+    items, status: "draft", shareSlug: "", shareCount: 0,
+    createdAt: nowIso, updatedAt: nowIso, lastViewedAt: nowIso, sourceMomentId: m.id,
+  };
+  const list = spGetEdits(email); list.unshift(edit); spSaveEdits(email, list);
+  showToast(`"${edit.name}" is now an Edit ✨`);
+  _editActiveId = edit.id;
+  showSpaceTab("edits");
+}
+
 /* D-03 — Profile quote: add to renderSpaceProfile override */
 (function patchProfileQuote() {
   const origRenderProfile = window.renderSpaceProfile || function(){};
@@ -8213,6 +8683,7 @@ function addProductToMoment(email, momentId, product) {
         { tab:"lookbook",     icon:"◻", label:"Lookbooks" },
         { tab:"savedmoments", icon:"◈", label:"Saved Moments" },
         { tab:"moments",      icon:"❀", label:"My Moments" },
+        { tab:"edits",        icon:"✎", label:"My Edits" },
         { tab:"concierge",    icon:"✉", label:"Ask ABDAN" },
         { tab:"journal",      icon:"◇", label:"Journal" },
         { tab:"membership",   icon:"♛", label:"Membership" },

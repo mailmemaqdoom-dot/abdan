@@ -83,6 +83,7 @@ const STUDIO_VIEWS = [
   { id: "shareearn",   label: "Share & Earn",       icon: "gift",             group: "Her Circle"   },
   { id: "journey",     label: "Journey Management", icon: "map",              group: "Her Circle"   },
   { id: "moments",     label: "Moments Insights",   icon: "calendar-heart",   group: "Her Circle"   },
+  { id: "edits",       label: "Edit Management",    icon: "scissors",         group: "Her Circle"   },
   { id: "reviews",     label: "Reviews",            icon: "star",             group: "Her Circle"   },
   { id: "requests",    label: "Sourcing Requests",  icon: "search",           group: "Her Circle"   },
   { id: "concierge",   label: "Concierge Queue",    icon: "message-circle",   group: "Her Circle"   },
@@ -466,6 +467,7 @@ function renderView(id) {
     shareearn:   renderShareEarnAdmin,
     journey:     renderJourneyAdmin,
     moments:     renderMomentsAdmin,
+    edits:       renderEditsAdmin,
     reviews:     renderReviews,
     requests:    renderRequests,
     concierge:   renderConciergeQueue,
@@ -2560,6 +2562,112 @@ function renderMomentsAdmin() {
         ${Object.keys(helpCounts).length ? `<div class="s-rank-list">${rankRows(helpCounts, 8)}</div>` : empty("No help requests yet.", "message-circle")}
       </div>
     </div>`;
+}
+
+/* ── HER CIRCLE: My Edits — editorial curation & sharing (moderation + analytics) ── */
+const EDIT_FLAGS_STORAGE_KEY = "abdan-studio-edit-flags";
+const EDIT_SAVES_STORAGE_KEY = "abdan-edit-saves";
+function getAllEdits() {
+  const out = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || k.indexOf("abdan-sp-edits:") !== 0) continue;
+      const ownerEmail = k.slice("abdan-sp-edits:".length);
+      let list = []; try { list = JSON.parse(localStorage.getItem(k) || "[]") || []; } catch { list = []; }
+      list.forEach((e) => out.push(Object.assign({}, e, { ownerEmail })));
+    }
+  } catch {}
+  return out;
+}
+function getEditFlagsAdmin() { try { return JSON.parse(localStorage.getItem(EDIT_FLAGS_STORAGE_KEY) || "{}") || {}; } catch { return {}; } }
+function saveEditFlagsAdmin(f) { try { localStorage.setItem(EDIT_FLAGS_STORAGE_KEY, JSON.stringify(f)); } catch {} }
+function toggleEditFlag(ownerEmail, editId, key) {
+  const flags = getEditFlagsAdmin();
+  const k = `${ownerEmail}::${editId}`;
+  flags[k] = Object.assign({ featured: false, hidden: false }, flags[k]);
+  flags[k][key] = !flags[k][key];
+  saveEditFlagsAdmin(flags);
+}
+
+function renderEditsAdmin() {
+  setTitle("Edit Management", "");
+  const all = getAllEdits();
+  const published = all.filter((e) => e.status === "published");
+  const flags = getEditFlagsAdmin();
+  const saveCounts = (() => { try { return JSON.parse(localStorage.getItem(EDIT_SAVES_STORAGE_KEY) || "{}") || {}; } catch { return {}; } })();
+
+  /* Conversions & Circle Points awarded specifically through shared Edits —
+     reuses the exact Share the Love referral records (type === "edit"). */
+  const referrals = load(STORAGE.referrals, []);
+  const editReferrals = referrals.filter((r) => r.type === "edit");
+  const conversions = editReferrals.filter((r) => r.status === "rewarded" || r.ordered).length;
+  const pointsAwarded = editReferrals.filter((r) => r.status === "rewarded").reduce((s, r) => s + (r.points || 0), 0);
+
+  const typeCounts = {}, productsAdded = { count: 0 };
+  all.forEach((e) => {
+    typeCounts[e.type] = (typeCounts[e.type] || 0) + 1;
+    (e.items || []).forEach((it) => { if (it.kind === "product") productsAdded.count++; });
+  });
+  const mostShared = [...all].sort((a, b) => (b.shareCount || 0) - (a.shareCount || 0)).slice(0, 6).filter((e) => e.shareCount);
+  const mostSaved  = Object.entries(saveCounts).sort((a, b) => b[1] - a[1]).slice(0, 6)
+    .map(([k, n]) => { const [ownerEmail, editId] = k.split("::"); const e = all.find((x) => x.ownerEmail === ownerEmail && x.id === editId); return e ? { e, n } : null; }).filter(Boolean);
+  const rankRows = (obj) => Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, 8)
+    .map(([label, count]) => `<div class="s-rank-row"><span class="s-rank-row__name">${esc(label)}</span><span class="s-rank-row__val">${count}</span></div>`).join("");
+
+  dom.content.innerHTML = `
+    <div class="s-zone-header s-zone-header--circle">
+      <i data-lucide="scissors" class="s-icon"></i><span>My Edits — editorial curation &amp; sharing</span>
+    </div>
+    <p class="s-muted" style="margin:-0.4rem 0 1rem;font-size:0.8rem">Curated, not crowdsourced — featuring is admin-controlled. No follower counts or public rankings exist anywhere in this system.</p>
+    <div class="s-stats-row">
+      ${stat("scissors", "Edits Created", all.length, "s-stat--blue")}
+      ${stat("send", "Published", published.length, "s-stat--purple")}
+      ${stat("shopping-bag", "Products Added", productsAdded.count, "s-stat--gold")}
+      ${stat("trending-up", "Conversions From Edits", conversions, "s-stat--green")}
+      ${stat("award", "Circle Points Awarded", pointsAwarded, "s-stat--gold")}
+    </div>
+    <div class="s-analytics-grid">
+      <div class="s-card"><h3 class="s-card__title">Most Popular Themes</h3>
+        ${Object.keys(typeCounts).length ? `<div class="s-rank-list">${rankRows(typeCounts)}</div>` : empty("No Edits created yet.", "scissors")}
+      </div>
+      <div class="s-card"><h3 class="s-card__title">Most Shared Edits</h3>
+        ${mostShared.length ? `<div class="s-rank-list">${mostShared.map((e) => `<div class="s-rank-row"><span class="s-rank-row__name">${esc(e.name)}</span><span class="s-rank-row__val">${e.shareCount} share${e.shareCount !== 1 ? "s" : ""}</span></div>`).join("")}</div>` : empty("No Edits shared yet.", "send")}
+      </div>
+      <div class="s-card"><h3 class="s-card__title">Most Saved Edits</h3>
+        ${mostSaved.length ? `<div class="s-rank-list">${mostSaved.map((x) => `<div class="s-rank-row"><span class="s-rank-row__name">${esc(x.e.name)}</span><span class="s-rank-row__val">${x.n} save${x.n !== 1 ? "s" : ""}</span></div>`).join("")}</div>` : empty("No Edits saved by other members yet.", "bookmark")}
+      </div>
+    </div>
+    <div class="s-zone-header s-zone-header--circle" style="margin-top:1.5rem">
+      <i data-lucide="eye" class="s-icon"></i><span>Review Shared Edits</span>
+    </div>
+    <div class="s-list" id="sEditList">
+      ${published.length ? published.map((e) => {
+        const f = flags[`${e.ownerEmail}::${e.id}`] || {};
+        return `
+        <div class="s-list-item">
+          <div class="s-list-item__main">
+            <strong>${esc(e.name)}</strong>
+            <span class="s-list-item__sub">${esc(e.type)} · ${esc(e.ownerEmail)} · ${(e.items || []).length} pieces · ${e.shareCount || 0} shares</span>
+          </div>
+          <div class="s-list-item__actions">
+            <span class="s-badge ${f.featured ? "s-badge--gold" : ""}">${f.featured ? "Featured" : "Not Featured"}</span>
+            ${f.hidden ? `<span class="s-badge">Hidden</span>` : ""}
+            <button class="s-btn s-btn--ghost s-btn--sm" data-edit-feature="${e.ownerEmail}|${e.id}">${f.featured ? "Unfeature" : "Feature"}</button>
+            <button class="s-btn s-btn--ghost s-btn--sm" data-edit-hide="${e.ownerEmail}|${e.id}">${f.hidden ? "Unhide" : "Hide"}</button>
+          </div>
+        </div>`;
+      }).join("") : empty("No published Edits yet — members curate privately until they choose to publish.", "scissors")}
+    </div>`;
+
+  dom.content.querySelectorAll("[data-edit-feature]").forEach((b) => b.addEventListener("click", () => {
+    const [ownerEmail, editId] = b.dataset.editFeature.split("|");
+    toggleEditFlag(ownerEmail, editId, "featured"); toast("Updated"); renderEditsAdmin();
+  }));
+  dom.content.querySelectorAll("[data-edit-hide]").forEach((b) => b.addEventListener("click", () => {
+    const [ownerEmail, editId] = b.dataset.editHide.split("|");
+    toggleEditFlag(ownerEmail, editId, "hidden"); toast("Updated"); renderEditsAdmin();
+  }));
 }
 
 /* ── HER CIRCLE: Reviews ─────────────────────────────────────── */
