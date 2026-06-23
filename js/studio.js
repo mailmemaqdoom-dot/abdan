@@ -46,6 +46,7 @@
 /* ── Constants ─────────────────────────────────────────────── */
 const STUDIO_VIEWS = [
   /* ── General ─────────────────────────────────────────────── */
+  { id: "command-center", label: "Command Center",  icon: "gauge",            group: "General"      },
   { id: "overview",    label: "Studio Overview",    icon: "layout-dashboard", group: "General"      },
 
   /* ── BRAND ───────────────────────────────────────────────── */
@@ -68,6 +69,7 @@ const STUDIO_VIEWS = [
   { id: "offers",      label: "Offer Studio",       icon: "tag",              group: "Commerce"     },
   { id: "coupons",     label: "Discount Management", icon: "ticket",          group: "Commerce"     },
   { id: "rules",       label: "Automated Rules",    icon: "git-branch",       group: "Commerce"     },
+  { id: "vendors",     label: "Vendor Management",  icon: "truck",            group: "Commerce"     },
   { id: "media",       label: "Media Library",      icon: "image",            group: "Commerce"     },
 
   /* ── STORYTELLING ────────────────────────────────────────── */
@@ -440,6 +442,8 @@ function navigate(id) {
 function renderView(id) {
   dom.content.innerHTML = "";
   const renders = {
+    "command-center": renderCommandCenter,
+    vendors:     renderVendorsStub,
     overview:    renderOverview,
     products:    renderProducts,
     collections: renderCollections,
@@ -486,6 +490,216 @@ function renderView(id) {
 /* ════════════════════════════════════════════════════════════
    VIEW RENDERERS
    ════════════════════════════════════════════════════════════ */
+
+/* ── RC-18: ABDAN Command Center — Phase 1 executive snapshot ──
+   Additive admin homepage. Uses existing data only (orders, customer
+   profiles, loyalty points, concierge threads) — no AI, no predictions,
+   no new tracking systems. Replaces "operations" as the post-login
+   landing view; every prior view remains reachable from the sidebar. */
+function ccOrderKey(o) {
+  return String(o.customerEmail || o.customerPhone || o.phone || o.customer || "").toLowerCase().trim();
+}
+function ccOrderTotal(o) { return Number(o.total) || 0; }
+function ccDayStart(d) { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
+function ccIsSameDay(a, b) { return ccDayStart(a).getTime() === ccDayStart(b).getTime(); }
+function ccWeekStart(d) { const x = ccDayStart(d); const day = x.getDay(); x.setDate(x.getDate() - day); return x; }
+function ccMonthStart(d) { const x = ccDayStart(d); x.setDate(1); return x; }
+function ccYearStart(d) { const x = ccDayStart(d); x.setMonth(0, 1); return x; }
+
+function renderCommandCenter() {
+  setTitle("ABDAN Command Center", `<span class="s-muted" style="font-size:0.78rem">${new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</span>`);
+
+  const now     = new Date();
+  const orders  = load(STORAGE.orders, []);
+  const profiles = load(STORAGE.customers, {});
+  const profileList = Object.entries(profiles);
+
+  const todayOrders     = orders.filter((o) => o.createdAt && ccIsSameDay(o.createdAt, now));
+  const yesterday       = new Date(now); yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayOrders = orders.filter((o) => o.createdAt && ccIsSameDay(o.createdAt, yesterday));
+  const weekOrders      = orders.filter((o) => o.createdAt && new Date(o.createdAt) >= ccWeekStart(now));
+  const monthOrders     = orders.filter((o) => o.createdAt && new Date(o.createdAt) >= ccMonthStart(now));
+  const yearOrders      = orders.filter((o) => o.createdAt && new Date(o.createdAt) >= ccYearStart(now));
+
+  const revToday     = todayOrders.reduce((s, o) => s + ccOrderTotal(o), 0);
+  const revYesterday = yesterdayOrders.reduce((s, o) => s + ccOrderTotal(o), 0);
+  const revWeek       = weekOrders.reduce((s, o) => s + ccOrderTotal(o), 0);
+  const revMonth      = monthOrders.reduce((s, o) => s + ccOrderTotal(o), 0);
+  const revYear       = yearOrders.reduce((s, o) => s + ccOrderTotal(o), 0);
+  const revLifetime   = orders.reduce((s, o) => s + ccOrderTotal(o), 0);
+
+  const todayCustomerKeys = new Set(todayOrders.map(ccOrderKey).filter(Boolean));
+  const pendingCount    = orders.filter((o) => o.status === "pending").length;
+  const confirmedCount  = orders.filter((o) => o.status === "confirmed").length;
+  const shippedCount    = orders.filter((o) => o.status === "shipped").length;
+  const deliveredCount  = orders.filter((o) => o.status === "delivered").length;
+  const cancelledCount  = orders.filter((o) => o.status === "cancelled").length;
+  const issueCases      = orders.filter((o) => o.status === "cancelled" && (o.notes || "").trim()).length;
+
+  /* Concierge — scan per-member threads (same technique as Concierge Queue) */
+  let conciergeOpen = 0, conciergeResolved = 0, conciergeToday = 0;
+  const responseGaps = [];
+  const conciergeEmails = [];
+  profileList.forEach(([email]) => {
+    let msgs = []; try { msgs = JSON.parse(localStorage.getItem(`abdan-sp-concierge:${email}`) || "[]") || []; } catch { msgs = []; }
+    if (!msgs.length) return;
+    conciergeEmails.push(email);
+    const last = msgs[msgs.length - 1];
+    if (last.from === "customer") conciergeOpen++; else conciergeResolved++;
+    msgs.forEach((m) => {
+      const ts = m.sentAt || m.ts || 0;
+      if (m.from === "customer" && ts && ccIsSameDay(ts, now)) conciergeToday++;
+    });
+    for (let i = 0; i < msgs.length - 1; i++) {
+      if (msgs[i].from === "customer" && msgs[i + 1].from === "abdan") {
+        const gap = (msgs[i + 1].sentAt || msgs[i + 1].ts || 0) - (msgs[i].sentAt || msgs[i].ts || 0);
+        if (gap > 0) responseGaps.push(gap);
+      }
+    }
+  });
+  const avgResponseMs = responseGaps.length ? responseGaps.reduce((s, g) => s + g, 0) / responseGaps.length : 0;
+  const avgResponseLabel = !responseGaps.length ? "—"
+    : avgResponseMs < 3600000 ? `${Math.round(avgResponseMs / 60000)} min`
+    : avgResponseMs < 86400000 ? `${(avgResponseMs / 3600000).toFixed(1)} hrs`
+    : `${(avgResponseMs / 86400000).toFixed(1)} days`;
+  const conciergeEmailSet = new Set(conciergeEmails);
+  const ordersFromConcierge = orders.filter((o) => conciergeEmailSet.has(String(o.customerEmail || "").toLowerCase())).length;
+
+  /* Customers */
+  const newCustomersMonth = profileList.filter(([, p]) => p.createdAt && new Date(p.createdAt) >= ccMonthStart(now)).length;
+  const newCustomersWeek  = profileList.filter(([, p]) => p.createdAt && new Date(p.createdAt) >= ccWeekStart(now)).length;
+  const orderCountByKey = {};
+  orders.forEach((o) => { const k = ccOrderKey(o); if (k) orderCountByKey[k] = (orderCountByKey[k] || 0) + 1; });
+  const returningCustomers = Object.values(orderCountByKey).filter((n) => n > 1).length;
+  let activeCircle = 0, innerCircle = 0;
+  profileList.forEach(([email]) => {
+    let pts = 0; try { pts = JSON.parse(localStorage.getItem(`abdan-sp-loyalty:${email}`) || "0") || 0; } catch { pts = 0; }
+    if (pts > 0) activeCircle++;
+    if (pts >= 150) innerCircle++;
+  });
+  const purchasersThisMonthKeys = new Set(monthOrders.map(ccOrderKey).filter(Boolean));
+
+  /* ABDAN Pulse — real, computed-only facts (no predictions, no AI) */
+  const pulse = [];
+  if (revYesterday > 0) {
+    const pct = Math.round(((revToday - revYesterday) / revYesterday) * 100);
+    if (pct !== 0) pulse.push(`Revenue ${pct > 0 ? "increased" : "decreased"} ${Math.abs(pct)}% compared to yesterday.`);
+  } else if (revToday > 0) {
+    pulse.push(`${fmtCurrency(revToday)} in revenue today — yesterday had none recorded.`);
+  }
+  if (todayOrders.length) {
+    const byName = {};
+    todayOrders.forEach((o) => (o.items || [{ name: o.product }]).forEach((it) => {
+      const nm = it && it.name; if (!nm) return;
+      byName[nm] = (byName[nm] || 0) + (ccOrderTotal(o) / ((o.items || [1]).length || 1));
+    }));
+    const top = Object.entries(byName).sort((a, b) => b[1] - a[1])[0];
+    if (top) pulse.push(`"${top[0]}" generated the highest revenue today.`);
+  }
+  if (newCustomersWeek > 0) pulse.push(`${newCustomersWeek} new customer${newCustomersWeek !== 1 ? "s" : ""} joined this week.`);
+  if (pendingCount > 0) pulse.push(`${pendingCount} order${pendingCount !== 1 ? "s are" : " is"} awaiting confirmation.`);
+  if (conciergeOpen > 0) pulse.push(`${conciergeOpen} concierge conversation${conciergeOpen !== 1 ? "s" : ""} awaiting your reply.`);
+  if (!pulse.length) pulse.push("All quiet — no notable changes since last check.");
+
+  const cc = (icon, label, value, cls = "") => `
+    <div class="s-stat-card cc-stat ${cls}">
+      <i data-lucide="${icon}" class="s-icon"></i>
+      <p class="s-stat-card__val">${value}</p>
+      <p class="s-stat-card__label">${label}</p>
+    </div>`;
+
+  dom.content.innerHTML = `
+    <div class="cc-wrap">
+      <div class="cc-section">
+        <p class="cc-section__label">Today's Business</p>
+        <div class="cc-grid">
+          ${cc("indian-rupee", "Today's Revenue", fmtCurrency(revToday), "s-stat--gold")}
+          ${cc("receipt", "Today's Orders", todayOrders.length, "s-stat--blue")}
+          ${cc("users", "Today's Customers", todayCustomerKeys.size, "s-stat--purple")}
+          ${cc("message-circle", "Today's Concierge Requests", conciergeToday, "s-stat--green")}
+          ${cc("clock", "Orders Awaiting Confirmation", pendingCount, "s-stat--amber")}
+          ${cc("truck", "Orders In Transit", shippedCount, "s-stat--blue")}
+          ${cc("check-circle", "Orders Delivered", deliveredCount, "s-stat--green")}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Business Performance</p>
+        <div class="cc-grid cc-grid--6">
+          ${cc("indian-rupee", "Revenue Today", fmtCurrency(revToday))}
+          ${cc("indian-rupee", "Revenue Yesterday", fmtCurrency(revYesterday))}
+          ${cc("indian-rupee", "Revenue This Week", fmtCurrency(revWeek))}
+          ${cc("indian-rupee", "Revenue This Month", fmtCurrency(revMonth))}
+          ${cc("indian-rupee", "Revenue This Year", fmtCurrency(revYear))}
+          ${cc("gem", "Lifetime Revenue", fmtCurrency(revLifetime), "s-stat--gold")}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Customer Overview</p>
+        <div class="cc-grid">
+          ${cc("user-plus", "New Customers", newCustomersMonth)}
+          ${cc("repeat", "Returning Customers", returningCustomers)}
+          ${cc("heart", "Active Circle Members", activeCircle, "s-stat--purple")}
+          ${cc("crown", "Inner Circle Members", innerCircle, "s-stat--gold")}
+          ${cc("shopping-bag", "Customers With Purchases This Month", purchasersThisMonthKeys.size)}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Order Overview</p>
+        <div class="cc-grid">
+          ${cc("clock", "Pending Orders", pendingCount, "s-stat--amber")}
+          ${cc("check", "Confirmed Orders", confirmedCount, "s-stat--blue")}
+          ${cc("truck", "Dispatched Orders", shippedCount)}
+          ${cc("check-circle", "Delivered Orders", deliveredCount, "s-stat--green")}
+          ${cc("x-circle", "Cancelled Orders", cancelledCount, "s-stat--red")}
+          ${cc("flag", "Issue Resolution Cases", issueCases)}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Concierge Overview</p>
+        <div class="cc-grid">
+          ${cc("message-circle", "Open Conversations", conciergeOpen, "s-stat--amber")}
+          ${cc("check-circle", "Resolved Conversations", conciergeResolved, "s-stat--green")}
+          ${cc("shopping-bag", "Orders Generated From Concierge", ordersFromConcierge)}
+          ${cc("timer", "Average Response Time", avgResponseLabel)}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">ABDAN Pulse</p>
+        <div class="cc-pulse-card">
+          ${pulse.map((line) => `<p class="cc-pulse-line"><i data-lucide="sparkle" class="s-icon"></i>${esc(line)}</p>`).join("")}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Quick Actions</p>
+        <div class="s-qaction-row">
+          ${qaction("plus", "Add Product", "products")}
+          ${qaction("receipt", "Manage Orders", "orders")}
+          ${qaction("users", "Customer Management", "customers")}
+          ${qaction("message-circle", "Concierge Center", "concierge")}
+          ${qaction("ticket", "Coupons & Benefits", "coupons")}
+          ${qaction("bar-chart-2", "Reports", "analytics")}
+          ${qaction("truck", "Vendor Management", "vendors")}
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ── Vendor Management (stub) — Phase 1 provides the shortcut only;
+   vendor scoring / intelligence is explicitly out of scope until Phase 2+. */
+function renderVendorsStub() {
+  setTitle("Vendor Management");
+  dom.content.innerHTML = `
+    <div class="s-zone-header s-zone-header--circle">
+      <i data-lucide="truck" class="s-icon"></i><span>Vendor Management</span>
+    </div>
+    ${empty("Vendor workflows are planned for a later phase — this shortcut is reserved for that work.", "truck")}`;
+}
 
 /* ── Overview ───────────────────────────────────────────────── */
 function renderOverview() {
@@ -3436,10 +3650,10 @@ function init() {
     save(STORAGE.products, []);
   }
 
-  /* RC5-08: Operations is the default landing (no hash) — Analytics/Overview
-     remain reachable from the sidebar. */
-  const hash = window.location.hash.replace("#", "") || "operations";
-  const view = STUDIO_VIEWS.find((v) => v.id === hash) ? hash : "operations";
+  /* RC-18: Command Center is the default landing (no hash) — Operations,
+     Analytics, and Overview all remain reachable from the sidebar. */
+  const hash = window.location.hash.replace("#", "") || "command-center";
+  const view = STUDIO_VIEWS.find((v) => v.id === hash) ? hash : "command-center";
   currentView = view;
   buildNav();
   syncTabBar();
