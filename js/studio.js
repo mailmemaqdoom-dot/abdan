@@ -82,6 +82,7 @@ const STUDIO_VIEWS = [
   { id: "messaging",   label: "Circle Updates",     icon: "send",             group: "Her Circle"   },
   { id: "shareearn",   label: "Share & Earn",       icon: "gift",             group: "Her Circle"   },
   { id: "journey",     label: "Journey Management", icon: "map",              group: "Her Circle"   },
+  { id: "moments",     label: "Moments Insights",   icon: "calendar-heart",   group: "Her Circle"   },
   { id: "reviews",     label: "Reviews",            icon: "star",             group: "Her Circle"   },
   { id: "requests",    label: "Sourcing Requests",  icon: "search",           group: "Her Circle"   },
   { id: "concierge",   label: "Concierge Queue",    icon: "message-circle",   group: "Her Circle"   },
@@ -464,6 +465,7 @@ function renderView(id) {
     rules:       renderRules,
     shareearn:   renderShareEarnAdmin,
     journey:     renderJourneyAdmin,
+    moments:     renderMomentsAdmin,
     reviews:     renderReviews,
     requests:    renderRequests,
     concierge:   renderConciergeQueue,
@@ -2481,6 +2483,83 @@ function renderJourneyAdmin() {
       closePanel(); toast(isNew ? "Milestone created 💛" : "Milestone updated"); renderJourneyAdmin();
     });
   }
+}
+
+/* ── HER CIRCLE: My Moments — analytics only (no private content exposed) ── */
+const MOMENTS_TYPE_LABELS = {
+  wedding: "Wedding", engagement: "Engagement", eid: "Eid", ramadan: "Ramadan", diwali: "Diwali",
+  temple: "Temple Visit", family: "Family Function", birthday: "Birthday", anniversary: "Anniversary",
+  office: "Office Event", travel: "Travel", custom: "Custom Occasion",
+};
+function renderMomentsAdmin() {
+  setTitle("Moments Insights", "");
+
+  const typeCounts = {}, moodCounts = {}, inspCounts = {};
+  let totalMoments = 0, totalPieces = 0, membersWithMoments = 0;
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || k.indexOf("abdan-sp-my-moments:") !== 0) continue;
+      let list = []; try { list = JSON.parse(localStorage.getItem(k) || "[]") || []; } catch { list = []; }
+      if (!Array.isArray(list) || !list.length) continue;
+      membersWithMoments++;
+      list.forEach((m) => {
+        totalMoments++;
+        const tLabel = MOMENTS_TYPE_LABELS[m.type] || m.type || "Custom Occasion";
+        typeCounts[tLabel] = (typeCounts[tLabel] || 0) + 1;
+        if (m.mood) moodCounts[m.mood] = (moodCounts[m.mood] || 0) + 1;
+        const owned = (m.board && m.board.owned) ? m.board.owned.length : 0;
+        const needed = (m.board && m.board.products) ? m.board.products.length : 0;
+        totalPieces += owned + needed;
+        (m.board && m.board.inspirations || []).forEach((insp) => {
+          const key = String(insp.text || "").trim().toLowerCase();
+          if (!key) return;
+          inspCounts[key] = (inspCounts[key] || 0) + 1;
+        });
+      });
+    }
+  } catch {}
+
+  const helpCounts = {};
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || k.indexOf("abdan-sp-momhelp:") !== 0) continue;
+      let m = {}; try { m = JSON.parse(localStorage.getItem(k) || "{}") || {}; } catch { m = {}; }
+      Object.entries(m).forEach(([label, count]) => { helpCounts[label] = (helpCounts[label] || 0) + (count || 0); });
+    }
+  } catch {}
+
+  const totalMembers = Object.keys(load(STORAGE.customers, {})).length;
+  const avgPieces = totalMoments ? Math.round((totalPieces / totalMoments) * 10) / 10 : 0;
+  const rankRows = (obj, n) => Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, n)
+    .map(([label, count]) => `<div class="s-rank-row"><span class="s-rank-row__name">${esc(label)}</span><span class="s-rank-row__val">${count}</span></div>`).join("");
+
+  dom.content.innerHTML = `
+    <div class="s-zone-header s-zone-header--circle">
+      <i data-lucide="calendar-heart" class="s-icon"></i><span>My Moments — occasion &amp; celebration planning</span>
+    </div>
+    <p class="s-muted" style="margin:-0.4rem 0 1rem;font-size:0.8rem">Analytics only — individual moment boards remain private to each member.</p>
+    <div class="s-stats-row">
+      ${stat("calendar-heart", "Moments Created", totalMoments, "s-stat--blue")}
+      ${stat("users", "Members Planning", membersWithMoments, "s-stat--purple")}
+      ${stat("layers", "Avg Pieces / Moment", avgPieces, "s-stat--gold")}
+      ${stat("percent", "Of Her Circle Planning", totalMembers ? `${Math.round((membersWithMoments / totalMembers) * 100)}%` : "0%", "s-stat--green")}
+    </div>
+    <div class="s-analytics-grid">
+      <div class="s-card"><h3 class="s-card__title">Most Popular Occasion Types</h3>
+        ${Object.keys(typeCounts).length ? `<div class="s-rank-list">${rankRows(typeCounts, 8)}</div>` : empty("No Moments created yet.", "calendar-heart")}
+      </div>
+      <div class="s-card"><h3 class="s-card__title">Most Used Mood Categories</h3>
+        ${Object.keys(moodCounts).length ? `<div class="s-rank-list">${rankRows(moodCounts, 8)}</div>` : empty("No moods chosen yet.", "sparkles")}
+      </div>
+      <div class="s-card"><h3 class="s-card__title">Most Saved Collections &amp; Inspirations</h3>
+        ${Object.keys(inspCounts).length ? `<div class="s-rank-list">${rankRows(inspCounts, 8)}</div>` : empty("No inspirations saved yet.", "bookmark")}
+      </div>
+      <div class="s-card"><h3 class="s-card__title">Most Requested Styling Assistance</h3>
+        ${Object.keys(helpCounts).length ? `<div class="s-rank-list">${rankRows(helpCounts, 8)}</div>` : empty("No help requests yet.", "message-circle")}
+      </div>
+    </div>`;
 }
 
 /* ── HER CIRCLE: Reviews ─────────────────────────────────────── */

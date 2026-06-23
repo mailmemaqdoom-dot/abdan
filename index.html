@@ -1286,6 +1286,11 @@
                 <div id="spaceMyJourneyPanel"></div>
               </div>
 
+              <!-- Panel: My Moments -->
+              <div class="space-tab-panel" id="spaceTabMyMoments" hidden role="tabpanel">
+                <div id="spaceMyMomentsPanel"></div>
+              </div>
+
             </div>
 
             <!-- Persistent bottom navigation (visible in your-space route on mobile) -->
@@ -1703,9 +1708,23 @@
                target="_blank" rel="noreferrer">
               Ask ABDAN about this piece
             </a>
+            <button type="button" class="product-sheet__moment-btn" id="addToMomentBtn">
+              ✦ Add to Moment
+            </button>
           </div>
 
         </div><!-- /.product-sheet__body -->
+      </div>
+    </div>
+
+    <!-- My Moments — quiet "Add to Moment" picker (additive, shared modal) -->
+    <div class="moment-picker" id="momentPicker" aria-hidden="true">
+      <div class="moment-picker__backdrop" data-close-moment-picker></div>
+      <div class="moment-picker__panel" role="dialog" aria-modal="true" aria-labelledby="momentPickerTitle">
+        <button class="moment-picker__close" type="button" data-close-moment-picker aria-label="Close">
+          <i data-lucide="x" aria-hidden="true"></i>
+        </button>
+        <div id="momentPickerBody"></div>
       </div>
     </div>
 

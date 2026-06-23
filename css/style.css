@@ -17316,3 +17316,202 @@ html[data-theme="dark"] .promise-band__inner cite {
 .jr-future__item { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; padding: 0.7rem 0.9rem; border: 1px dashed var(--line); border-radius: 0.7rem; opacity: 0.72; }
 .jr-future__title { font-size: 0.88rem; color: var(--text-main); }
 .jr-future__cat { font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-soft); }
+
+/* ════════════════════════════════════════════════════════════════════
+   RC-16 — MY MOMENTS ✨ (additive occasion & celebration planning)
+   ════════════════════════════════════════════════════════════════════ */
+
+/* "+ Add to Moment" — quiet tertiary action beside the concierge link */
+.product-sheet__inquiry { display: flex; flex-direction: column; align-items: center; gap: .5rem; }
+.product-sheet__moment-btn {
+  background: none; border: none; cursor: pointer;
+  font-family: var(--font-display, "Libre Baskerville", serif);
+  font-size: .78rem; font-style: italic;
+  color: var(--emerald, #023d3a); opacity: .82;
+  letter-spacing: .01em; padding: .2rem .4rem;
+  transition: opacity .2s ease;
+}
+.product-sheet__moment-btn:hover { opacity: 1; text-decoration: underline; }
+
+/* ── Moment picker modal ─────────────────────────────────────────── */
+.moment-picker {
+  position: fixed; inset: 0; z-index: 4200;
+  display: none; align-items: center; justify-content: center;
+  padding: 1.25rem;
+}
+.moment-picker.is-open { display: flex; }
+.moment-picker__backdrop {
+  position: absolute; inset: 0;
+  background: rgba(2, 20, 18, .55);
+  backdrop-filter: blur(3px);
+  animation: momFadeIn .25s ease;
+}
+.moment-picker__panel {
+  position: relative; z-index: 1;
+  background: var(--ivory, #faf6ef);
+  border-radius: 1.1rem;
+  max-width: 420px; width: 100%;
+  max-height: 82vh; overflow-y: auto;
+  padding: 1.75rem 1.5rem 1.5rem;
+  box-shadow: 0 30px 70px rgba(2, 20, 18, .35);
+  animation: momRiseIn .3s ease;
+}
+@keyframes momFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes momRiseIn { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.moment-picker__close {
+  position: absolute; top: .9rem; right: .9rem;
+  width: 2rem; height: 2rem; border-radius: 50%;
+  background: rgba(2, 61, 58, .06); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--emerald, #023d3a);
+}
+.moment-picker__kicker {
+  font-size: .68rem; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--gold, #b08d3f); margin: 0 0 .25rem;
+}
+.moment-picker__title {
+  font-family: var(--font-display, "Libre Baskerville", serif);
+  font-size: 1.15rem; margin: 0 0 1rem; color: var(--text);
+}
+.moment-picker__list { display: flex; flex-direction: column; gap: .5rem; margin-bottom: 1rem; }
+.moment-picker__row {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; text-align: left;
+  background: rgba(2, 61, 58, .04); border: 1px solid var(--line);
+  border-radius: .65rem; padding: .7rem .9rem;
+  font-family: var(--font-display, "Libre Baskerville", serif);
+  font-size: .88rem; color: var(--text); cursor: pointer;
+  transition: background .2s ease;
+}
+.moment-picker__row:hover:not(:disabled) { background: rgba(2, 61, 58, .09); }
+.moment-picker__row:disabled { opacity: .5; cursor: default; }
+.moment-picker__row-status { font-size: .7rem; color: var(--emerald, #023d3a); opacity: .75; }
+.moment-picker__empty { font-size: .85rem; color: var(--muted); margin-bottom: 1rem; }
+.moment-picker__or {
+  font-size: .7rem; text-align: center; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .08em; margin: .5rem 0;
+}
+.moment-picker__quick { display: flex; flex-direction: column; gap: .55rem; }
+
+/* ── My Moments — list view ──────────────────────────────────────── */
+.mom-head { margin-bottom: 1.1rem; }
+.mom-head__kicker { font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--gold, #b08d3f); margin: 0 0 .3rem; }
+.mom-head__title { font-family: var(--font-display, "Libre Baskerville", serif); font-size: 1.4rem; margin: 0 0 .5rem; color: var(--text); }
+.mom-head__intro { font-size: .88rem; line-height: 1.55; color: var(--muted); margin: 0; max-width: 32rem; }
+
+.mom-reminder {
+  background: linear-gradient(135deg, rgba(2, 61, 58, .07), rgba(176, 141, 63, .08));
+  border: 1px solid rgba(176, 141, 63, .25);
+  border-radius: .75rem; padding: .85rem 1.1rem;
+  font-size: .85rem; line-height: 1.5; color: var(--text);
+  margin-bottom: 1.1rem;
+}
+.mom-reminder strong { color: var(--emerald, #023d3a); }
+
+.mom-add-btn {
+  display: block; width: 100%; text-align: center;
+  background: var(--emerald, #023d3a); color: var(--ivory, #faf6ef);
+  border: none; border-radius: .7rem; padding: .85rem 1rem;
+  font-family: var(--font-display, "Libre Baskerville", serif);
+  font-size: .92rem; cursor: pointer; margin-bottom: 1rem;
+  transition: opacity .2s ease;
+}
+.mom-add-btn:hover { opacity: .88; }
+
+.mom-form {
+  display: flex; flex-direction: column; gap: .6rem;
+  background: rgba(2, 61, 58, .04); border-radius: .85rem;
+  padding: 1rem; margin-bottom: 1.2rem;
+}
+.mom-form[hidden] { display: none !important; }
+
+.mom-empty {
+  text-align: center; padding: 2.2rem 1.2rem;
+  background: rgba(2, 61, 58, .03); border-radius: 1rem;
+}
+.mom-empty p { font-size: .9rem; line-height: 1.6; color: var(--muted); font-style: italic; max-width: 26rem; margin: 0 auto; }
+
+.mom-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .9rem; }
+.mom-card {
+  display: flex; flex-direction: column; align-items: flex-start; gap: .25rem;
+  text-align: left; background: var(--ivory, #faf6ef);
+  border: 1px solid var(--line); border-radius: .9rem;
+  padding: 1.1rem 1rem; cursor: pointer;
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.mom-card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(2, 20, 18, .1); border-color: rgba(176, 141, 63, .4); }
+.mom-card__icon { font-size: 1.4rem; color: var(--gold, #b08d3f); margin-bottom: .15rem; }
+.mom-card__type { font-size: .65rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.mom-card__name { font-family: var(--font-display, "Libre Baskerville", serif); font-size: 1.02rem; color: var(--text); line-height: 1.3; }
+.mom-card__mood { font-size: .72rem; font-style: italic; color: var(--emerald, #023d3a); opacity: .8; }
+.mom-card__date { font-size: .72rem; color: var(--muted); }
+.mom-card__count { font-size: .7rem; color: var(--gold, #b08d3f); margin-top: .2rem; }
+
+/* ── My Moments — detail view ────────────────────────────────────── */
+.mom-back {
+  background: none; border: none; cursor: pointer;
+  font-size: .78rem; color: var(--emerald, #023d3a); opacity: .8;
+  margin-bottom: 1rem; padding: 0; font-family: var(--font-body, inherit);
+}
+.mom-back:hover { opacity: 1; text-decoration: underline; }
+
+.mom-detail-head { text-align: center; padding: 1.4rem 1rem 1.6rem; margin-bottom: 1rem; border-bottom: 1px solid var(--line); }
+.mom-detail-head__icon { display: block; font-size: 1.9rem; color: var(--gold, #b08d3f); margin-bottom: .4rem; }
+.mom-detail-head__type { font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin: 0 0 .35rem; }
+.mom-detail-head__name { font-family: var(--font-display, "Libre Baskerville", serif); font-size: 1.5rem; margin: 0 0 .4rem; color: var(--text); }
+.mom-detail-head__date { font-size: .82rem; color: var(--emerald, #023d3a); margin: 0 0 .4rem; }
+.mom-detail-head__desc { font-size: .85rem; font-style: italic; color: var(--muted); max-width: 28rem; margin: 0 auto; line-height: 1.55; }
+
+.mom-section { margin-bottom: 1.6rem; }
+.mom-section__head { display: flex; align-items: center; justify-content: space-between; gap: .6rem; flex-wrap: wrap; }
+.mom-section__label { font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; color: var(--gold, #b08d3f); margin: 0 0 .4rem; }
+.mom-section__sub { font-size: .8rem; color: var(--muted); margin: 0 0 .6rem; }
+
+.mom-piece-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: .7rem; margin-top: .5rem; }
+.mom-piece { position: relative; border-radius: .7rem; overflow: hidden; background: rgba(2, 61, 58, .04); }
+.mom-piece img { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; }
+.mom-piece__name { font-size: .72rem; padding: .4rem .5rem .15rem; color: var(--text); line-height: 1.3; }
+.mom-piece-empty, .mom-piece-empty-text { font-size: .82rem; color: var(--muted); font-style: italic; }
+.mom-piece-empty { padding: 1rem; background: rgba(2, 61, 58, .03); border-radius: .7rem; text-align: center; }
+.mom-piece-empty-text { margin: .3rem 0 0; }
+
+.mom-pick-list { display: flex; flex-direction: column; gap: .4rem; margin: .5rem 0; }
+.mom-pick-list[hidden] { display: none !important; }
+.mom-pick-row {
+  text-align: left; background: rgba(2, 61, 58, .04); border: 1px solid var(--line);
+  border-radius: .55rem; padding: .55rem .75rem; font-size: .82rem; cursor: pointer;
+  color: var(--text);
+}
+.mom-pick-row:hover { background: rgba(2, 61, 58, .09); }
+
+.mom-insp-list { display: flex; flex-direction: column; gap: .45rem; margin-top: .5rem; }
+.mom-insp { position: relative; background: rgba(176, 141, 63, .07); border-radius: .6rem; padding: .6rem .9rem .6rem 2.2rem; font-size: .85rem; color: var(--text); font-style: italic; }
+.mom-insp .ward-del--inline { left: .6rem; right: auto; }
+
+.mom-help-row { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mom-help-btn {
+  background: rgba(2, 61, 58, .05); border: 1px solid var(--line);
+  border-radius: 2rem; padding: .5rem 1rem; font-size: .76rem;
+  color: var(--emerald, #023d3a); cursor: pointer; transition: background .2s ease;
+}
+.mom-help-btn:hover { background: rgba(2, 61, 58, .11); }
+
+.mom-share-row { display: flex; gap: .6rem; }
+.mom-share-btn {
+  width: 2.8rem; height: 2.8rem; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(2, 61, 58, .05); border: 1px solid var(--line);
+  cursor: pointer; font-size: 1rem; color: var(--emerald, #023d3a);
+}
+.mom-share-btn:hover { background: rgba(2, 61, 58, .1); }
+.mom-share-btn .social-icon { width: 1.3rem; height: 1.3rem; }
+
+.mom-delete-btn {
+  display: block; margin-top: 1.6rem; background: none; border: none;
+  color: rgba(190, 60, 60, .75); font-size: .78rem; cursor: pointer; padding: 0;
+}
+.mom-delete-btn:hover { color: rgba(190, 60, 60, 1); text-decoration: underline; }
+
+@media (prefers-reduced-motion: reduce) {
+  .moment-picker__backdrop, .moment-picker__panel, .mom-card { animation: none !important; transition: none !important; }
+}

@@ -1180,6 +1180,9 @@ const SP_WARD_NOTES    = "abdan-sp-ward-notes";    /* private wardrobe notes */
 const SP_WARD_GALLERY  = "abdan-sp-ward-gallery";  /* private memory gallery */
 const WARD_OCCASIONS   = ["Wedding", "Temple Visit", "Eid", "Family Function", "Festive", "Everyday"];
 const WARD_GALLERY_TYPES = ["Unboxing", "Styling", "Occasion"];
+/* My Moments ecosystem (additive) — occasion & celebration planning */
+const SP_MY_MOMENTS_KEY = "abdan-sp-my-moments";
+const SP_MOM_HELP_KEY   = "abdan-sp-momhelp";
 
 const SP_STYLE_IDENTITIES = [
   "Quiet Gold", "Temple Elegance", "Soft Minimal", "Monsoon Silk",
@@ -1675,9 +1678,11 @@ function showSpaceTab(tabId) {
     settings:     "spaceTabSettings",
     shareearn:    "spaceTabShareEarn",
     myjourney:    "spaceTabMyJourney",
+    moments:      "spaceTabMyMoments",
   };
   if (tabId === "shareearn" && typeof renderShareEarn === "function") renderShareEarn();
   if (tabId === "myjourney" && typeof renderMyJourney === "function") renderMyJourney();
+  if (tabId === "moments" && typeof renderMyMoments === "function") renderMyMoments();
   document.querySelectorAll("[data-space-tab]").forEach((t) => {
     t.classList.toggle("is-active", t.dataset.spaceTab === tabId);
     t.setAttribute("aria-selected", t.dataset.spaceTab === tabId ? "true" : "false");
@@ -2177,6 +2182,7 @@ function renderSpaceOverview(profile) {
     { tab:"journal",     sym:"✦", title:"Journal",        desc:"Your style diary" },
     { tab:"shareearn",   sym:"💛", title:"Share the Love",  desc:"Invite friends · earn Circle Points" },
     { tab:"myjourney",   sym:"✨", title:"My Journey",      desc:"Your milestones with ABDAN" },
+    { tab:"moments",     sym:"❀", title:"My Moments",      desc:"Prepare for what matters" },
   ];
 
   panel.innerHTML = `
@@ -6548,6 +6554,13 @@ function renderSpaceConcierge(email) {
       <p class="sp-compose__note">Your message will open WhatsApp — responded to personally by ABDAN.</p>
     </div>`;
 
+  /* My Moments — quietly prefill when arriving via "Ask ABDAN for Help" */
+  if (typeof _pendingConciergeText === "string" && _pendingConciergeText) {
+    const taPrefill = panel.querySelector("#spComposeText");
+    if (taPrefill) taPrefill.value = _pendingConciergeText;
+    _pendingConciergeText = "";
+  }
+
   /* Reset voice state */
   _spVoiceRecording = false;
   _spVoiceSrc       = null;
@@ -7606,11 +7619,18 @@ const DEFAULT_MILESTONES = [
   { id: "inner-circle",   category: "Inner Circle Journey",   title: "Inner Circle",                description: "Among ABDAN's most devoted.",                         metric: "loyaltyPts",       threshold: 150,points: 0,   active: true },
   { id: "patron",         category: "Inner Circle Journey",   title: "Patron",                      description: "A patron of the house.",                              metric: "loyaltyPts",       threshold: 300,points: 0,   active: true },
   { id: "founders-circle",category: "Inner Circle Journey",   title: "Founder's Circle",            description: "Forever part of ABDAN's beginning.",                  metric: "loyaltyPts",       threshold: 500,points: 0,   active: true },
+  { id: "memory-maker",   category: "Moments Journey",        title: "Memory Maker",                description: "You began your first Moment with ABDAN.",            metric: "momentsCreated",   threshold: 1,  points: 20,  active: true },
+  { id: "wedding-planner",category: "Moments Journey",        title: "Wedding Planner",             description: "Preparing for a day that deserves every grace.",     metric: "weddingMoments",   threshold: 1,  points: 40,  active: true },
+  { id: "festival-curator",category: "Moments Journey",       title: "Festival Curator",            description: "Curating beauty for the season of light.",           metric: "festivalMoments",  threshold: 1,  points: 30,  active: true },
+  { id: "celebration-creator",category: "Moments Journey",    title: "Celebration Creator",         description: "Three Moments, each held with care.",                metric: "momentsCreated",   threshold: 3,  points: 60,  active: true },
+  { id: "style-organizer",category: "Moments Journey",        title: "Style Organizer",             description: "Five pieces, thoughtfully gathered for your Moments.",metric: "momentPieces",     threshold: 5,  points: 40,  active: true },
 ];
 const JOURNEY_METRIC_UNITS = {
   wishlist: "saved piece", orders: "purchase", looks: "styled look", pairings: "pairing",
   gallery: "memory", lookbooks: "lookbook", purchased: "piece", concierge: "conversation",
   referralsInvited: "invitation", peopleInspired: "friend inspired", loyaltyPts: "Circle Point",
+  momentsCreated: "moment", weddingMoments: "wedding moment", festivalMoments: "festival moment",
+  momentPieces: "gathered piece",
 };
 const JOURNEY_COUNTABLE = Object.keys(JOURNEY_METRIC_UNITS);
 function getEffectiveMilestones() {
@@ -7627,6 +7647,9 @@ function journeyStats(profile) {
     return (op && phones.includes(op)) || (email && oe === email);
   });
   const ref = (typeof getMyReferrals === "function") ? getMyReferrals(email) : { invited: 0, successful: 0 };
+  const moments = (typeof spGetMoments === "function") ? spGetMoments(email) : [];
+  const weddingTypes  = ["wedding", "engagement"];
+  const festivalTypes = ["eid", "ramadan", "diwali"];
   return {
     profile:          email ? 1 : 0,
     wishlist:         (typeof getWishlist === "function") ? getWishlist().size : 0,
@@ -7641,6 +7664,10 @@ function journeyStats(profile) {
     referralsInvited: ref.invited || 0,
     peopleInspired:   ref.successful || 0,
     loyaltyPts:       (typeof spGetLoyalty === "function") ? spGetLoyalty(email) : 0,
+    momentsCreated:   moments.length,
+    weddingMoments:   moments.filter((m) => weddingTypes.includes(m.type)).length,
+    festivalMoments:  moments.filter((m) => festivalTypes.includes(m.type)).length,
+    momentPieces:     moments.reduce((s, m) => s + ((m.board && m.board.owned ? m.board.owned.length : 0) + (m.board && m.board.products ? m.board.products.length : 0)), 0),
   };
 }
 function evaluateJourney(profile) {
@@ -7714,6 +7741,435 @@ function renderMyJourney() {
     ${future}`;
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   MY MOMENTS ✨ — a personal occasion & celebration planning ecosystem
+   (additive). Not a calendar, not a task manager — an emotional place to
+   prepare for weddings, festivals, gatherings. Lives inside Your Space,
+   integrates quietly with Wardrobe, Concierge, Share the Love and Journey.
+   ════════════════════════════════════════════════════════════════════ */
+let _momActiveId          = null;
+let _pendingConciergeText = "";
+
+const MOMENT_TYPES = [
+  { id: "wedding",     label: "Wedding",          icon: "♛" },
+  { id: "engagement",  label: "Engagement",       icon: "♡" },
+  { id: "eid",         label: "Eid",               icon: "☾" },
+  { id: "ramadan",     label: "Ramadan",          icon: "✦" },
+  { id: "diwali",      label: "Diwali",           icon: "✺" },
+  { id: "temple",      label: "Temple Visit",     icon: "◇" },
+  { id: "family",      label: "Family Function",  icon: "❀" },
+  { id: "birthday",    label: "Birthday",         icon: "✺" },
+  { id: "anniversary", label: "Anniversary",      icon: "♡" },
+  { id: "office",      label: "Office Event",     icon: "◻" },
+  { id: "travel",      label: "Travel",           icon: "✦" },
+  { id: "custom",      label: "Custom Occasion",  icon: "✧" },
+];
+const MOMENT_MOODS = ["Elegant", "Festive", "Traditional", "Minimal", "Graceful", "Classic", "Luxury"];
+const MOMENT_HELP = [
+  { id: "styling",     label: "Need Styling Advice" },
+  { id: "accessories", label: "Need Matching Accessories" },
+  { id: "similar",     label: "Need Similar Product" },
+  { id: "occasion",    label: "Need Occasion Suggestions" },
+  { id: "fabric",      label: "Need Fabric Guidance" },
+];
+
+function momUid() { return "mom" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function spGetMoments(email)        { return spGet(email, SP_MY_MOMENTS_KEY) || []; }
+function spSaveMoments(email, list) { spSet(email, SP_MY_MOMENTS_KEY, list); }
+function momentTypeMeta(type) { return MOMENT_TYPES.find((t) => t.id === type) || { id: "custom", label: "Custom Occasion", icon: "✧" }; }
+function momHelpCount(email, label) {
+  const m = spGet(email, SP_MOM_HELP_KEY) || {};
+  m[label] = (m[label] || 0) + 1;
+  spSet(email, SP_MOM_HELP_KEY, m);
+}
+function momentPieceCount(m) {
+  return ((m.board && m.board.owned ? m.board.owned.length : 0) + (m.board && m.board.products ? m.board.products.length : 0));
+}
+function momentsReminderLine(moments) {
+  if (!moments || !moments.length) return "";
+  const now = Date.now();
+  const dated = moments
+    .filter((m) => m.date)
+    .map((m) => ({ m, days: Math.ceil((new Date(m.date).getTime() - now) / 864e5) }))
+    .filter((x) => x.days >= 0 && x.days <= 120)
+    .sort((a, b) => a.days - b.days);
+  if (dated.length) {
+    const { m, days } = dated[0];
+    return `Your <strong>${wardEsc(m.name)}</strong> Moment is waiting${days > 0 ? ` — ${days} day${days !== 1 ? "s" : ""} away` : ""} 💛`;
+  }
+  const updated = moments.find((m) => m.updatedAt && (!m.lastViewedAt || new Date(m.updatedAt) > new Date(m.lastViewedAt)));
+  if (updated) return `A few beautiful pieces have been added to your <strong>${wardEsc(updated.name)}</strong> board since your last visit.`;
+  return "";
+}
+
+function momentCardHtml(m) {
+  const t = momentTypeMeta(m.type);
+  const count = momentPieceCount(m);
+  return `
+    <button type="button" class="mom-card" data-mom-open="${m.id}">
+      <span class="mom-card__icon" aria-hidden="true">${t.icon}</span>
+      <span class="mom-card__type">${t.label}</span>
+      <span class="mom-card__name">${wardEsc(m.name)}</span>
+      ${m.mood ? `<span class="mom-card__mood">${wardEsc(m.mood)}</span>` : ""}
+      ${m.date ? `<span class="mom-card__date">${new Date(m.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>` : ""}
+      <span class="mom-card__count">${count} piece${count !== 1 ? "s" : ""} gathered</span>
+    </button>`;
+}
+
+function renderMyMoments() {
+  const panel = document.getElementById("spaceMyMomentsPanel");
+  if (!panel) return;
+  const sess  = getSpaceSession() || {};
+  const email = sess.email || "";
+  const moments = spGetMoments(email);
+
+  if (_momActiveId && moments.find((m) => m.id === _momActiveId)) {
+    renderMomentDetail(panel, email, _momActiveId);
+    return;
+  }
+
+  const reminder = momentsReminderLine(moments);
+  const grid = moments.length
+    ? `<div class="mom-grid">${moments.map((m) => momentCardHtml(m)).join("")}</div>`
+    : `<div class="mom-empty"><p>Every celebration begins quietly — a wedding to prepare for, an Eid to dress for, a gathering to feel beautiful at. Begin your first Moment.</p></div>`;
+
+  panel.innerHTML = `
+    <div class="mom-head">
+      <p class="mom-head__kicker">Your celebrations, gently prepared</p>
+      <h3 class="mom-head__title">My Moments ✨</h3>
+      <p class="mom-head__intro">A personal place to prepare for the days that matter — weddings, festivals, gatherings, and everything in between.</p>
+    </div>
+    ${reminder ? `<div class="mom-reminder">${reminder}</div>` : ""}
+    <button type="button" class="mom-add-btn" id="momAddBtn">＋ Begin a New Moment</button>
+    <form class="mom-form" id="momCreateForm" hidden>
+      <select id="momNewType" class="ward-input">${MOMENT_TYPES.map((t) => `<option value="${t.id}">${t.icon} ${t.label}</option>`).join("")}</select>
+      <input type="text" id="momNewName" class="ward-input" placeholder="Name this Moment — e.g. Sister's Wedding" maxlength="60" />
+      <input type="date" id="momNewDate" class="ward-input" />
+      <select id="momNewMood" class="ward-input">
+        <option value="">Choose a mood (optional)</option>
+        ${MOMENT_MOODS.map((mo) => `<option value="${mo}">${mo}</option>`).join("")}
+      </select>
+      <textarea id="momNewDesc" class="ward-input" placeholder="A few words about this Moment (optional)" maxlength="200" rows="2"></textarea>
+      <button type="button" class="ward-save-btn" id="momNewSave">Begin this Moment</button>
+    </form>
+    ${grid}`;
+
+  panel.querySelector("#momAddBtn")?.addEventListener("click", () => {
+    const f = document.getElementById("momCreateForm");
+    if (f) f.hidden = !f.hidden;
+  });
+  panel.querySelector("#momNewSave")?.addEventListener("click", () => {
+    const name = document.getElementById("momNewName").value.trim();
+    if (!name) { showToast("Give this Moment a name first"); return; }
+    const nowIso = new Date().toISOString();
+    const m = {
+      id: momUid(),
+      name,
+      type: document.getElementById("momNewType").value,
+      date: document.getElementById("momNewDate").value || "",
+      mood: document.getElementById("momNewMood").value || "",
+      description: document.getElementById("momNewDesc").value.trim(),
+      board: { owned: [], products: [], looks: [], inspirations: [] },
+      createdAt: nowIso, updatedAt: nowIso, lastViewedAt: nowIso,
+    };
+    const list = spGetMoments(email);
+    list.unshift(m);
+    spSaveMoments(email, list);
+    showToast("Your Moment has begun 💛");
+    _momActiveId = m.id;
+    renderMyMoments();
+  });
+  panel.querySelectorAll("[data-mom-open]").forEach((b) => b.addEventListener("click", () => {
+    _momActiveId = b.dataset.momOpen;
+    renderMyMoments();
+  }));
+}
+
+function renderMomentDetail(panel, email, id) {
+  const list = spGetMoments(email);
+  const m = list.find((x) => x.id === id);
+  if (!m) { _momActiveId = null; renderMyMoments(); return; }
+  m.lastViewedAt = new Date().toISOString();
+  spSaveMoments(email, list);
+
+  const t = momentTypeMeta(m.type);
+  const owned = wardPurchasedPieces(Object.assign({}, getSpaceSession() || {}, { email }));
+  const ownedAttached = owned.filter((p) => (m.board.owned || []).includes(String(p.id)));
+  const ownedAvailable = owned.filter((p) => !(m.board.owned || []).includes(String(p.id)));
+  const looks = spGet(email, SP_WARD_LOOKS) || [];
+  const looksAttached  = looks.filter((l) => (m.board.looks || []).includes(l.id));
+  const looksAvailable = looks.filter((l) => !(m.board.looks || []).includes(l.id));
+
+  const ownedHtml = ownedAttached.length
+    ? `<div class="mom-piece-grid">${ownedAttached.map((p) => `
+        <article class="mom-piece">
+          ${p.image ? `<img src="${p.image}" alt="" loading="lazy" />` : `<div class="ward-piece__ph"></div>`}
+          <button type="button" class="ward-del" data-mom-unowned="${wardEsc(p.id)}" aria-label="Remove">×</button>
+          <p class="mom-piece__name">${wardEsc(p.name)}</p>
+        </article>`).join("")}</div>`
+    : `<div class="mom-piece-empty"><p>Pieces you already own for this Moment will gather here.</p></div>`;
+
+  const neededHtml = (m.board.products || []).length
+    ? `<div class="mom-piece-grid">${m.board.products.map((p) => `
+        <article class="mom-piece">
+          ${p.image ? `<img src="${p.image}" alt="" loading="lazy" />` : `<div class="ward-piece__ph"></div>`}
+          <button type="button" class="ward-del" data-mom-unproduct="${wardEsc(p.id)}" aria-label="Remove">×</button>
+          <p class="mom-piece__name">${wardEsc(p.name)}</p>
+          ${p.priceLabel ? `<p class="ward-piece__price">${wardEsc(p.priceLabel)}</p>` : ""}
+        </article>`).join("")}</div>`
+    : `<div class="mom-piece-empty"><p>Add pieces from the collection — they’ll wait here, just for this Moment.</p><a class="secondary-button" href="#products" onclick="exitYourSpaceRoute?.()">Browse the collection</a></div>`;
+
+  const looksHtml = looksAttached.length
+    ? `<div class="mom-piece-grid">${looksAttached.map((l) => `
+        <article class="mom-piece">
+          ${l.photo ? `<img src="${l.photo}" alt="" loading="lazy" />` : `<div class="ward-piece__ph"></div>`}
+          <button type="button" class="ward-del" data-mom-unlook="${wardEsc(l.id)}" aria-label="Remove">×</button>
+          <p class="mom-piece__name">${wardEsc(l.occasion || "Styled Look")}</p>
+        </article>`).join("")}</div>`
+    : `<p class="mom-piece-empty-text">No styled looks attached yet.</p>`;
+
+  const inspirations = m.board.inspirations || [];
+  const inspirationsHtml = inspirations.length
+    ? `<div class="mom-insp-list">${inspirations.map((i) => `
+        <div class="mom-insp"><button type="button" class="ward-del ward-del--inline" data-mom-uninsp="${wardEsc(i.id)}" aria-label="Remove">×</button><p>${wardEsc(i.text)}</p></div>`).join("")}</div>`
+    : `<p class="mom-piece-empty-text">Save a thought, a collection name, an idea you don’t want to lose.</p>`;
+
+  const helpHtml = MOMENT_HELP.map((h) => `<button type="button" class="mom-help-btn" data-mom-help="${h.id}">${h.label}</button>`).join("");
+
+  panel.innerHTML = `
+    <button type="button" class="mom-back" id="momBack">← My Moments</button>
+    <div class="mom-detail-head">
+      <span class="mom-detail-head__icon" aria-hidden="true">${t.icon}</span>
+      <p class="mom-detail-head__type">${t.label}${m.mood ? ` · ${wardEsc(m.mood)}` : ""}</p>
+      <h3 class="mom-detail-head__name">${wardEsc(m.name)}</h3>
+      ${m.date ? `<p class="mom-detail-head__date">${new Date(m.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p>` : ""}
+      ${m.description ? `<p class="mom-detail-head__desc">${wardEsc(m.description)}</p>` : ""}
+    </div>
+
+    <section class="mom-section">
+      <div class="mom-section__head"><p class="mom-section__label">Already Owned Pieces</p>
+        ${ownedAvailable.length ? `<button type="button" class="ward-add-btn" data-mom-add="owned">＋ Add owned piece</button>` : ""}</div>
+      <div class="mom-pick-list" id="momOwnedPick" hidden>${ownedAvailable.map((p) => `
+        <button type="button" class="mom-pick-row" data-mom-pickowned="${wardEsc(p.id)}">${wardEsc(p.name)}</button>`).join("") || "<p class=\"mom-piece-empty-text\">All your pieces are already here.</p>"}</div>
+      ${ownedHtml}
+    </section>
+
+    <section class="mom-section">
+      <p class="mom-section__label">Needed Pieces</p>
+      <p class="mom-section__sub">Use “Add to Moment” on any piece to gather it here.</p>
+      ${neededHtml}
+    </section>
+
+    <section class="mom-section">
+      <div class="mom-section__head"><p class="mom-section__label">Styled Looks</p>
+        ${looksAvailable.length ? `<button type="button" class="ward-add-btn" data-mom-add="looks">＋ Attach a look</button>` : ""}</div>
+      <div class="mom-pick-list" id="momLooksPick" hidden>${looksAvailable.map((l) => `
+        <button type="button" class="mom-pick-row" data-mom-picklook="${wardEsc(l.id)}">${wardEsc(l.occasion || "Styled Look")}</button>`).join("") || "<p class=\"mom-piece-empty-text\">All your looks are already here.</p>"}</div>
+      ${looksHtml}
+    </section>
+
+    <section class="mom-section">
+      <div class="mom-section__head"><p class="mom-section__label">Inspirations</p>
+        <button type="button" class="ward-add-btn" data-mom-add="insp">＋ Save an inspiration</button></div>
+      <form class="ward-form" id="momInspForm" hidden>
+        <input type="text" id="momInspText" class="ward-input" placeholder="A collection, an idea, a thought…" maxlength="160" />
+        <button type="button" class="ward-save-btn" id="momInspSave">Save</button>
+      </form>
+      ${inspirationsHtml}
+    </section>
+
+    <section class="mom-section mom-section--help">
+      <p class="mom-section__label">Ask ABDAN For Help</p>
+      <p class="mom-section__sub">Personal guidance for this Moment, sent straight to ABDAN.</p>
+      <div class="mom-help-row">${helpHtml}</div>
+    </section>
+
+    <section class="mom-section mom-section--share">
+      <p class="mom-section__label">Share This Moment</p>
+      <div class="mom-share-row">
+        <button type="button" class="mom-share-btn" data-mom-share="whatsapp" aria-label="Share on WhatsApp"><svg class="social-icon wa-glyph" aria-hidden="true"><use href="#icon-whatsapp"/></svg></button>
+        <button type="button" class="mom-share-btn" data-mom-share="copy" aria-label="Copy link">⎘</button>
+        ${navigator.share ? `<button type="button" class="mom-share-btn" data-mom-share="native" aria-label="Share">↗</button>` : ""}
+      </div>
+    </section>
+
+    <button type="button" class="mom-delete-btn" id="momDelete">Delete this Moment</button>`;
+
+  panel.querySelector("#momBack")?.addEventListener("click", () => { _momActiveId = null; renderMyMoments(); });
+  panel.querySelectorAll("[data-mom-add]").forEach((b) => b.addEventListener("click", () => {
+    const map = { owned: "momOwnedPick", looks: "momLooksPick", insp: "momInspForm" };
+    const el = document.getElementById(map[b.dataset.momAdd]);
+    if (el) el.hidden = !el.hidden;
+  }));
+  panel.querySelectorAll("[data-mom-pickowned]").forEach((b) => b.addEventListener("click", () => {
+    m.board.owned = m.board.owned || []; m.board.owned.push(b.dataset.momPickowned);
+    m.updatedAt = new Date().toISOString();
+    spSaveMoments(email, list); renderMyMoments(); showToast("Added to your Moment 💛");
+  }));
+  panel.querySelectorAll("[data-mom-unowned]").forEach((b) => b.addEventListener("click", () => {
+    m.board.owned = (m.board.owned || []).filter((x) => x !== b.dataset.momUnowned);
+    spSaveMoments(email, list); renderMyMoments();
+  }));
+  panel.querySelectorAll("[data-mom-picklook]").forEach((b) => b.addEventListener("click", () => {
+    m.board.looks = m.board.looks || []; m.board.looks.push(b.dataset.momPicklook);
+    m.updatedAt = new Date().toISOString();
+    spSaveMoments(email, list); renderMyMoments(); showToast("Look attached 💛");
+  }));
+  panel.querySelectorAll("[data-mom-unlook]").forEach((b) => b.addEventListener("click", () => {
+    m.board.looks = (m.board.looks || []).filter((x) => x !== b.dataset.momUnlook);
+    spSaveMoments(email, list); renderMyMoments();
+  }));
+  panel.querySelectorAll("[data-mom-unproduct]").forEach((b) => b.addEventListener("click", () => {
+    m.board.products = (m.board.products || []).filter((x) => String(x.id) !== b.dataset.momUnproduct);
+    spSaveMoments(email, list); renderMyMoments();
+  }));
+  panel.querySelector("#momInspSave")?.addEventListener("click", () => {
+    const text = document.getElementById("momInspText").value.trim();
+    if (!text) { showToast("Write something first"); return; }
+    m.board.inspirations = m.board.inspirations || [];
+    m.board.inspirations.unshift({ id: momUid(), text, createdAt: new Date().toISOString() });
+    m.updatedAt = new Date().toISOString();
+    spSaveMoments(email, list); renderMyMoments(); showToast("Inspiration saved 💛");
+  });
+  panel.querySelectorAll("[data-mom-uninsp]").forEach((b) => b.addEventListener("click", () => {
+    m.board.inspirations = (m.board.inspirations || []).filter((x) => x.id !== b.dataset.momUninsp);
+    spSaveMoments(email, list); renderMyMoments();
+  }));
+  panel.querySelectorAll("[data-mom-help]").forEach((b) => b.addEventListener("click", () => {
+    askAbdanAboutMoment(m.id, b.dataset.momHelp);
+  }));
+  panel.querySelectorAll("[data-mom-share]").forEach((b) => b.addEventListener("click", () => {
+    shareMomentBoard(m.id, b.dataset.momShare);
+  }));
+  panel.querySelector("#momDelete")?.addEventListener("click", () => {
+    if (!window.confirm(`Remove "${m.name}" from your Moments? This cannot be undone.`)) return;
+    spSaveMoments(email, list.filter((x) => x.id !== m.id));
+    _momActiveId = null;
+    renderMyMoments();
+    showToast("Moment removed");
+  });
+}
+
+function askAbdanAboutMoment(momentId, helpId) {
+  const sess = getSpaceSession() || {};
+  const email = sess.email || "";
+  const moments = spGetMoments(email);
+  const m = moments.find((x) => x.id === momentId);
+  const name = m ? m.name : "this Moment";
+  const help = MOMENT_HELP.find((h) => h.id === helpId);
+  const phrases = {
+    styling:     `I would love some styling advice for my "${name}" Moment — `,
+    accessories: `I'm looking for matching accessories for my "${name}" Moment — `,
+    similar:     `Could ABDAN help me find something similar for my "${name}" Moment — `,
+    occasion:    `I would love occasion suggestions for my "${name}" Moment — `,
+    fabric:      `I have a fabric question for my "${name}" Moment — `,
+  };
+  _pendingConciergeText = phrases[helpId] || `I'd love some help with my "${name}" Moment — `;
+  momHelpCount(email, (help && help.label) || helpId);
+  showSpaceTab("concierge");
+  if (typeof renderSpaceConcierge === "function") renderSpaceConcierge(email);
+  showToast("Opening your private line to ABDAN 💛");
+}
+
+function shareMomentBoard(momentId, channel) {
+  const sess = getSpaceSession() || {};
+  const email = sess.email || "";
+  const moments = spGetMoments(email);
+  const m = moments.find((x) => x.id === momentId);
+  if (!m) return;
+  const code = (typeof genReferralCode === "function") ? genReferralCode(email) : "";
+  const link = (typeof buildReferralLink === "function") ? buildReferralLink(code, "moment", momentId) : "https://abdan.pages.dev/";
+  const text = `I'm preparing something beautiful for ${m.name} 💛 Discover ABDAN with me: ${link}`;
+  if (typeof wardShareCount === "function") wardShareCount(email, "Occasion Boards");
+  const eLink = encodeURIComponent(link), eText = encodeURIComponent(text);
+  const acts = {
+    whatsapp: () => window.open(`https://wa.me/?text=${eText}`, "_blank", "noopener,noreferrer"),
+    copy:     () => { try { navigator.clipboard.writeText(link); } catch {} showToast("Moment link copied 💛"); },
+    native:   () => { try { navigator.share({ title: "ABDAN", text, url: link }); } catch {} },
+  };
+  (acts[channel] || acts.copy)();
+}
+
+/* ── "Add to Moment" — quiet picker reachable from any product sheet ──── */
+function openAddToMomentSheet(productId) {
+  const sess  = getSpaceSession();
+  if (!sess) { showToast("Enter Your Space first to begin a Moment 💛"); return; }
+  const email = sess.email || "";
+  const product = (typeof PRODUCTS !== "undefined") ? PRODUCTS.find((p) => p.id === productId) : null;
+  const moments = spGetMoments(email);
+  const body = document.getElementById("momentPickerBody");
+  if (!body) return;
+
+  const rows = moments.length
+    ? moments.map((m) => {
+        const t = momentTypeMeta(m.type);
+        const already = (m.board.products || []).some((p) => String(p.id) === String(productId));
+        return `<button type="button" class="moment-picker__row" data-pick-moment="${m.id}" ${already ? "disabled" : ""}>
+          <span>${t.icon} ${wardEsc(m.name)}</span>
+          <span class="moment-picker__row-status">${already ? "Already added" : "Add"}</span>
+        </button>`;
+      }).join("")
+    : `<p class="moment-picker__empty">You haven't begun a Moment yet.</p>`;
+
+  body.innerHTML = `
+    <p class="moment-picker__kicker">Add to a Moment</p>
+    <h4 class="moment-picker__title" id="momentPickerTitle">${product ? wardEsc(product.name) : "This piece"}</h4>
+    <div class="moment-picker__list">${rows}</div>
+    <p class="moment-picker__or">or begin a new one</p>
+    <div class="moment-picker__quick">
+      <select id="momPickType" class="ward-input">${MOMENT_TYPES.map((t) => `<option value="${t.id}">${t.icon} ${t.label}</option>`).join("")}</select>
+      <input type="text" id="momPickName" class="ward-input" placeholder="Name this Moment" maxlength="60" />
+      <button type="button" class="ward-save-btn" id="momPickCreate">Create &amp; add</button>
+    </div>`;
+
+  body.querySelectorAll("[data-pick-moment]").forEach((b) => b.addEventListener("click", () => {
+    addProductToMoment(email, b.dataset.pickMoment, product);
+  }));
+  body.querySelector("#momPickCreate")?.addEventListener("click", () => {
+    const name = document.getElementById("momPickName").value.trim();
+    if (!name) { showToast("Give this Moment a name first"); return; }
+    const nowIso = new Date().toISOString();
+    const m = {
+      id: momUid(), name, type: document.getElementById("momPickType").value,
+      date: "", mood: "", description: "",
+      board: { owned: [], products: [], looks: [], inspirations: [] },
+      createdAt: nowIso, updatedAt: nowIso, lastViewedAt: nowIso,
+    };
+    const list = spGetMoments(email);
+    list.unshift(m);
+    spSaveMoments(email, list);
+    addProductToMoment(email, m.id, product);
+  });
+
+  const picker = document.getElementById("momentPicker");
+  if (picker) { picker.classList.add("is-open"); picker.setAttribute("aria-hidden", "false"); }
+  safeCreateIcons();
+}
+function closeMomentPicker() {
+  const picker = document.getElementById("momentPicker");
+  if (picker) { picker.classList.remove("is-open"); picker.setAttribute("aria-hidden", "true"); }
+}
+function addProductToMoment(email, momentId, product) {
+  if (!product) { closeMomentPicker(); return; }
+  const list = spGetMoments(email);
+  const m = list.find((x) => x.id === momentId);
+  if (!m) { closeMomentPicker(); return; }
+  m.board.products = m.board.products || [];
+  if (!m.board.products.some((p) => String(p.id) === String(product.id))) {
+    m.board.products.push({ id: product.id, name: product.name, image: product.image || "", priceLabel: product.priceLabel || "" });
+    m.updatedAt = new Date().toISOString();
+    spSaveMoments(email, list);
+  }
+  closeMomentPicker();
+  showToast(`Added to "${m.name}" 💛`);
+}
+(function wireMomentPicker() {
+  document.getElementById("addToMomentBtn")?.addEventListener("click", () => {
+    if (typeof state !== "undefined" && state.activeProductId) openAddToMomentSheet(state.activeProductId);
+  });
+  document.querySelectorAll("[data-close-moment-picker]").forEach((b) => b.addEventListener("click", closeMomentPicker));
+})();
+
 /* D-03 — Profile quote: add to renderSpaceProfile override */
 (function patchProfileQuote() {
   const origRenderProfile = window.renderSpaceProfile || function(){};
@@ -7756,6 +8212,7 @@ function renderMyJourney() {
         { tab:"journey",      icon:"✦", label:"Orders" },
         { tab:"lookbook",     icon:"◻", label:"Lookbooks" },
         { tab:"savedmoments", icon:"◈", label:"Saved Moments" },
+        { tab:"moments",      icon:"❀", label:"My Moments" },
         { tab:"concierge",    icon:"✉", label:"Ask ABDAN" },
         { tab:"journal",      icon:"◇", label:"Journal" },
         { tab:"membership",   icon:"♛", label:"Membership" },
