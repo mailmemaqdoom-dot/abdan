@@ -49,6 +49,7 @@ const STUDIO_VIEWS = [
   { id: "command-center", label: "Command Center",  icon: "gauge",            group: "General"      },
   { id: "ops-center",  label: "Operations Center",  icon: "siren",            group: "General"      },
   { id: "conversion-intel", label: "Conversion Intelligence", icon: "filter", group: "General"      },
+  { id: "customer-intel", label: "Customer Intelligence", icon: "users",     group: "General"        },
   { id: "overview",    label: "Studio Overview",    icon: "layout-dashboard", group: "General"      },
 
   /* ── BRAND ───────────────────────────────────────────────── */
@@ -447,6 +448,7 @@ function renderView(id) {
     "command-center": renderCommandCenter,
     "ops-center": renderOpsCenter,
     "conversion-intel": renderConversionIntel,
+    "customer-intel": renderCustomerIntel,
     vendors:     renderVendorsStub,
     overview:    renderOverview,
     products:    renderProducts,
@@ -1454,6 +1456,366 @@ function renderConversionIntel() {
         <p class="cc-section__label">Conversion Opportunities</p>
         <div class="cc-pulse-card">
           ${opportunities.slice(0, 8).map((line) => `<p class="cc-pulse-line"><i data-lucide="lightbulb" class="s-icon"></i>${esc(line)}</p>`).join("")}
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ── RC-23: Customer Intelligence Center ────────────────────────────────
+   Answers "who are our most valuable customers and who needs attention?"
+   using only real platform data — segmentation, CLV, retention, health
+   score, and at-risk detection. Reuses RC-20/22's scan helpers; does not
+   alter the existing "customers" CRUD view (Her Circle 💛) it sits beside. */
+function ciHealthBand(score) { return score >= 70 ? "Healthy" : score >= 40 ? "Watch" : "At Risk"; }
+
+function renderCustomerIntel() {
+  setTitle("Customer Intelligence Center", "");
+  const now = new Date();
+  const orders = load(STORAGE.orders, []);
+  const profiles = load(STORAGE.customers, {});
+  const profileList = Object.entries(profiles);
+  const totalCustomers = profileList.length;
+
+  /* ── Per-customer real-signal profile (single source for every section) */
+  const orderCountByEmail = {}, lastOrderByEmail = {}, revenueByEmail = {}, firstOrderByEmail = {};
+  orders.forEach((o) => {
+    const e = String(o.customerEmail || "").toLowerCase(); if (!e || !o.createdAt) return;
+    const t = new Date(o.createdAt).getTime();
+    orderCountByEmail[e] = (orderCountByEmail[e] || 0) + 1;
+    revenueByEmail[e] = (revenueByEmail[e] || 0) + (Number(o.total) || 0);
+    if (!lastOrderByEmail[e] || t > lastOrderByEmail[e]) lastOrderByEmail[e] = t;
+    if (!firstOrderByEmail[e] || t < firstOrderByEmail[e]) firstOrderByEmail[e] = t;
+  });
+  const journeyMilestones = getJourneyMilestones().filter((m) => m.active !== false);
+  const allReferrals = load(STORAGE.referrals, []);
+  const referralsInvitedByEmail = {};
+  allReferrals.forEach((r) => { const re = String(r.referrerEmail || "").toLowerCase(); if (re) referralsInvitedByEmail[re] = (referralsInvitedByEmail[re] || 0) + 1; });
+  const categoryCounts = {}, occasionCounts = {};
+  const globalRequests = load(STORAGE.globalRequests, []);
+  globalRequests.forEach((r) => { if (r.occasion) occasionCounts[r.occasion] = (occasionCounts[r.occasion] || 0) + 1; });
+
+  const profile = profileList.map(([email, p]) => {
+    const pts = (() => { try { return JSON.parse(localStorage.getItem(`abdan-sp-loyalty:${email}`) || "0") || 0; } catch { return 0; } })();
+    let conciergeMsgs = []; try { conciergeMsgs = JSON.parse(localStorage.getItem(`abdan-sp-concierge:${email}`) || "[]") || []; } catch {}
+    conciergeMsgs.forEach((m) => { if (m.category) categoryCounts[m.category] = (categoryCounts[m.category] || 0) + 1; });
+    const customerMsgs = conciergeMsgs.filter((m) => m.from !== "abdan" && m.from !== "system");
+    let wardFavs = []; try { wardFavs = JSON.parse(localStorage.getItem(`abdan-sp-ward-favs:${email}`) || "[]") || []; } catch {}
+    let journeyDates = {}; try { journeyDates = JSON.parse(localStorage.getItem(`abdan-sp-journey:${email}`) || "{}") || {}; } catch {}
+    let moments = []; try { moments = JSON.parse(localStorage.getItem(`abdan-sp-my-moments:${email}`) || "[]") || []; } catch {}
+    let edits = []; try { edits = JSON.parse(localStorage.getItem(`abdan-sp-edits:${email}`) || "[]") || []; } catch {}
+    let journal = []; try { journal = JSON.parse(localStorage.getItem(`abdan-sp-journal:${email}`) || "[]") || []; } catch {}
+    const hasBio = !!localStorage.getItem(`abdan-sp-bio:${email}`);
+    const hasStyle = !!localStorage.getItem(`abdan-sp-style:${email}`);
+    const hasPhoto = !!localStorage.getItem(`abdan-sp-photo:${email}`);
+    const orderCount = orderCountByEmail[email] || 0;
+    const lastOrderAt = lastOrderByEmail[email] || null;
+    const ageDays = lastOrderAt ? Math.floor((now.getTime() - lastOrderAt) / 864e5) : null;
+    const referralsInvited = referralsInvitedByEmail[email] || 0;
+    const journeyUnlocked = Object.keys(journeyDates).length;
+    const milestonePct = journeyMilestones.length ? Math.round((journeyUnlocked / journeyMilestones.length) * 100) : 0;
+    const engagementBreadth = [wardFavs.length > 0, journeyUnlocked > 0, moments.length > 0, edits.length > 0].filter(Boolean).length;
+    const isCommunity = edits.length > 0 || moments.length > 0 || referralsInvited > 0;
+    const usedConcierge = customerMsgs.length > 0;
+
+    /* Single-bucket segment — priority order, every customer counted once */
+    let segment;
+    if (pts >= 300) segment = "VIP Customer";
+    else if (pts >= 150) segment = "Inner Circle Member";
+    else if (isCommunity) segment = "Community Contributor";
+    else if (orderCount > 0 && ageDays !== null && ageDays > 60) segment = "Dormant Customer";
+    else if (orderCount > 0 && ageDays !== null && ageDays > 30) segment = "At Risk Customer";
+    else if (orderCount >= 2) segment = "Returning Customer";
+    else if (orderCount > 0 || usedConcierge || engagementBreadth > 0) segment = "Active Customer";
+    else segment = "New Customer";
+
+    /* Health score — transparent, weighted, real signals only (no AI) */
+    let health = 0;
+    if (ageDays !== null && ageDays <= 30) health += 25; else if (ageDays !== null && ageDays <= 90) health += 15;
+    health += engagementBreadth * 5;
+    if (isCommunity) health += 15;
+    health += Math.round(milestonePct * 0.15);
+    if (referralsInvited > 0) health += 10;
+    if (usedConcierge) health += 15;
+    health = Math.min(100, health);
+
+    return {
+      email, name: p.displayName || p.fullName || email, createdAt: p.createdAt,
+      pts, orderCount, revenue: revenueByEmail[email] || 0, lastOrderAt, ageDays,
+      hasBio, hasStyle, hasPhoto, profileComplete: hasBio && hasStyle && hasPhoto,
+      wardrobeUsed: wardFavs.length > 0, journeyUnlocked, milestonePct,
+      momentsCount: moments.length, editsCount: edits.length, journalCount: journal.length,
+      referralsInvited, usedConcierge, conciergeCount: customerMsgs.length,
+      isCommunity, segment, health,
+    };
+  });
+
+  /* ── Section 1 — Customer Overview ─────────────────────────────────── */
+  const newCustomers = profile.filter((c) => c.createdAt && new Date(c.createdAt) >= ccMonthStart(now)).length;
+  const returningCustomers = profile.filter((c) => c.orderCount >= 2).length;
+  const vipCustomers = profile.filter((c) => c.pts >= 300).length;
+  const innerCircleMembers = profile.filter((c) => c.pts >= 150).length;
+  const dormantCustomers = profile.filter((c) => c.segment === "Dormant Customer").length;
+  const newLastMonth = profile.filter((c) => c.createdAt && new Date(c.createdAt) >= new Date(ccMonthStart(now).getTime() - 30 * 864e5) && new Date(c.createdAt) < ccMonthStart(now)).length;
+  const growthRatePct = newLastMonth ? Math.round(((newCustomers - newLastMonth) / newLastMonth) * 100) : (newCustomers > 0 ? 100 : 0);
+
+  /* ── Section 2 — Customer Segments ─────────────────────────────────── */
+  const segmentCounts = {};
+  profile.forEach((c) => { segmentCounts[c.segment] = (segmentCounts[c.segment] || 0) + 1; });
+  const segmentOrder = ["VIP Customer", "Inner Circle Member", "Community Contributor", "Returning Customer", "Active Customer", "At Risk Customer", "Dormant Customer", "New Customer"];
+
+  /* ── Section 3 — Customer Lifetime Value ───────────────────────────── */
+  const purchasers = profile.filter((c) => c.orderCount > 0);
+  const avgLTV = purchasers.length ? Math.round(purchasers.reduce((s, c) => s + c.revenue, 0) / purchasers.length) : 0;
+  const topLTV = [...purchasers].sort((a, b) => b.revenue - a.revenue).slice(0, 6);
+  const ltvBuckets = { "Under ₹2,500": 0, "₹2,500–₹5,000": 0, "₹5,000–₹10,000": 0, "₹10,000–₹20,000": 0, "₹20,000+": 0 };
+  purchasers.forEach((c) => {
+    if (c.revenue < 2500) ltvBuckets["Under ₹2,500"]++;
+    else if (c.revenue < 5000) ltvBuckets["₹2,500–₹5,000"]++;
+    else if (c.revenue < 10000) ltvBuckets["₹5,000–₹10,000"]++;
+    else if (c.revenue < 20000) ltvBuckets["₹10,000–₹20,000"]++;
+    else ltvBuckets["₹20,000+"]++;
+  });
+  const thisMonthOrders = orders.filter((o) => o.createdAt && new Date(o.createdAt) >= ccMonthStart(now));
+  const lastMonthStart = new Date(ccMonthStart(now)); lastMonthStart.setMonth(lastMonthStart.getMonth() - 1);
+  const lastMonthOrders = orders.filter((o) => o.createdAt && new Date(o.createdAt) >= lastMonthStart && new Date(o.createdAt) < ccMonthStart(now));
+  const avgOrderThisMonth = thisMonthOrders.length ? Math.round(thisMonthOrders.reduce((s, o) => s + (Number(o.total) || 0), 0) / thisMonthOrders.length) : 0;
+  const avgOrderLastMonth = lastMonthOrders.length ? Math.round(lastMonthOrders.reduce((s, o) => s + (Number(o.total) || 0), 0) / lastMonthOrders.length) : 0;
+
+  /* ── Section 4 — Purchase Behavior ─────────────────────────────────── */
+  const aov = orders.length ? Math.round(orders.reduce((s, o) => s + (Number(o.total) || 0), 0) / orders.length) : 0;
+  const ordersPerCustomer = purchasers.length ? Math.round((orders.length / purchasers.length) * 10) / 10 : 0;
+  const repeatPurchaseRatePct = purchasers.length ? Math.round((returningCustomers / purchasers.length) * 100) : 0;
+  const gaps = [];
+  Object.keys(orderCountByEmail).forEach((e) => {
+    const oList = orders.filter((o) => String(o.customerEmail || "").toLowerCase() === e && o.createdAt).map((o) => new Date(o.createdAt).getTime()).sort((a, b) => a - b);
+    for (let i = 1; i < oList.length; i++) gaps.push(oList[i] - oList[i - 1]);
+  });
+  const avgGapDays = gaps.length ? Math.round((gaps.reduce((s, g) => s + g, 0) / gaps.length) / 864e5) : null;
+  const categoryTally = {}, collectionTally = {};
+  orders.forEach((o) => (o.items || []).forEach((it) => { if (it.collection) collectionTally[it.collection] = (collectionTally[it.collection] || 0) + (it.quantity || 1); }));
+
+  /* ── Section 5 — Loyalty Intelligence ──────────────────────────────── */
+  const ptsEarnedTotal = profile.reduce((s, c) => s + c.pts, 0);
+  const journeyParticipants = profile.filter((c) => c.journeyUnlocked > 0).length;
+  const avgMilestonePct = profile.length ? Math.round(profile.reduce((s, c) => s + c.milestonePct, 0) / profile.length) : 0;
+  const shareParticipants = profile.filter((c) => c.referralsInvited > 0).length;
+
+  /* ── Section 6 — Your Space Engagement ─────────────────────────────── */
+  const pctOfAll = (n) => totalCustomers ? Math.round((n / totalCustomers) * 100) : 0;
+  const wardrobeUsers = profile.filter((c) => c.wardrobeUsed).length;
+  const momentUsers = profile.filter((c) => c.momentsCount > 0).length;
+  const editUsers = profile.filter((c) => c.editsCount > 0).length;
+  const profileCompleteCount = profile.filter((c) => c.profileComplete).length;
+  const conciergeUsers = profile.filter((c) => c.usedConcierge).length;
+  const communityUsers = profile.filter((c) => c.isCommunity).length;
+
+  /* ── Section 7 — Retention Intelligence ────────────────────────────── */
+  const retentionPct = (days) => purchasers.length ? Math.round((purchasers.filter((c) => c.ageDays !== null && c.ageDays <= days).length / purchasers.length) * 100) : 0;
+  const innerCircleRetentionPct = innerCircleMembers ? Math.round((profile.filter((c) => c.pts >= 150 && c.ageDays !== null && c.ageDays <= 60).length / innerCircleMembers) * 100) : 0;
+  const vipRetentionPct = vipCustomers ? Math.round((profile.filter((c) => c.pts >= 300 && c.ageDays !== null && c.ageDays <= 60).length / vipCustomers) * 100) : 0;
+  const dormantSharePct = pctOfAll(dormantCustomers);
+
+  /* ── Section 8 — Community Intelligence ────────────────────────────── */
+  const storiesShared = profile.reduce((s, c) => s + c.journalCount, 0);
+  const editsCreatedTotal = profile.reduce((s, c) => s + c.editsCount, 0);
+  const momentsCreatedTotal = profile.reduce((s, c) => s + c.momentsCount, 0);
+  const collectionsSharedTotal = ccScanPrefixed("abdan-sp-edits:").reduce((s, r) => s + (Array.isArray(r.data) ? r.data.filter((e) => e.status === "published").length : 0), 0);
+  const referralsGeneratedTotal = load(STORAGE.referrals, []).length;
+  const communityParticipationPct = pctOfAll(communityUsers);
+
+  /* ── Section 9 — Concierge Intelligence ─────────────────────────────── */
+  const repeatConciergeUsers = profile.filter((c) => c.conciergeCount >= 2).length;
+  const conciergeEmailSet = new Set(profile.filter((c) => c.usedConcierge).map((c) => c.email));
+  const conciergeOrders = orders.filter((o) => conciergeEmailSet.has(String(o.customerEmail || "").toLowerCase()));
+  const conciergeRevenue = conciergeOrders.reduce((s, o) => s + (Number(o.total) || 0), 0);
+  const conciergeConvPct = conciergeUsers ? Math.round((conciergeOrders.length / conciergeUsers) * 100) : 0;
+
+  /* ── Section 10 — Customer Health Score ────────────────────────────── */
+  const avgHealth = profile.length ? Math.round(profile.reduce((s, c) => s + c.health, 0) / profile.length) : 0;
+  const healthiest = [...profile].sort((a, b) => b.health - a.health).slice(0, 6);
+  const healthBandCounts = { Healthy: 0, Watch: 0, "At Risk": 0 };
+  profile.forEach((c) => { healthBandCounts[ciHealthBand(c.health)]++; });
+
+  /* ── Section 11 — At-Risk Customers + suggested actions ────────────── */
+  const atRisk = profile.filter((c) => c.segment === "At Risk Customer" || c.segment === "Dormant Customer")
+    .sort((a, b) => b.revenue - a.revenue).slice(0, 8)
+    .map((c) => {
+      const actions = [];
+      if (!c.usedConcierge) actions.push("Send a personal concierge check-in");
+      if (!c.isCommunity) actions.push("Invite them to start an Edit or Moment");
+      if (c.pts > 0 && c.pts < 150) actions.push("Highlight how close they are to Inner Circle");
+      if (!actions.length) actions.push("Share a curated piece personally selected for them");
+      return { ...c, action: actions[0] };
+    });
+  const noPurchase = profile.filter((c) => c.orderCount === 0).length;
+  const noEngagement = profile.filter((c) => !c.wardrobeUsed && !c.journeyUnlocked && !c.momentsCount && !c.editsCount && !c.usedConcierge).length;
+
+  /* ── Section 12 — VIP & Inner Circle Intelligence ──────────────────── */
+  const topAdvocates = [...profile].sort((a, b) => b.referralsInvited - a.referralsInvited).filter((c) => c.referralsInvited > 0).slice(0, 5);
+  const topCommunity = [...profile].sort((a, b) => (b.editsCount + b.momentsCount + b.journalCount) - (a.editsCount + a.momentsCount + a.journalCount)).filter((c) => c.editsCount + c.momentsCount + c.journalCount > 0).slice(0, 5);
+  const mostLoyal = [...profile].sort((a, b) => b.pts - a.pts).filter((c) => c.pts > 0).slice(0, 5);
+
+  /* ── Section 13 — Customer Opportunities (real thresholds only) ────── */
+  const opportunitiesC = [];
+  profile.forEach((c) => {
+    if (c.pts >= 100 && c.pts < 150) opportunitiesC.push(`${c.name} is ${150 - c.pts} pts from Inner Circle.`);
+  });
+  profile.forEach((c) => { if (c.health >= 60 && c.orderCount === 0) opportunitiesC.push(`${c.name} has high engagement but no purchases yet.`); });
+  profile.forEach((c) => { if (c.orderCount >= 3 && !c.usedConcierge) opportunitiesC.push(`${c.name} has ordered ${c.orderCount} times but never used Concierge.`); });
+  if (!opportunitiesC.length) opportunitiesC.push("No notable customer opportunities surfaced yet.");
+
+  dom.content.innerHTML = `
+    <div class="cc-wrap">
+      <div class="cc-section cc-section--hero">
+        <p class="cc-section__label">Customer Overview</p>
+        <div class="cc-grid">
+          ${stat("users", "Total Customers", totalCustomers, "s-stat--blue")}
+          ${stat("user-plus", "New Customers", newCustomers, "s-stat--green")}
+          ${stat("repeat", "Returning Customers", returningCustomers)}
+          ${stat("crown", "VIP Customers", vipCustomers, "s-stat--gold")}
+          ${stat("gem", "Inner Circle Members", innerCircleMembers, "s-stat--gold")}
+          ${stat("moon", "Dormant Customers", dormantCustomers, "s-stat--amber")}
+          ${stat("trending-up", "Customer Growth Rate", `${growthRatePct >= 0 ? "+" : ""}${growthRatePct}%`)}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Customer Segments</p>
+        <div class="s-rank-list">${segmentOrder.filter((s) => segmentCounts[s]).map((s) => `<div class="s-rank-row"><span class="s-rank-row__name">${esc(s)}</span><span class="s-rank-row__val">${segmentCounts[s]} (${pctOfAll(segmentCounts[s])}%)</span></div>`).join("")}</div>
+        <p class="cc-note">Each customer is classified into exactly one segment, in priority order, from real loyalty/order/engagement signals.</p>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Customer Lifetime Value</p>
+        <div class="cc-grid">
+          ${stat("gem", "Average Lifetime Value", fmtCurrency(avgLTV), "s-stat--gold")}
+          ${stat("indian-rupee", "AOV This Month", fmtCurrency(avgOrderThisMonth))}
+          ${stat("indian-rupee", "AOV Last Month", fmtCurrency(avgOrderLastMonth))}
+        </div>
+        <p class="cc-section__sub">Highest Lifetime Value Customers</p>
+        ${topLTV.length ? `<div class="s-rank-list">${topLTV.map((c) => `<div class="s-rank-row"><span class="s-rank-row__name">${esc(c.name)}</span><span class="s-rank-row__val">${fmtCurrency(c.revenue)}</span></div>`).join("")}</div>` : empty("No purchasing customers yet.", "wallet")}
+        <p class="cc-section__sub">Lifetime Value Distribution (Spend Categories)</p>
+        ${ccRankList(Object.entries(ltvBuckets).filter((e) => e[1] > 0))}
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Purchase Behavior</p>
+        <div class="cc-grid">
+          ${stat("indian-rupee", "Average Order Value", fmtCurrency(aov))}
+          ${stat("shopping-bag", "Orders Per Customer", ordersPerCustomer)}
+          ${stat("repeat", "Repeat Purchase Rate", `${repeatPurchaseRatePct}%`)}
+          ${stat("calendar", "Avg Time Between Purchases", avgGapDays !== null ? `${avgGapDays} days` : "—")}
+        </div>
+        <p class="cc-section__sub">Most Purchased Collections</p>
+        ${ccRankList(ccTopEntries(collectionTally, 6))}
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Loyalty Intelligence</p>
+        <div class="cc-grid">
+          ${stat("award", "Circle Points Earned", ptsEarnedTotal, "s-stat--gold")}
+          ${stat("gift", "Circle Points Redeemed", "—")}
+          ${stat("map", "Journey Participation", `${pctOfAll(journeyParticipants)}%`)}
+          ${stat("trending-up", "Avg Milestone Progress", `${avgMilestonePct}%`)}
+          ${stat("share-2", "Share The Love Participation", `${pctOfAll(shareParticipants)}%`)}
+        </div>
+        <p class="cc-note">Circle Points currently only accrue — there's no redemption mechanism yet, so "Redeemed" isn't tracked.</p>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Your Space Engagement</p>
+        <div class="cc-grid">
+          ${stat("heart", "Wardrobe Usage", `${pctOfAll(wardrobeUsers)}%`, "s-stat--purple")}
+          ${stat("sparkles", "My Journey Usage", `${pctOfAll(journeyParticipants)}%`)}
+          ${stat("calendar-heart", "My Moments Usage", `${pctOfAll(momentUsers)}%`)}
+          ${stat("scissors", "My Edits Usage", `${pctOfAll(editUsers)}%`)}
+          ${stat("user-check", "Profile Completion", `${pctOfAll(profileCompleteCount)}%`)}
+          ${stat("message-circle", "Concierge Usage", `${pctOfAll(conciergeUsers)}%`)}
+          ${stat("users", "Community Participation", `${pctOfAll(communityUsers)}%`)}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Retention Intelligence</p>
+        <div class="cc-grid">
+          ${stat("calendar", "30 Day Retention", `${retentionPct(30)}%`, "s-stat--green")}
+          ${stat("calendar", "60 Day Retention", `${retentionPct(60)}%`)}
+          ${stat("calendar", "90 Day Retention", `${retentionPct(90)}%`)}
+          ${stat("repeat", "Repeat Purchase Rate", `${repeatPurchaseRatePct}%`)}
+          ${stat("gem", "Inner Circle Retention", `${innerCircleRetentionPct}%`, "s-stat--gold")}
+          ${stat("crown", "VIP Retention", `${vipRetentionPct}%`, "s-stat--gold")}
+          ${stat("moon", "Dormant Share", `${dormantSharePct}%`, "s-stat--amber")}
+        </div>
+        <p class="cc-note">Retention figures reflect activity within each window as of today — period-over-period "growth" trends need periodic snapshots not yet captured.</p>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Community Intelligence</p>
+        <div class="cc-grid">
+          ${stat("book-open", "Journal Entries (Stories Shared)", storiesShared)}
+          ${stat("scissors", "Edits Created", editsCreatedTotal)}
+          ${stat("calendar-heart", "Moments Created", momentsCreatedTotal)}
+          ${stat("share-2", "Collections Shared", collectionsSharedTotal)}
+          ${stat("user-plus", "Referrals Generated", referralsGeneratedTotal)}
+          ${stat("percent", "Community Participation Rate", `${communityParticipationPct}%`)}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Concierge Intelligence</p>
+        <div class="cc-grid">
+          ${stat("message-circle", "Customers Using Concierge", conciergeUsers, "s-stat--blue")}
+          ${stat("repeat", "Repeat Concierge Users", repeatConciergeUsers)}
+          ${stat("percent", "Concierge Conversion Rate", `${conciergeConvPct}%`)}
+          ${stat("indian-rupee", "Revenue From Concierge", fmtCurrency(conciergeRevenue), "s-stat--gold")}
+        </div>
+        <p class="cc-section__sub">Most Requested Categories</p>
+        ${ccRankList(ccTopEntries(categoryCounts, 5))}
+        <p class="cc-section__sub">Most Requested Occasions</p>
+        ${ccRankList(ccTopEntries(occasionCounts, 5))}
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Customer Health Score</p>
+        <div class="cc-grid">
+          ${stat("activity", "Average Health Score", avgHealth, avgHealth >= 70 ? "s-stat--green" : avgHealth >= 40 ? "s-stat--amber" : "s-stat--red")}
+          ${stat("smile", "Healthy", healthBandCounts.Healthy, "s-stat--green")}
+          ${stat("eye", "Watch", healthBandCounts.Watch, "s-stat--amber")}
+          ${stat("alert-triangle", "At Risk", healthBandCounts["At Risk"], "s-stat--red")}
+        </div>
+        <p class="cc-section__sub">Healthiest Customers</p>
+        ${healthiest.length ? `<div class="s-rank-list">${healthiest.map((c) => `<div class="s-rank-row"><span class="s-rank-row__name">${esc(c.name)}</span><span class="s-rank-row__val">${c.health} · ${ciHealthBand(c.health)}</span></div>`).join("")}</div>` : empty("No customers yet.", "activity")}
+        <p class="cc-note">Score blends recent purchase activity, Your Space engagement breadth, community participation, Journey progress, referrals, and Concierge usage — all real signals, evenly weighted, capped at 100.</p>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">At-Risk Customers</p>
+        <div class="cc-grid">
+          ${stat("shopping-bag", "No Purchases", noPurchase)}
+          ${stat("eye-off", "No Engagement", noEngagement)}
+          ${stat("trending-down", "At Risk / Dormant", atRisk.length)}
+        </div>
+        ${atRisk.length ? `<div class="s-list">${atRisk.map((c) => `
+          <div class="s-list-item">
+            <div class="s-list-item__main"><strong>${esc(c.name)}</strong><span class="s-list-item__sub">${esc(c.segment)} · ${c.ageDays !== null ? `${c.ageDays}d since last order` : "no orders"} · ${fmtCurrency(c.revenue)} lifetime</span></div>
+            <div class="s-list-item__actions"><span class="s-badge s-badge--amber">${esc(c.action)}</span></div>
+          </div>`).join("")}</div>` : empty("No at-risk customers right now.", "smile")}
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">VIP &amp; Inner Circle Intelligence</p>
+        <div class="s-analytics-grid">
+          <div class="s-card"><h3 class="s-card__title">Top Customers (by LTV)</h3>${topLTV.length ? `<div class="s-rank-list">${topLTV.slice(0, 5).map((c) => `<div class="s-rank-row"><span class="s-rank-row__name">${esc(c.name)}</span><span class="s-rank-row__val">${fmtCurrency(c.revenue)}</span></div>`).join("")}</div>` : empty("No data yet.", "wallet")}</div>
+          <div class="s-card"><h3 class="s-card__title">Top Advocates (Referrers)</h3>${topAdvocates.length ? `<div class="s-rank-list">${topAdvocates.map((c) => `<div class="s-rank-row"><span class="s-rank-row__name">${esc(c.name)}</span><span class="s-rank-row__val">${c.referralsInvited} invited</span></div>`).join("")}</div>` : empty("No referrals yet.", "user-plus")}</div>
+          <div class="s-card"><h3 class="s-card__title">Top Community Members</h3>${topCommunity.length ? `<div class="s-rank-list">${topCommunity.map((c) => `<div class="s-rank-row"><span class="s-rank-row__name">${esc(c.name)}</span><span class="s-rank-row__val">${c.editsCount + c.momentsCount + c.journalCount} contributions</span></div>`).join("")}</div>` : empty("No community activity yet.", "heart")}</div>
+          <div class="s-card"><h3 class="s-card__title">Most Loyal (Circle Points)</h3>${mostLoyal.length ? `<div class="s-rank-list">${mostLoyal.map((c) => `<div class="s-rank-row"><span class="s-rank-row__name">${esc(c.name)}</span><span class="s-rank-row__val">${c.pts} pts</span></div>`).join("")}</div>` : empty("No Circle Points earned yet.", "award")}</div>
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Customer Opportunities</p>
+        <div class="cc-pulse-card">
+          ${opportunitiesC.slice(0, 8).map((line) => `<p class="cc-pulse-line"><i data-lucide="lightbulb" class="s-icon"></i>${esc(line)}</p>`).join("")}
         </div>
       </div>
     </div>`;
@@ -3355,8 +3717,18 @@ const JOURNEY_DEFAULT_MILESTONES = [
   { id: "inner-circle",   category: "Inner Circle Journey",   title: "Inner Circle",                description: "Among ABDAN's most devoted.",              metric: "loyaltyPts",       threshold: 150,points: 0,   active: true },
   { id: "patron",         category: "Inner Circle Journey",   title: "Patron",                      description: "A patron of the house.",                   metric: "loyaltyPts",       threshold: 300,points: 0,   active: true },
   { id: "founders-circle",category: "Inner Circle Journey",   title: "Founder's Circle",            description: "Forever part of ABDAN's beginning.",       metric: "loyaltyPts",       threshold: 500,points: 0,   active: true },
+  { id: "memory-maker",   category: "Moments Journey",        title: "Memory Maker",                description: "You began your first Moment with ABDAN.",  metric: "momentsCreated",   threshold: 1,  points: 20,  active: true },
+  { id: "wedding-planner",category: "Moments Journey",        title: "Wedding Planner",             description: "Preparing for a day that deserves every grace.", metric: "weddingMoments", threshold: 1,  points: 40,  active: true },
+  { id: "festival-curator",category: "Moments Journey",       title: "Festival Curator",            description: "Curating beauty for the season of light.", metric: "festivalMoments",  threshold: 1,  points: 30,  active: true },
+  { id: "celebration-creator",category: "Moments Journey",    title: "Celebration Creator",         description: "Three Moments, each held with care.",      metric: "momentsCreated",   threshold: 3,  points: 60,  active: true },
+  { id: "style-organizer",category: "Moments Journey",        title: "Style Organizer",             description: "Five pieces, thoughtfully gathered for your Moments.", metric: "momentPieces", threshold: 5, points: 40, active: true },
+  { id: "first-edit",     category: "Editorial Journey",      title: "First Edit Created",          description: "Your first curated collection, ready to share.", metric: "editsCreated",  threshold: 1,  points: 20,  active: true },
+  { id: "edit-collection-creator",category: "Editorial Journey",title: "Collection Creator",        description: "Three Edits, beautifully composed.",       metric: "editsCreated",     threshold: 3,  points: 50,  active: true },
+  { id: "edit-style-curator",category: "Editorial Journey",   title: "Style Curator",               description: "Ten pieces, thoughtfully arranged into your Edits.", metric: "editItemsCount", threshold: 10, points: 40, active: true },
+  { id: "community-inspiration",category: "Editorial Journey",title: "Community Inspiration",       description: "Someone discovered ABDAN through an Edit you curated.", metric: "editInspired", threshold: 1, points: 60, active: true },
+  { id: "editorial-collector",category: "Editorial Journey",  title: "Editorial Collector",         description: "Five Edits, each a chapter of your story.", metric: "editsCreated",     threshold: 5,  points: 80,  active: true },
 ];
-const JOURNEY_METRICS = ["profile","wishlist","orders","festival","looks","pairings","gallery","lookbooks","purchased","concierge","referralsInvited","peopleInspired","loyaltyPts"];
+const JOURNEY_METRICS = ["profile","wishlist","orders","festival","looks","pairings","gallery","lookbooks","purchased","concierge","referralsInvited","peopleInspired","loyaltyPts","momentsCreated","weddingMoments","festivalMoments","momentPieces","editsCreated","editItemsCount","editInspired"];
 function getJourneyMilestones() {
   const s = load(STORAGE.journey, null);
   return (Array.isArray(s) && s.length) ? s : JOURNEY_DEFAULT_MILESTONES.slice();
