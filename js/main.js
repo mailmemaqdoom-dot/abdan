@@ -786,6 +786,56 @@ function formatCurrency(value) {
   return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(value);
 }
 
+/* ── Luxury dashboard presentation helpers (additive, display-only) ──────
+   Animated counters + progress rings for the Your Space membership
+   dashboard. Pure presentation — never compute or alter underlying data. */
+function lxRingSvg(pct, size, strokeColor) {
+  const p = Math.max(0, Math.min(100, Number(pct) || 0));
+  const r = (size - 8) / 2, c = size / 2, circ = 2 * Math.PI * r;
+  const offset = circ - (p / 100) * circ;
+  return `<svg class="lx-ring" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="${p}% complete">
+    <circle class="lx-ring__track" cx="${c}" cy="${c}" r="${r}" fill="none" stroke-width="5"></circle>
+    <circle class="lx-ring__fill" cx="${c}" cy="${c}" r="${r}" fill="none" stroke-width="5"
+      stroke="${strokeColor || "currentColor"}" stroke-linecap="round"
+      stroke-dasharray="${circ}" stroke-dashoffset="${circ}"
+      transform="rotate(-90 ${c} ${c})" data-lx-ring-offset="${offset}"></circle>
+  </svg>`;
+}
+function lxAnimateCounters(root) {
+  if (!root || typeof IntersectionObserver === "undefined") return;
+  const els = root.querySelectorAll("[data-lx-count]");
+  if (!els.length) return;
+  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const run = (el) => {
+    const target = Number(el.dataset.lxCount) || 0;
+    const prefix = el.dataset.lxPrefix || "", suffix = el.dataset.lxSuffix || "";
+    const ring = el.closest(".lx-stat, .lx-ring-wrap")?.querySelector("[data-lx-ring-offset]");
+    if (reduceMotion) {
+      el.textContent = prefix + target.toLocaleString("en-IN") + suffix;
+      if (ring) ring.style.strokeDashoffset = ring.dataset.lxRingOffset;
+      return;
+    }
+    const dur = 900; const start = performance.now(); const from = 0;
+    if (ring) requestAnimationFrame(() => { ring.style.transition = "stroke-dashoffset 1.1s cubic-bezier(.22,.9,.3,1)"; ring.style.strokeDashoffset = ring.dataset.lxRingOffset; });
+    const step = (now) => {
+      const t = Math.min(1, (now - start) / dur);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const val = Math.round(from + (target - from) * eased);
+      el.textContent = prefix + val.toLocaleString("en-IN") + suffix;
+      if (t < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      run(entry.target);
+      io.unobserve(entry.target);
+    });
+  }, { threshold: 0.35 });
+  els.forEach((el) => io.observe(el));
+}
+
 /* ── Premium Savings System ─────────────────────────────────────────────
    Shared, honest savings math. Returns null when there is no genuine saving.
    Reads numeric `price`/`comparePrice` first, falling back to the priceLabel
@@ -2093,20 +2143,52 @@ function abdanMemberSavings(profile) {
   });
   const nowD = new Date();
   const startToday = new Date(); startToday.setHours(0, 0, 0, 0);
+  const startYesterday = new Date(startToday.getTime() - 864e5);
   const weekAgo = nowD.getTime() - 7 * 864e5;
-  const acc = { today: 0, week: 0, month: 0, year: 0, life: 0 };
+  const acc = { today: 0, yesterday: 0, week: 0, month: 0, year: 0, life: 0 };
   mine.forEach((o) => {
     const s = Number(o.savings) || 0;
     if (s <= 0) return;
     acc.life += s;
     const d = new Date(o.createdAt || o.updatedAt || nowD);
     if (d >= startToday) acc.today += s;
+    else if (d >= startYesterday) acc.yesterday += s;
     if (d.getTime() >= weekAgo) acc.week += s;
     if (d.getMonth() === nowD.getMonth() && d.getFullYear() === nowD.getFullYear()) acc.month += s;
     if (d.getFullYear() === nowD.getFullYear()) acc.year += s;
   });
   acc.circle = acc.life;   /* Circle Benefits received (tangible value) */
   return acc;
+}
+
+/* ── My Style DNA ✨ — derived strictly from existing purchase/wishlist
+   data (PRODUCTS.primaryTag / colors / specs Fabric). No invented data;
+   returns null fields when there isn't yet enough history to read. */
+function getStyleDNA(profile) {
+  const email = String(profile && profile.email || "").toLowerCase();
+  const purchased = (typeof wardPurchasedPieces === "function") ? wardPurchasedPieces(profile) : [];
+  const wishlistIds = (typeof getWishlist === "function") ? getWishlist() : new Set();
+  const wishlisted = (typeof PRODUCTS !== "undefined") ? PRODUCTS.filter((p) => wishlistIds.has(String(p.id))) : [];
+  const ownedFull = purchased.map((p) => (typeof PRODUCTS !== "undefined" ? PRODUCTS.find((x) => x.id === p.id) : null)).filter(Boolean);
+  const pool = [...ownedFull, ...wishlisted];
+  if (!pool.length) return null;
+
+  const tally = (arr) => { const m = {}; arr.forEach((v) => { if (v) m[v] = (m[v] || 0) + 1; }); return Object.entries(m).sort((a, b) => b[1] - a[1])[0]; };
+  const category = tally(pool.map((p) => p.primaryTag));
+  const colours  = tally(pool.flatMap((p) => p.colors || []));
+  const fabrics  = tally(pool.map((p) => { const f = (p.specs || []).find((s) => s[0] === "Fabric"); return f ? f[1].split("—")[0].split(",")[0].trim() : null; }));
+  const savedCollection = tally(wishlisted.map((p) => p.primaryTag));
+  const identity = spGet(email, SP_STYLE_KEY) || "";
+  const mood = (typeof getAffinityMood === "function") ? getAffinityMood() : null;
+  const personality = identity || (category ? category[0] : null) || mood || null;
+
+  return {
+    category: category ? category[0] : null,
+    colour: colours ? colours[0] : null,
+    fabric: fabrics ? fabrics[0] : null,
+    savedCollection: savedCollection ? savedCollection[0] : (category ? category[0] : null),
+    personality,
+  };
 }
 
 function renderSpaceOverview(profile) {
@@ -2188,12 +2270,14 @@ function renderSpaceOverview(profile) {
     { tab:"edits",       sym:"✎", title:"My Edits",        desc:"Curate &amp; share your collections" },
   ];
 
+  const heroSavings = abdanMemberSavings(profile);
+
   panel.innerHTML = `
     <div class="sp-home">
 
-      <!-- S86 — Profile Header: exact spec order -->
-      <div class="sp-profile-hero">
-        <div class="sp-profile-hero__av">${photo
+      <!-- S86 — Profile Header: exact spec order (RC-18: premium glass hero) -->
+      <div class="sp-profile-hero lx-hero">
+        <div class="sp-profile-hero__av lx-hero__av">${photo
           ? `<img src="${photo}" alt="${profile.displayName||""}" />`
           : `<span>${first.charAt(0).toUpperCase()}</span>`
         }</div>
@@ -2207,7 +2291,48 @@ function renderSpaceOverview(profile) {
           <span class="sp-profile-hero__pts">${pts} Devotion Points</span>
         </div>
         ${joinedYear83 ? `<p class="sp-profile-hero__since">Member Since ${joinedYear83}</p>` : ""}
+        <div class="lx-hero__chips">
+          <div class="lx-hero__chip">
+            <span class="lx-hero__chip-label">Lifetime Savings</span>
+            <span class="lx-hero__chip-value" data-lx-count="${Math.round(heroSavings.life)}" data-lx-prefix="₹">₹0</span>
+          </div>
+          <div class="lx-hero__chip">
+            <span class="lx-hero__chip-label">Circle Points</span>
+            <span class="lx-hero__chip-value" data-lx-count="${pts}">0</span>
+          </div>
+        </div>
       </div>
+
+      ${(() => {
+        /* RC-18 — My Journey Snapshot: animated infographic row (presentation only,
+           every figure reuses existing computed stats — nothing new is tracked). */
+        const jStats   = (typeof journeyStats === "function") ? journeyStats(profile) : {};
+        const jEval    = (typeof evaluateJourney === "function") ? evaluateJourney(profile) : { unlocked: [], total: 1 };
+        const momCount = (typeof spGetMoments === "function") ? spGetMoments(email).length : 0;
+        const refStats = (typeof getMyReferrals === "function") ? getMyReferrals(email) : { successful: 0 };
+        const milestonePct = jEval.total ? Math.round((jEval.unlocked.length / jEval.total) * 100) : 0;
+        const snap = [
+          { label: "Orders",      value: jStats.orders || 0,        pct: Math.min(100, (jStats.orders || 0) * 10) },
+          { label: "Milestones",  value: jEval.unlocked.length,      pct: milestonePct },
+          { label: "Moments",     value: momCount,                  pct: Math.min(100, momCount * 20) },
+          { label: "Wardrobe",    value: jStats.purchased || 0,      pct: Math.min(100, (jStats.purchased || 0) * 10) },
+          { label: "Referrals",   value: refStats.successful || 0,   pct: Math.min(100, (refStats.successful || 0) * 20) },
+        ];
+        return `
+        <section class="lx-snapshot" aria-label="My Journey Snapshot">
+          <p class="lx-snapshot__kicker">My Journey Snapshot</p>
+          <div class="lx-snapshot__grid">
+            ${snap.map((s) => `
+              <div class="lx-stat">
+                <div class="lx-ring-wrap">
+                  ${lxRingSvg(s.pct, 64, "var(--gold,#b08d3f)")}
+                  <span class="lx-stat__value" data-lx-count="${s.value}">0</span>
+                </div>
+                <span class="lx-stat__label">${s.label}</span>
+              </div>`).join("")}
+          </div>
+        </section>`;
+      })()}
 
       ${deliveredCount79 > 0 ? `
       <div class="sp-delivered-note">
@@ -2222,7 +2347,6 @@ function renderSpaceOverview(profile) {
         /* Parts 4 & 5 — My Savings + Circle Benefits (editorial, not gamified) */
         const sv = abdanMemberSavings(profile);
         if (sv.life <= 0) return "";
-        const fc = (n) => formatCurrency(n);
         const cards = [
           { label: "Today",      value: sv.today },
           { label: "This Week",  value: sv.week },
@@ -2230,20 +2354,68 @@ function renderSpaceOverview(profile) {
           { label: "This Year",  value: sv.year },
           { label: "Lifetime",   value: sv.life },
         ];
+        /* RC-18 — quiet trend line: today vs yesterday, real figures only */
+        const trendMax = Math.max(sv.today, sv.yesterday, 1);
+        const trend = (sv.today > 0 || sv.yesterday > 0) ? `
+          <div class="lx-trend">
+            <div class="lx-trend__bar"><span class="lx-trend__fill" style="width:${Math.round((sv.yesterday / trendMax) * 100)}%"></span><span class="lx-trend__bar-label">Yesterday · ${formatCurrency(sv.yesterday)}</span></div>
+            <div class="lx-trend__bar"><span class="lx-trend__fill lx-trend__fill--today" style="width:${Math.round((sv.today / trendMax) * 100)}%"></span><span class="lx-trend__bar-label">Today · ${formatCurrency(sv.today)}</span></div>
+          </div>` : "";
         return `
-        <section class="sp-savings" aria-label="My Savings">
+        <section class="sp-savings lx-savings" aria-label="My Savings">
           <p class="sp-savings__kicker">My Savings</p>
           <div class="sp-savings__grid">
             ${cards.map((c) => `
               <div class="sp-savings__card${c.label === "Lifetime" ? " sp-savings__card--lifetime" : ""}">
-                <span class="sp-savings__value">${fc(c.value)}</span>
+                <span class="sp-savings__value" data-lx-count="${Math.round(c.value)}" data-lx-prefix="₹">₹0</span>
                 <span class="sp-savings__label">${c.label}</span>
               </div>`).join("")}
           </div>
+          ${trend}
           <div class="sp-circle-benefit">
             <p class="sp-circle-benefit__label">Circle Benefits Received</p>
-            <p class="sp-circle-benefit__value">${fc(sv.circle)}</p>
+            <p class="sp-circle-benefit__value">${formatCurrency(sv.circle)}</p>
             <p class="sp-circle-benefit__note">Savings, member-only pricing, and quiet access — held for you, with care. 💛</p>
+          </div>
+        </section>`;
+      })()}
+
+      ${(() => {
+        /* RC-18 — Ask ABDAN: personal style concierge preview (Section 8) */
+        const msgs = (typeof spGetConcierge === "function") ? spGetConcierge(email) : [];
+        const last = msgs[msgs.length - 1];
+        return `
+        <section class="lx-concierge" aria-label="Personal Style Concierge">
+          <p class="lx-concierge__kicker">Personal Style Concierge</p>
+          <div class="lx-concierge__card">
+            ${last
+              ? `<p class="lx-concierge__snippet">"${(last.text || "").slice(0, 110)}${(last.text || "").length > 110 ? "…" : ""}"</p>
+                 <p class="lx-concierge__meta">${msgs.length} conversation${msgs.length !== 1 ? "s" : ""} so far</p>`
+              : `<p class="lx-concierge__snippet lx-concierge__snippet--empty">Styling questions, fabric guidance, sourcing a piece — ABDAN is a message away.</p>`}
+            <button type="button" class="secondary-button lx-concierge__btn" onclick="showSpaceTab('concierge')">Ask ABDAN →</button>
+          </div>
+        </section>`;
+      })()}
+
+      ${(() => {
+        /* RC-18 — My Style DNA ✨ (Section 9): derived strictly from real
+           purchase/wishlist data via getStyleDNA() — no invented insights. */
+        const dna = (typeof getStyleDNA === "function") ? getStyleDNA(profile) : null;
+        if (!dna) return "";
+        const rows = [
+          { label: "Preferred Category",    value: dna.category },
+          { label: "Preferred Colours",     value: dna.colour },
+          { label: "Preferred Fabric",      value: dna.fabric },
+          { label: "Most Saved Collection", value: dna.savedCollection },
+          { label: "Shopping Personality",  value: dna.personality },
+        ].filter((r) => r.value);
+        if (!rows.length) return "";
+        return `
+        <section class="lx-dna" aria-label="My Style DNA">
+          <p class="lx-dna__kicker">My Style DNA ✨</p>
+          <p class="lx-dna__intro">A quiet reflection of how you dress — drawn only from what you've already chosen.</p>
+          <div class="lx-dna__grid">
+            ${rows.map((r) => `<div class="lx-dna__row"><span class="lx-dna__label">${r.label}</span><span class="lx-dna__value">${wardEsc(r.value)}</span></div>`).join("")}
           </div>
         </section>`;
       })()}
@@ -2268,6 +2440,23 @@ function renderSpaceOverview(profile) {
             </button>
           </div>
         </div>` : ""}
+
+      ${(() => {
+        /* RC-18 — Benefits & Rewards (Section 6): presentation wrapper around
+           the existing badges + Inner Circle unlock data — no new mechanics. */
+        const earlyAccess = SP_IC_CARDS.some((c) => pts >= c.minPts);
+        const nextUnlock  = SP_IC_CARDS.filter((c) => pts < c.minPts).sort((a, b) => a.minPts - b.minPts)[0];
+        return `
+        <section class="lx-benefits" aria-label="Benefits & Rewards">
+          <p class="lx-benefits__kicker">Benefits &amp; Rewards</p>
+          <div class="lx-benefits__row">
+            <div class="lx-benefits__pill"><span class="lx-benefits__pill-value" data-lx-count="${pts}">0</span><span class="lx-benefits__pill-label">Circle Points</span></div>
+            <div class="lx-benefits__pill"><span class="lx-benefits__pill-value">${earlyAccess ? "Active" : "Not Yet"}</span><span class="lx-benefits__pill-label">Early Access</span></div>
+          </div>
+          ${badgeHtml || ""}
+          ${nextUnlock ? `<p class="lx-benefits__next">Next unlock — <strong>${wardEsc(nextUnlock.unlock)}</strong> at ${nextUnlock.minPts} pts</p>` : ""}
+        </section>`;
+      })()}
 
       <!-- §80 Inner Circle -->
       <div class="sp-ic-section">
@@ -2369,6 +2558,9 @@ function renderSpaceOverview(profile) {
       document.getElementById("products")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   });
+
+  /* RC-18 — animate dashboard counters & progress rings into view */
+  if (typeof lxAnimateCounters === "function") lxAnimateCounters(panel);
 }
 
 /* ── renderSpaceLookbook ─────────────────────────────────────────────────── */
@@ -7154,6 +7346,24 @@ function renderSpaceWishlist() {
     const groupsOrder = ["Sarees", "Abayas", "Kurtis", "Accessories", "Collections"];
     const grouped = {};
     purchased.forEach((p) => { (grouped[p.type] = grouped[p.type] || []).push(p); });
+
+    /* RC-18 — premium highlight strip: real, recency-derived signals only
+       (no fabricated "most loved" counters — presentation upgrade only). */
+    const recentPiece = purchased[purchased.length - 1] || null;
+    const latestLook   = looks[0] || null;
+    const highlights = [];
+    if (recentPiece) highlights.push({ kind: "Recently Added", title: recentPiece.name, image: recentPiece.image });
+    if (latestLook)  highlights.push({ kind: "Latest Styled Look", title: latestLook.occasion || "Styled Look", image: latestLook.photo });
+    const highlightHtml = highlights.length ? `
+      <div class="lx-ward-highlights">
+        ${highlights.map((h) => `
+          <div class="lx-ward-highlight">
+            <div class="lx-ward-highlight__img">${h.image ? `<img src="${h.image}" alt="" loading="lazy" />` : `<div class="ward-piece__ph"></div>`}</div>
+            <span class="lx-ward-highlight__kind">${h.kind}</span>
+            <span class="lx-ward-highlight__title">${wardEsc(h.title)}</span>
+          </div>`).join("")}
+      </div>` : "";
+
     const favHtml = favList.length ? `
       <section class="ward-section">
         <p class="ward-section__label">Favourites</p>
@@ -7179,7 +7389,7 @@ function renderSpaceWishlist() {
             <div class="ward-piece__body"><p class="ward-piece__name">${wardEsc(p.name)}</p>${p.priceLabel ? `<p class="ward-piece__price">${wardEsc(p.priceLabel)}</p>` : ""}</div>
           </article>`).join("")}</div>
       </section>` : "";
-    return favHtml + purchasedHtml + savedHtml;
+    return highlightHtml + favHtml + purchasedHtml + savedHtml;
   }
 
   /* ── STYLED LOOKS ─────────────────────────────────────────────────── */
@@ -7539,11 +7749,14 @@ function renderShareEarn() {
       ${r.points ? `<span class="se-hist__pts">+${r.points} 💛</span>` : `<span class="se-hist__status se-hist__status--${r.status}">${r.status === "rewarded" ? "Inspired" : r.ordered ? "Exploring" : "Invited"}</span>`}
     </div>`; }).join("") : `<p class="se-empty">No one yet — your first share begins a quiet, lovely ripple.</p>`;
 
+  const ambassador = my.successful >= 3;
+
   panel.innerHTML = `
-    <div class="se-head">
+    <div class="se-head lx-ambassador-head">
       <p class="se-head__kicker">An invitation, not an advertisement</p>
       <h3 class="se-head__title">Share the Love 💛</h3>
       <p class="se-head__intro">Some pieces are too beautiful to keep to yourself. Share ABDAN with the women you love — and when their first order arrives, Circle Points quietly find their way to you. Never cash, only belonging.</p>
+      ${ambassador ? `<span class="lx-ambassador-badge">✦ Circle Ambassador</span>` : ""}
     </div>
 
     <section class="se-card se-card--invite">
@@ -7561,11 +7774,11 @@ function renderShareEarn() {
     </section>
 
     <p class="se-section-label">My Impact</p>
-    <div class="se-impact">
-      <div class="se-stat"><span class="se-stat__v">${my.invited}</span><span class="se-stat__l">Friends Invited</span></div>
-      <div class="se-stat"><span class="se-stat__v">${my.successful}</span><span class="se-stat__l">People Inspired</span></div>
-      <div class="se-stat se-stat--gold"><span class="se-stat__v">${my.points}</span><span class="se-stat__l">Circle Points Earned</span></div>
-      <div class="se-stat"><span class="se-stat__v">${totalShares}</span><span class="se-stat__l">Collections Shared</span></div>
+    <div class="se-impact lx-ambassador-impact">
+      <div class="se-stat"><span class="se-stat__v" data-lx-count="${my.invited}">0</span><span class="se-stat__l">Friends Invited</span></div>
+      <div class="se-stat"><span class="se-stat__v" data-lx-count="${my.successful}">0</span><span class="se-stat__l">People Inspired</span></div>
+      <div class="se-stat se-stat--gold"><span class="se-stat__v" data-lx-count="${my.points}">0</span><span class="se-stat__l">Circle Points Earned</span></div>
+      <div class="se-stat"><span class="se-stat__v" data-lx-count="${totalShares}">0</span><span class="se-stat__l">Collections Shared</span></div>
     </div>
 
     ${settings.campaignName ? `<p class="se-campaign">✦ ${wardEsc(settings.campaignName)}</p>` : ""}
@@ -7605,6 +7818,8 @@ function renderShareEarn() {
     (channels[ch] || channels.copy)();
     renderShareEarn();
   }));
+
+  if (typeof lxAnimateCounters === "function") lxAnimateCounters(panel);
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -7751,17 +7966,44 @@ function renderMyJourney() {
     <div class="jr-future">${lockedLater.map((m) => `
       <div class="jr-future__item"><span class="jr-future__title">${m.title}</span><span class="jr-future__cat">${m.category}</span></div>`).join("")}</div>` : "";
 
+  /* RC-18 — premium presentation only: tier progress ring + milestone ring.
+     evaluateJourney()/SP_LOYALTY_TIERS remain the single source of truth. */
+  const pts79j   = (typeof spGetLoyalty === "function") ? spGetLoyalty(sess.email || "") : 0;
+  const curTier  = (typeof spGetTier === "function") ? spGetTier(pts79j) : SP_LOYALTY_TIERS[0];
+  const nextTier = SP_LOYALTY_TIERS.filter((t) => t.min > pts79j).sort((a, b) => a.min - b.min)[0];
+  const tierPct  = nextTier ? Math.round((pts79j / nextTier.min) * 100) : 100;
+  const milestonePct = j.total ? Math.round((j.unlocked.length / j.total) * 100) : 0;
+
   panel.innerHTML = `
     <div class="jr-head">
       <p class="jr-head__kicker">Your story with ABDAN</p>
       <h3 class="jr-head__title">My Journey ✨</h3>
       <p class="jr-head__intro">Not a game, not a score — simply the quiet milestones of your time with ABDAN, gathered with care.</p>
-      <p class="jr-head__count">${j.unlocked.length} of ${j.total} milestones reached</p>
     </div>
+
+    <div class="lx-snapshot lx-snapshot--journey">
+      <div class="lx-stat">
+        <div class="lx-ring-wrap">
+          ${lxRingSvg(milestonePct, 76, "var(--gold,#b08d3f)")}
+          <span class="lx-stat__value" data-lx-count="${j.unlocked.length}">0</span>
+        </div>
+        <span class="lx-stat__label">of ${j.total} Milestones</span>
+      </div>
+      <div class="lx-stat">
+        <div class="lx-ring-wrap">
+          ${lxRingSvg(tierPct, 76, "var(--emerald,#023d3a)")}
+          <span class="lx-stat__value lx-stat__value--text">${wardEsc(curTier.name)}</span>
+        </div>
+        <span class="lx-stat__label">${nextTier ? `${nextTier.min - pts79j} pts to ${wardEsc(nextTier.name)}` : "Highest tier reached"}</span>
+      </div>
+    </div>
+
     ${nextCard}
     <p class="jr-section-label">Your milestones</p>
     ${timeline}
     ${future}`;
+
+  if (typeof lxAnimateCounters === "function") lxAnimateCounters(panel);
 }
 
 /* ════════════════════════════════════════════════════════════════════

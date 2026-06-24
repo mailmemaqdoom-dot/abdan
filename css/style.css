@@ -17611,3 +17611,176 @@ html[data-theme="dark"] .promise-band__inner cite {
 @media (prefers-reduced-motion: reduce) {
   .edt-card { transition: none !important; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   RC-18 — YOUR SPACE LUXURY MEMBERSHIP DASHBOARD (presentation-only)
+   Apple Wallet / CRED-premium feel: glass hero, progress rings, animated
+   counters, spring motion. No data, workflow, or markup is removed —
+   every block below is additive to existing sections.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Luxury hero ──────────────────────────────────────────────────── */
+.lx-hero {
+  position: relative;
+  background: linear-gradient(155deg, rgba(2, 61, 58, .94), rgba(0, 38, 36, .96));
+  border-radius: 1.4rem;
+  padding: 2.2rem 1.5rem 1.7rem;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(2, 20, 18, .25);
+  animation: lxRiseIn .6s cubic-bezier(.22, .9, .3, 1) both;
+}
+.lx-hero::before {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(circle at 80% -10%, rgba(176, 141, 63, .35), transparent 55%),
+              radial-gradient(circle at -10% 110%, rgba(176, 141, 63, .18), transparent 50%);
+  pointer-events: none;
+}
+.lx-hero .sp-profile-hero__name,
+.lx-hero .sp-profile-hero__identity,
+.lx-hero .sp-profile-hero__since { color: var(--ivory, #faf6ef); position: relative; z-index: 1; }
+.lx-hero .sp-profile-hero__identity { opacity: .85; }
+.lx-hero .sp-profile-hero__tier { background: rgba(176, 141, 63, .9); color: #1c1305; }
+.lx-hero .sp-profile-hero__pts { color: rgba(250, 246, 239, .8); }
+.lx-hero__av { position: relative; z-index: 1; box-shadow: 0 0 0 3px rgba(176, 141, 63, .5), 0 12px 30px rgba(0, 0, 0, .3); }
+.lx-hero__chips {
+  position: relative; z-index: 1;
+  display: flex; gap: .8rem; justify-content: center;
+  margin-top: 1.1rem; flex-wrap: wrap;
+}
+.lx-hero__chip {
+  background: rgba(255, 255, 255, .08);
+  border: 1px solid rgba(255, 255, 255, .14);
+  backdrop-filter: blur(6px);
+  border-radius: .9rem;
+  padding: .65rem 1.1rem;
+  display: flex; flex-direction: column; align-items: center; gap: .15rem;
+  min-width: 7.5rem;
+}
+.lx-hero__chip-label { font-size: .62rem; text-transform: uppercase; letter-spacing: .08em; color: rgba(250, 246, 239, .65); }
+.lx-hero__chip-value { font-family: var(--font-display, "Libre Baskerville", serif); font-size: 1.15rem; color: var(--ivory, #faf6ef); }
+
+@keyframes lxRiseIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── Progress rings + animated stat cards ────────────────────────── */
+.lx-snapshot { margin: 1.4rem 0; animation: lxFadeUp .5s ease .05s both; }
+.lx-snapshot__kicker { font-size: .68rem; text-transform: uppercase; letter-spacing: .12em; color: var(--gold, #b08d3f); margin: 0 0 .7rem; }
+.lx-snapshot__grid, .lx-snapshot--journey {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: .6rem;
+}
+.lx-snapshot--journey { margin: 1.2rem 0; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+.lx-stat { display: flex; flex-direction: column; align-items: center; gap: .4rem; }
+.lx-ring-wrap { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+.lx-ring { color: rgba(2, 61, 58, .12); display: block; }
+.lx-ring__track { stroke: rgba(2, 61, 58, .1); }
+html[data-theme="dark"] .lx-ring__track { stroke: rgba(250, 246, 239, .14); }
+.lx-stat__value {
+  position: absolute; font-family: var(--font-display, "Libre Baskerville", serif);
+  font-size: 1.05rem; color: var(--text); font-weight: 600;
+}
+.lx-stat__value--text { font-size: .76rem; font-weight: 500; }
+.lx-stat__label { font-size: .68rem; color: var(--muted); text-align: center; line-height: 1.3; }
+
+@keyframes lxFadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── My Savings (trend bars, no banking aesthetic) ───────────────── */
+.lx-savings .sp-savings__card { transition: transform .25s cubic-bezier(.22, .9, .3, 1); }
+.lx-savings .sp-savings__card:active { transform: scale(.97); }
+.lx-trend { margin-top: 1rem; display: flex; flex-direction: column; gap: .5rem; }
+.lx-trend__bar {
+  position: relative; height: 1.9rem; border-radius: .6rem;
+  background: rgba(2, 61, 58, .05); overflow: hidden; display: flex; align-items: center;
+}
+.lx-trend__fill {
+  position: absolute; inset: 0 auto 0 0; height: 100%; border-radius: .6rem;
+  background: rgba(176, 141, 63, .35);
+  transition: width 1s cubic-bezier(.22, .9, .3, 1);
+}
+.lx-trend__fill--today { background: rgba(2, 61, 58, .55); }
+.lx-trend__bar-label { position: relative; z-index: 1; font-size: .7rem; color: var(--text); padding: 0 .7rem; white-space: nowrap; }
+
+/* ── Ask ABDAN concierge card ─────────────────────────────────────── */
+.lx-concierge { margin: 1.4rem 0; }
+.lx-concierge__kicker { font-size: .68rem; text-transform: uppercase; letter-spacing: .12em; color: var(--gold, #b08d3f); margin: 0 0 .6rem; }
+.lx-concierge__card {
+  background: linear-gradient(135deg, rgba(2, 61, 58, .05), rgba(176, 141, 63, .06));
+  border: 1px solid var(--line); border-radius: 1rem; padding: 1.1rem 1.2rem;
+}
+.lx-concierge__snippet { font-size: .88rem; font-style: italic; color: var(--text); line-height: 1.55; margin: 0 0 .4rem; }
+.lx-concierge__snippet--empty { color: var(--muted); }
+.lx-concierge__meta { font-size: .72rem; color: var(--muted); margin: 0 0 .8rem; }
+.lx-concierge__btn { font-size: .8rem; padding: .55rem 1.2rem; }
+
+/* ── My Style DNA ✨ ──────────────────────────────────────────────── */
+.lx-dna { margin: 1.4rem 0; }
+.lx-dna__kicker { font-size: .68rem; text-transform: uppercase; letter-spacing: .12em; color: var(--gold, #b08d3f); margin: 0 0 .3rem; }
+.lx-dna__intro { font-size: .82rem; color: var(--muted); margin: 0 0 .8rem; line-height: 1.5; }
+.lx-dna__grid {
+  background: var(--ivory, #faf6ef); border: 1px solid var(--line); border-radius: 1rem;
+  padding: .3rem 1.1rem;
+}
+.lx-dna__row {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: .7rem 0; border-bottom: 1px solid var(--line);
+}
+.lx-dna__row:last-child { border-bottom: none; }
+.lx-dna__label { font-size: .76rem; color: var(--muted); }
+.lx-dna__value { font-family: var(--font-display, "Libre Baskerville", serif); font-size: .92rem; color: var(--emerald, #023d3a); text-align: right; }
+
+/* ── Benefits & Rewards ───────────────────────────────────────────── */
+.lx-benefits { margin: 1.6rem 0; }
+.lx-benefits__kicker { font-size: .68rem; text-transform: uppercase; letter-spacing: .12em; color: var(--gold, #b08d3f); margin: 0 0 .7rem; }
+.lx-benefits__row { display: flex; gap: .8rem; margin-bottom: .8rem; flex-wrap: wrap; }
+.lx-benefits__pill {
+  flex: 1; min-width: 9rem;
+  background: var(--ivory, #faf6ef); border: 1px solid var(--line); border-radius: .9rem;
+  padding: .8rem 1rem; display: flex; flex-direction: column; gap: .15rem;
+}
+.lx-benefits__pill-value { font-family: var(--font-display, "Libre Baskerville", serif); font-size: 1.15rem; color: var(--emerald, #023d3a); }
+.lx-benefits__pill-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.lx-benefits__next { font-size: .78rem; color: var(--muted); margin-top: .6rem; }
+
+/* ── Wardrobe highlight strip ─────────────────────────────────────── */
+.lx-ward-highlights { display: flex; gap: .9rem; margin-bottom: 1.3rem; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.lx-ward-highlight {
+  flex: 0 0 auto; width: 8.5rem; display: flex; flex-direction: column; gap: .35rem;
+  animation: lxFadeUp .45s ease both;
+}
+.lx-ward-highlight__img { width: 100%; aspect-ratio: 3/4; border-radius: .8rem; overflow: hidden; background: rgba(2, 61, 58, .05); }
+.lx-ward-highlight__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.lx-ward-highlight__kind { font-size: .6rem; text-transform: uppercase; letter-spacing: .06em; color: var(--gold, #b08d3f); }
+.lx-ward-highlight__title { font-size: .8rem; color: var(--text); line-height: 1.3; }
+
+/* ── Share the Love ambassador presentation ──────────────────────── */
+.lx-ambassador-head { position: relative; }
+.lx-ambassador-badge {
+  display: inline-block; margin-top: .6rem; font-size: .68rem; letter-spacing: .04em;
+  padding: .3rem .8rem; border-radius: 1rem;
+  background: linear-gradient(135deg, rgba(176, 141, 63, .9), rgba(140, 108, 40, .9));
+  color: #1c1305;
+}
+.lx-ambassador-impact .se-stat { transition: transform .25s cubic-bezier(.22, .9, .3, 1); }
+.lx-ambassador-impact .se-stat:active { transform: scale(.96); }
+
+/* ── Premium touch & hover micro-interactions ────────────────────── */
+.sp-action-card, .edt-card, .mom-card, .ward-piece, .se-chan, .mom-share-btn {
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+  .lx-hero__chip { transition: transform .25s cubic-bezier(.22, .9, .3, 1); }
+  .lx-hero__chip:hover { transform: translateY(-2px); }
+  .lx-benefits__pill { transition: transform .25s cubic-bezier(.22, .9, .3, 1), box-shadow .25s ease; }
+  .lx-benefits__pill:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(2, 20, 18, .08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lx-hero, .lx-snapshot, .lx-ward-highlight { animation: none !important; }
+  .lx-trend__fill, .lx-ring__fill { transition: none !important; }
+}
+
+/* ── Mobile-first guardrails — no horizontal scroll / layout breaks ── */
+@media (max-width: 480px) {
+  .lx-hero__chips { gap: .6rem; }
+  .lx-hero__chip { min-width: 6.4rem; padding: .55rem .8rem; }
+  .lx-snapshot--journey { grid-template-columns: repeat(2, 1fr); }
+  .lx-benefits__pill { min-width: 100%; }
+}
