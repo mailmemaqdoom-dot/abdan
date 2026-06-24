@@ -2407,3 +2407,87 @@ html { overflow-x: hidden; }
   .cc-section--hero { animation: none !important; }
   .cc-stat, .s-card { transition: none !important; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   RC-21 — OPERATIONS COMMAND CENTER (additive admin homepage companion)
+   Action-first, Linear/Notion/Stripe-Ops feel. Reuses .cc-* / .s-* tokens
+   already established by the Executive Command Center for consistency.
+   ════════════════════════════════════════════════════════════════════ */
+.op-wrap { display: flex; flex-direction: column; gap: 2rem; }
+.op-section { animation: opFadeUp .4s cubic-bezier(.22,.9,.3,1) both; }
+.op-section__label {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--s-text-dim); margin-bottom: 0.85rem;
+}
+.op-section__hint { text-transform: none; font-weight: 400; letter-spacing: 0; color: var(--s-text-dim); opacity: .8; }
+@keyframes opFadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .op-section { animation: none !important; } }
+
+/* ── Priority Action Center ──────────────────────────────────────── */
+.op-action-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: .85rem; }
+.op-action-card {
+  text-align: left; background: var(--s-raised); border: 1px solid var(--s-border);
+  border-radius: var(--s-r-md); box-shadow: var(--s-shadow-xs);
+  padding: 1rem 1.1rem; cursor: pointer;
+  display: flex; flex-direction: column; gap: .55rem;
+  transition: transform .2s cubic-bezier(.22,.9,.3,1), box-shadow .2s ease, border-color .2s ease;
+}
+.op-action-card:hover { transform: translateY(-2px); box-shadow: var(--s-shadow-sm, 0 8px 20px rgba(0,0,0,.08)); }
+.op-action-card__top { display: flex; align-items: center; justify-content: space-between; }
+.op-action-card__top .s-icon { width: 18px; height: 18px; color: var(--s-text-dim); }
+.op-action-card__val {
+  font-family: var(--s-font-display); font-size: 1.7rem; font-weight: 600; letter-spacing: -.02em;
+  color: var(--s-text); margin: 0; line-height: 1;
+}
+.op-action-card__label { font-size: 0.74rem; color: var(--s-text-dim); margin: 0; }
+.op-action-card--critical { border-color: rgba(239, 68, 68, .35); }
+.op-action-card--critical .op-action-card__val { color: var(--s-error); }
+.op-action-card--high { border-color: rgba(245, 158, 11, .3); }
+.op-action-card--high .op-action-card__val { color: var(--s-warning); }
+
+.op-priority {
+  font-size: 0.62rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  padding: .15rem .55rem; border-radius: 1rem; background: var(--s-border); color: var(--s-text-dim);
+}
+
+/* ── Order Command Center — kanban ───────────────────────────────── */
+.op-kanban { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .75rem; }
+.op-kanban-col {
+  background: var(--s-raised); border: 1px solid var(--s-border); border-radius: var(--s-r-md);
+  padding: .95rem 1rem; transition: transform .2s cubic-bezier(.22,.9,.3,1);
+}
+.op-kanban-col:hover { transform: translateY(-2px); }
+.op-kanban-col__head { display: flex; align-items: center; gap: .45rem; font-size: 0.72rem; color: var(--s-text-dim); margin-bottom: .5rem; }
+.op-kanban-col__head .s-icon { width: 15px; height: 15px; }
+.op-kanban-col__count { font-family: var(--s-font-display); font-size: 1.6rem; font-weight: 600; color: var(--s-text); margin: 0; }
+.op-kanban-col__sub { font-size: 0.7rem; color: var(--s-text-dim); margin: .15rem 0 0; }
+
+/* ── Follow-Up Center — opportunity list ─────────────────────────── */
+.op-opp-list { display: flex; flex-direction: column; gap: .5rem; }
+.op-opp-row {
+  display: flex; align-items: center; gap: .7rem;
+  background: var(--s-raised); border: 1px solid var(--s-border); border-radius: var(--s-r-md);
+  padding: .7rem 1rem;
+}
+.op-opp-row .s-icon { width: 16px; height: 16px; color: var(--s-gold); flex-shrink: 0; }
+.op-opp-row__label { flex: 1; font-size: 0.82rem; color: var(--s-text); }
+.op-opp-row__val { font-family: var(--s-font-display); font-weight: 700; font-size: 1rem; color: var(--s-text); }
+
+/* ── Live Operations Timeline ────────────────────────────────────── */
+.op-timeline {
+  background: var(--s-raised); border: 1px solid var(--s-border); border-radius: var(--s-r-md);
+  padding: .4rem 1.1rem; max-height: 26rem; overflow-y: auto;
+}
+.op-timeline__row {
+  display: flex; align-items: center; gap: .7rem; padding: .65rem 0;
+  border-bottom: 1px solid var(--s-border); font-size: 0.8rem;
+}
+.op-timeline__row:last-child { border-bottom: none; }
+.op-timeline__row .s-icon { width: 15px; height: 15px; color: var(--s-gold); flex-shrink: 0; }
+.op-timeline__text { flex: 1; color: var(--s-text); line-height: 1.4; }
+.op-timeline__time { font-size: 0.7rem; color: var(--s-text-dim); white-space: nowrap; }
+
+@media (max-width: 640px) {
+  .op-action-grid { grid-template-columns: repeat(2, 1fr); }
+  .op-kanban { grid-template-columns: repeat(2, 1fr); }
+}

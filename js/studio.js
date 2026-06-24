@@ -47,6 +47,7 @@
 const STUDIO_VIEWS = [
   /* ── General ─────────────────────────────────────────────── */
   { id: "command-center", label: "Command Center",  icon: "gauge",            group: "General"      },
+  { id: "ops-center",  label: "Operations Center",  icon: "siren",            group: "General"      },
   { id: "overview",    label: "Studio Overview",    icon: "layout-dashboard", group: "General"      },
 
   /* ── BRAND ───────────────────────────────────────────────── */
@@ -443,6 +444,7 @@ function renderView(id) {
   dom.content.innerHTML = "";
   const renders = {
     "command-center": renderCommandCenter,
+    "ops-center": renderOpsCenter,
     vendors:     renderVendorsStub,
     overview:    renderOverview,
     products:    renderProducts,
@@ -915,6 +917,279 @@ function renderVendorsStub() {
       ${stat("flag", "Issue Rate", `${issueRatePct}%`)}
     </div>
     <p class="s-muted" style="margin-top:1rem;font-size:0.78rem">Vendor identity, response-time, and satisfaction tracking will arrive once multi-vendor fulfilment is part of the business — reserved for that phase.</p>`;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   RC-21 — OPERATIONS COMMAND CENTER (additive admin homepage companion)
+   Answers "what should I do right now?" — distinct from the Executive
+   Command Center ("what happened?"). Read-only aggregation over the
+   exact same real data sources; no new statuses, no fake numbers, no
+   duplicate system. A new "ops-center" view sits beside (not over)
+   "command-center" and the older "operations" requests/loyalty page.
+   ════════════════════════════════════════════════════════════════════ */
+function opPriorityBadge(level) {
+  const map = { critical: "s-badge--red", high: "s-badge--amber", medium: "s-badge--blue", low: "" };
+  return `<span class="op-priority op-priority--${level} ${map[level] || ""}">${capitalise(level)}</span>`;
+}
+function opAgeDays(iso) { return iso ? Math.floor((Date.now() - new Date(iso).getTime()) / 864e5) : 0; }
+function opTimeAgo(ms) {
+  const d = Math.max(0, Date.now() - ms);
+  if (d < 3600000) return `${Math.max(1, Math.round(d / 60000))}m ago`;
+  if (d < 86400000) return `${Math.round(d / 3600000)}h ago`;
+  return `${Math.round(d / 864e5)}d ago`;
+}
+function opActionCard(icon, label, value, level, nav) {
+  return `
+    <button type="button" class="op-action-card op-action-card--${level}" data-nav="${nav}">
+      <div class="op-action-card__top"><i data-lucide="${icon}" class="s-icon"></i>${opPriorityBadge(level)}</div>
+      <p class="op-action-card__val">${value}</p>
+      <p class="op-action-card__label">${label}</p>
+    </button>`;
+}
+function opKanbanCol(title, count, sub, icon) {
+  return `
+    <div class="op-kanban-col">
+      <div class="op-kanban-col__head"><i data-lucide="${icon}" class="s-icon"></i><span>${title}</span></div>
+      <p class="op-kanban-col__count">${count}</p>
+      <p class="op-kanban-col__sub">${sub}</p>
+    </div>`;
+}
+function opOpportunityRow(icon, label, count) {
+  return `<div class="op-opp-row"><i data-lucide="${icon}" class="s-icon"></i><span class="op-opp-row__label">${label}</span><span class="op-opp-row__val">${count}</span></div>`;
+}
+
+function renderOpsCenter() {
+  setTitle("Operations Command Center", `<span class="s-muted" style="font-size:0.78rem">Live · updates on every visit</span>`);
+
+  const now      = new Date();
+  const orders   = load(STORAGE.orders, []);
+  const profiles = load(STORAGE.customers, {});
+  const profileList = Object.entries(profiles);
+  const requests = load(STORAGE.globalRequests, []);
+
+  /* ── Orders, aged & prioritised (existing 5-status enum only — no new
+     statuses are introduced; richer language is presentation-only). ─── */
+  const ageOf = (o) => opAgeDays(o.createdAt);
+  const openOrders = orders.filter((o) => o.status === "pending" || o.status === "confirmed");
+  const critical = openOrders.filter((o) => ageOf(o) >= 5);
+  const high     = openOrders.filter((o) => ageOf(o) >= 3 && ageOf(o) < 5);
+  const medium   = openOrders.filter((o) => ageOf(o) >= 1 && ageOf(o) < 3);
+  const issueCases = orders.filter((o) => o.status === "cancelled" && (o.notes || "").trim());
+  const pendingCount = orders.filter((o) => o.status === "pending").length;
+  const confirmedCount = orders.filter((o) => o.status === "confirmed").length;
+  const shippedCount = orders.filter((o) => o.status === "shipped").length;
+  const deliveredCount = orders.filter((o) => o.status === "delivered").length;
+  const cancelledCount = orders.filter((o) => o.status === "cancelled").length;
+  const stuckDeliveries = orders.filter((o) => o.status === "shipped" && ageOf(o) >= 5);
+
+  /* ── Concierge — own scan (consistent with how every other admin
+     section already reads per-member threads independently). ────────── */
+  let conciergeOpen = 0, conciergeResolved = 0, awaitingCustomerReply = 0, urgentThreads = 0;
+  const categoryCounts = {};
+  const waitTimes = [];
+  let sourcingReqCount = requests.length;
+  profileList.forEach(([email]) => {
+    let msgs = []; try { msgs = JSON.parse(localStorage.getItem(`abdan-sp-concierge:${email}`) || "[]") || []; } catch { msgs = []; }
+    if (!msgs.length) return;
+    const last = msgs[msgs.length - 1];
+    const lastTs = last.sentAt || last.ts || 0;
+    if (last.from === "customer") {
+      conciergeOpen++;
+      waitTimes.push(Date.now() - lastTs);
+      if (Date.now() - lastTs > 864e5) urgentThreads++;
+    } else {
+      conciergeResolved++;
+      awaitingCustomerReply++;
+    }
+    msgs.forEach((m) => { if (m.category) categoryCounts[m.category] = (categoryCounts[m.category] || 0) + 1; });
+  });
+  const avgWaitLabel = waitTimes.length ? opTimeAgo(Date.now() - (waitTimes.reduce((s, w) => s + w, 0) / waitTimes.length)).replace(" ago", "") : "—";
+
+  /* ── Customer Attention Center ─────────────────────────────────────── */
+  const orderCountByKey = {};
+  const lastOrderByKey = {};
+  const purchasedEmails = new Set();
+  orders.forEach((o) => {
+    const k = String(o.customerEmail || o.customerPhone || "").toLowerCase().trim();
+    if (k) { orderCountByKey[k] = (orderCountByKey[k] || 0) + 1; if (o.createdAt) lastOrderByKey[k] = Math.max(lastOrderByKey[k] || 0, new Date(o.createdAt).getTime()); }
+    if (o.customerEmail) purchasedEmails.add(String(o.customerEmail).toLowerCase());
+  });
+  const returningCustomers = Object.values(orderCountByKey).filter((n) => n > 1).length;
+  let vipCircle = 0, innerCircle = 0;
+  profileList.forEach(([email]) => {
+    let pts = 0; try { pts = JSON.parse(localStorage.getItem(`abdan-sp-loyalty:${email}`) || "0") || 0; } catch { pts = 0; }
+    if (pts >= 150) innerCircle++;
+    if (pts >= 300) vipCircle++;
+  });
+  const dormantCutoff = Date.now() - 60 * 864e5;
+  const dormantCustomers = Object.keys(lastOrderByKey).filter((k) => lastOrderByKey[k] < dormantCutoff).length;
+  const highValueOrders = orders.filter((o) => (Number(o.total) || 0) >= 5000).length;
+  const recentDelivered = orders.filter((o) => o.status === "delivered" && ageOf(o) <= 30);
+  const followUpDelivered = recentDelivered.length;
+
+  /* ── Follow-Up / engagement opportunities (real, threshold-based) ───── */
+  const favsByEmail = {}; ccScanPrefixed("abdan-sp-ward-favs:").forEach((r) => { favsByEmail[r.ownerEmail] = Array.isArray(r.data) ? r.data.length : 0; });
+  const momentsByEmail = {}; ccScanPrefixed("abdan-sp-my-moments:").forEach((r) => { momentsByEmail[r.ownerEmail] = Array.isArray(r.data) ? r.data.length : 0; });
+  const editsByEmail = {}; ccScanPrefixed("abdan-sp-edits:").forEach((r) => { editsByEmail[r.ownerEmail] = Array.isArray(r.data) ? r.data : []; });
+  const sharesByEmail = {}; ccScanPrefixed("abdan-sp-shares:").forEach((r) => { sharesByEmail[r.ownerEmail] = r.data && Object.keys(r.data).length ? Object.values(r.data).reduce((a, b) => a + b, 0) : 0; });
+  let wardrobeOpp = 0, momentOpp = 0, shareOpp = 0, unpublishedEdits = 0;
+  purchasedEmails.forEach((email) => {
+    if (!favsByEmail[email]) wardrobeOpp++;
+    if (!momentsByEmail[email]) momentOpp++;
+    if (!sharesByEmail[email]) shareOpp++;
+  });
+  Object.values(editsByEmail).forEach((list) => { unpublishedEdits += list.filter((e) => e.status === "draft").length; });
+
+  /* ── Live Operations Timeline — only genuinely timestamped real events */
+  const feed = [];
+  orders.forEach((o) => { if (o.createdAt) feed.push({ t: new Date(o.createdAt).getTime(), icon: "receipt", text: `Order ${esc(o.ref || o.id || "")} placed by ${esc(o.customerName || "a customer")} · ${fmtCurrency(o.total)}` }); });
+  profileList.forEach(([email, p]) => {
+    let msgs = []; try { msgs = JSON.parse(localStorage.getItem(`abdan-sp-concierge:${email}`) || "[]") || []; } catch { msgs = []; }
+    msgs.forEach((m) => { const ts = m.sentAt || m.ts; if (ts && m.from === "customer") feed.push({ t: ts, icon: "message-circle", text: `${esc(p.displayName || p.fullName || email)} sent a concierge message${m.category ? ` · ${esc(m.category)}` : ""}` }); });
+  });
+  requests.forEach((r) => { const ts = r.createdAt || r.ts; if (ts) feed.push({ t: new Date(ts).getTime ? new Date(ts).getTime() : ts, icon: "search", text: `${esc(r.name || "A customer")} submitted a sourcing request${r.occasion ? ` for ${esc(r.occasion)}` : ""}` }); });
+  load(STORAGE.referrals, []).filter((r) => r.status === "rewarded").forEach((r) => { if (r.createdAt) feed.push({ t: new Date(r.createdAt).getTime(), icon: "gift", text: `Circle Points issued for a Share the Love referral · +${r.points || 0}` }); });
+  feed.sort((a, b) => b.t - a.t);
+  const feedTop = feed.slice(0, 18);
+
+  /* ── Today's Operations Summary ─────────────────────────────────────── */
+  const ordersRequiringAction = pendingCount + confirmedCount;
+  const criticalTasks = critical.length + issueCases.length;
+
+  dom.content.innerHTML = `
+    <div class="op-wrap">
+
+      <div class="op-section">
+        <p class="op-section__label">Priority Action Center</p>
+        <div class="op-action-grid">
+          ${opActionCard("alert-octagon", "Vendor Escalations", critical.length, "critical", "vendors")}
+          ${opActionCard("clock", "Delayed Orders", critical.length + high.length, "high", "orders")}
+          ${opActionCard("flag", "Unresolved Customer Issues", issueCases.length, "high", "orders")}
+          ${opActionCard("message-circle", "Pending Concierge Requests", conciergeOpen, "medium", "concierge")}
+          ${opActionCard("hourglass", "Awaiting Customer Response", awaitingCustomerReply, "low", "concierge")}
+          ${opActionCard("zap", "High Priority Cases", criticalTasks, "critical", "orders")}
+        </div>
+      </div>
+
+      <div class="op-section">
+        <p class="op-section__label">Order Command Center</p>
+        <div class="op-kanban">
+          ${opKanbanCol("Awaiting Vendor Confirmation", pendingCount, "Needs vendor action", "clock")}
+          ${opKanbanCol("Confirmed · Awaiting Dispatch", confirmedCount, "Ready to ship", "package")}
+          ${opKanbanCol("Dispatched · In Transit", shippedCount, "On the way", "truck")}
+          ${opKanbanCol("Delivered", deliveredCount, "Complete", "check-circle")}
+          ${opKanbanCol("Cancelled", cancelledCount, "Closed", "x-circle")}
+        </div>
+        <p class="cc-note">${issueCases.length} order${issueCases.length !== 1 ? "s" : ""} flagged as an issue (cancelled with notes) — not a separate status, surfaced here for visibility.</p>
+      </div>
+
+      <div class="op-section">
+        <div class="cc-section__head"><p class="op-section__label">Customer Attention Center</p>${qaction("users", "Customer Management", "customers")}</div>
+        <div class="cc-grid">
+          ${stat("crown", "VIP Customers", vipCircle)}
+          ${stat("gem", "Inner Circle", innerCircle)}
+          ${stat("repeat", "Repeat Buyers", returningCustomers)}
+          ${stat("moon", "Dormant Customers", dormantCustomers)}
+          ${stat("flag", "Unresolved Cases", issueCases.length)}
+          ${stat("indian-rupee", "High Value Orders", highValueOrders)}
+          ${stat("user-check", "Awaiting Follow-Up", followUpDelivered)}
+          ${stat("star", "Awaiting Feedback", followUpDelivered)}
+        </div>
+      </div>
+
+      <div class="op-section">
+        <div class="cc-section__head"><p class="op-section__label">Concierge Command Center</p>${qaction("message-circle", "Open Concierge", "concierge")}</div>
+        <div class="cc-grid">
+          ${stat("message-circle", "Open Requests", conciergeOpen, "s-stat--amber")}
+          ${stat("hourglass", "Pending Customer Replies", awaitingCustomerReply)}
+          ${stat("search", "Sourcing Requests", sourcingReqCount)}
+          ${stat("alert-triangle", "Urgent Requests (24h+)", urgentThreads, "s-stat--red")}
+          ${stat("timer", "Avg Waiting Time", avgWaitLabel)}
+          ${stat("layers", "Queue Size", conciergeOpen)}
+        </div>
+        <p class="cc-section__sub">Most Requested</p>
+        ${ccRankList(ccTopEntries(categoryCounts, 5))}
+      </div>
+
+      <div class="op-section">
+        <div class="cc-section__head"><p class="op-section__label">Vendor Command Center</p>${qaction("truck", "Manage Vendors", "vendors")}</div>
+        <div class="cc-grid">
+          ${stat("clock", "Awaiting Vendor Confirmation", pendingCount, "s-stat--amber")}
+          ${stat("alert-triangle", "Delayed Vendor Responses", high.length + critical.length, "s-stat--red")}
+          ${stat("package", "Awaiting Dispatch", confirmedCount)}
+          ${stat("truck", "Delayed Dispatches", critical.filter((o) => o.status === "confirmed").length)}
+          ${stat("check-circle", "Fulfilment Success Rate", `${orders.length - cancelledCount ? Math.round((deliveredCount / (orders.length - cancelledCount)) * 100) : 0}%`)}
+          ${stat("flag", "Vendor Issue Cases", issueCases.length)}
+        </div>
+        <p class="cc-note">Vendor identity &amp; response-time tracking aren't available yet — figures reflect order-fulfilment status only.</p>
+      </div>
+
+      <div class="op-section">
+        <p class="op-section__label">Follow-Up Center <span class="op-section__hint">— retention &amp; engagement</span></p>
+        <div class="op-opp-list">
+          ${opOpportunityRow("star", "Delivered Orders Awaiting Feedback", followUpDelivered)}
+          ${opOpportunityRow("message-square", "Review Requests", followUpDelivered)}
+          ${opOpportunityRow("pen-tool", "Story Requests (High-Value Deliveries)", orders.filter((o) => o.status === "delivered" && ageOf(o) <= 30 && (Number(o.total) || 0) >= 5000).length)}
+          ${opOpportunityRow("gift", "Share The Love Opportunities", shareOpp)}
+          ${opOpportunityRow("message-circle", "Concierge Follow-Ups (Idle 48h+)", urgentThreads)}
+          ${opOpportunityRow("heart", "Wardrobe Engagement Opportunities", wardrobeOpp)}
+          ${opOpportunityRow("calendar-heart", "Moment Creation Opportunities", momentOpp)}
+          ${opOpportunityRow("scissors", "Collection Sharing Opportunities", unpublishedEdits)}
+        </div>
+      </div>
+
+      <div class="op-section">
+        <p class="op-section__label">Live Operations Timeline</p>
+        <div class="op-timeline">
+          ${feedTop.length ? feedTop.map((f) => `
+            <div class="op-timeline__row">
+              <i data-lucide="${f.icon}" class="s-icon"></i>
+              <span class="op-timeline__text">${f.text}</span>
+              <span class="op-timeline__time">${opTimeAgo(f.t)}</span>
+            </div>`).join("") : empty("Activity will appear here as it happens.", "activity")}
+        </div>
+      </div>
+
+      <div class="op-section">
+        <p class="op-section__label">Exception Center</p>
+        <div class="cc-grid">
+          ${stat("alert-octagon", "Orders Stuck (5+ Days)", critical.length, "s-stat--red")}
+          ${stat("truck", "Delayed Deliveries", stuckDeliveries.length, "s-stat--red")}
+          ${stat("credit-card", "Failed Payments", "Not tracked")}
+          ${stat("alert-triangle", "Vendor Delays", critical.length + high.length)}
+          ${stat("flag", "Customer Complaints", issueCases.length)}
+          ${stat("rotate-ccw", "Refund Requests", "Not tracked")}
+          ${stat("siren", "Issue Escalations", critical.length + issueCases.length, "s-stat--red")}
+        </div>
+      </div>
+
+      <div class="op-section">
+        <p class="op-section__label">Quick Action Center</p>
+        <div class="s-qaction-row">
+          ${qaction("plus", "Add Product", "products")}
+          ${qaction("ticket", "Create Coupon", "coupons")}
+          ${qaction("message-circle", "Open Concierge", "concierge")}
+          ${qaction("receipt", "Manage Orders", "orders")}
+          ${qaction("users", "Manage Customers", "customers")}
+          ${qaction("truck", "Manage Vendors", "vendors")}
+          ${qaction("layers", "Create Collection", "collections")}
+          ${qaction("star", "Community Management", "reviews")}
+        </div>
+      </div>
+
+      <div class="op-section">
+        <p class="op-section__label">Today's Operations Summary</p>
+        <div class="cc-pulse-card">
+          <p class="cc-pulse-line"><i data-lucide="receipt" class="s-icon"></i>${ordersRequiringAction} order${ordersRequiringAction !== 1 ? "s" : ""} requiring action</p>
+          <p class="cc-pulse-line"><i data-lucide="flag" class="s-icon"></i>${issueCases.length} case${issueCases.length !== 1 ? "s" : ""} requiring action</p>
+          <p class="cc-pulse-line"><i data-lucide="truck" class="s-icon"></i>${critical.length + high.length} vendor issue${(critical.length + high.length) !== 1 ? "s" : ""}</p>
+          <p class="cc-pulse-line"><i data-lucide="users" class="s-icon"></i>${dormantCustomers} customer issue${dormantCustomers !== 1 ? "s" : ""} (dormant)</p>
+          <p class="cc-pulse-line"><i data-lucide="message-circle" class="s-icon"></i>${conciergeOpen} pending concierge request${conciergeOpen !== 1 ? "s" : ""}</p>
+          <p class="cc-pulse-line"><i data-lucide="siren" class="s-icon"></i>${criticalTasks} critical task${criticalTasks !== 1 ? "s" : ""}</p>
+        </div>
+      </div>
+
+    </div>`;
 }
 
 /* ── Overview ───────────────────────────────────────────────── */
