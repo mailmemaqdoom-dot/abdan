@@ -570,6 +570,7 @@ function recordProductView(productId) {
   viewed.unshift(productId);
   saveMemory({ lastViewedIds: viewed.slice(0, 6) });
   bumpProductCounter("abdan-product-views", productId);
+  bumpFunnel("productViews");
 }
 
 /* RC-20 — minimal, additive counters powering admin Product Intelligence.
@@ -580,6 +581,27 @@ function bumpProductCounter(key, productId) {
   m[productId] = (m[productId] || 0) + 1;
   try { localStorage.setItem(key, JSON.stringify(m)); } catch {}
 }
+
+/* RC-21 — Conversion Intelligence: a lean, additive funnel + collection
+   counter layer. Plain tally maps only, mirroring bumpProductCounter — no
+   personal data, no new customer-facing UI, no altered data structures. */
+const FUNNEL_KEY = "abdan-funnel";
+function bumpFunnel(step) {
+  let f = {}; try { f = JSON.parse(localStorage.getItem(FUNNEL_KEY) || "{}") || {}; } catch { f = {}; }
+  f[step] = (f[step] || 0) + 1;
+  try { localStorage.setItem(FUNNEL_KEY, JSON.stringify(f)); } catch {}
+}
+function bumpCollectionCounter(key, collection) {
+  if (!collection || collection === "All") return;
+  bumpProductCounter(key, collection); /* same plain tally-map shape, different key */
+}
+(function trackVisitorSession() {
+  try {
+    if (sessionStorage.getItem("abdan-visit-counted")) return;
+    sessionStorage.setItem("abdan-visit-counted", "1");
+    bumpFunnel("visitors");
+  } catch {}
+})();
 
 /* ── recordFilterUsage ───────────────────────────────────────────────────
    Called on every non-"All" filter selection. Builds a mood affinity map
@@ -3662,6 +3684,11 @@ function toggleWishlist(productId, btn) {
     }
     showToast("Quietly saved 💛");
     lxHeartBurst(btn); /* §56 — floating particles, distinct from WAAPI bloom above */
+    /* RC-21 — Conversion Intelligence: product/collection save tracking */
+    bumpFunnel("productSaves");
+    bumpProductCounter("abdan-product-saves", productId);
+    const savedProduct = (typeof PRODUCTS !== "undefined") ? PRODUCTS.find((p) => p.id === productId) : null;
+    if (savedProduct) bumpCollectionCounter("abdan-collection-saves", savedProduct.primaryTag);
   } else {
     wl.delete(productId);
     btn.classList.remove("is-saved");
@@ -3842,14 +3869,18 @@ function lxCreateOrder(details, items, paymentMethod, extra = {}) {
     couponDiscount,
     ruleName,
     ruleDiscount,
-    items: items.map((item) => ({
-      id:         item.id || "",
-      name:       item.name,
-      size:       item.size,
-      color:      item.color,
-      quantity:   item.quantity,
-      priceLabel: item.priceLabel,
-    })),
+    items: items.map((item) => {
+      const p = item.id ? PRODUCTS.find((x) => x.id === item.id) : null;
+      return {
+        id:         item.id || "",
+        name:       item.name,
+        size:       item.size,
+        color:      item.color,
+        quantity:   item.quantity,
+        priceLabel: item.priceLabel,
+        collection: (p && p.primaryTag) || "",   /* RC-21 — Conversion Intelligence */
+      };
+    }),
     notes:     details.notes || "",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -3988,6 +4019,10 @@ function addToCart() {
   saveCart();
   renderCart();
 
+  /* RC-21 — Conversion Intelligence: bag-add tracking (additive) */
+  bumpFunnel("addToBag");
+  bumpProductCounter("abdan-product-addtobag", product.id);
+
   /* ── Launch fly orb (geometry captured above) ────────────────────── */
   if (imgRect && cartRect) lxCartFly(imgRect, cartRect, product.image);
 
@@ -4070,6 +4105,7 @@ function removeCartCoupon() {
 function toggleBagCheckout() {
   if (!state.cart.length) return;
   if (dom.bagCheckoutPanel.hidden) {
+    bumpFunnel("checkoutStarted"); /* RC-21 — Conversion Intelligence */
     /* You Saved ₹X On This Order (Part 3 — checkout) incl. coupon + rule */
     const t  = computeCartTotals();
     const cs = abdanCartSavings() + t.couponDiscount + t.ruleDiscount;
@@ -4086,6 +4122,7 @@ function toggleBagCheckout() {
 
 function toggleProductCheckout() {
   if (dom.productCheckoutPanel.hidden) {
+    bumpFunnel("checkoutStarted"); /* RC-21 — Conversion Intelligence */
     lxShowCheckoutPanel(dom.productCheckoutPanel);
   } else {
     lxHideCheckoutPanel(dom.productCheckoutPanel);
@@ -4145,6 +4182,7 @@ function buildWhatsAppOrderMessage(details, items, paymentMethod, extra = {}) {
 }
 
 function launchRazorpay(details, items) {
+  bumpFunnel("paymentInitiated"); /* RC-21 — Conversion Intelligence */
   const total = (items === state.cart)
     ? computeCartTotals().total
     : items.reduce((sum, item) => sum + getNumericPrice(item.priceLabel) * item.quantity, 0);
@@ -4180,6 +4218,7 @@ function launchRazorpay(details, items) {
 }
 
 function launchUpi(details, items) {
+  bumpFunnel("paymentInitiated"); /* RC-21 — Conversion Intelligence */
   const url   = buildWhatsAppOrderMessage(details, items, "UPI / Manual confirmation");
   const order = lxCreateOrder(details, items, "UPI");
   window.open(BRAND.upiLink, "_blank", "noopener,noreferrer");
@@ -4494,6 +4533,9 @@ function attachEvents() {
 
     /* ── Emotional memory: record mood engagement ─────────────────── */
     recordFilterUsage(state.filter);
+
+    /* RC-21 — Collection Performance tracking (additive) */
+    if (state.filter !== "All") { bumpFunnel("collectionViews"); bumpCollectionCounter("abdan-collection-views", state.filter); }
 
     /* ── Filter chip spring micro-interaction ─────────────────────── */
     button.classList.remove("lx-selecting");
@@ -7508,9 +7550,11 @@ function renderSpaceWishlist() {
   }));
   panel.querySelectorAll("[data-ward-fav]").forEach((b) => b.addEventListener("click", () => {
     const id = b.dataset.wardFav; const cur = spGet(email, SP_WARD_FAVS) || [];
-    const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
+    const adding = !cur.includes(id);
+    const next = adding ? [...cur, id] : cur.filter((x) => x !== id);
     spSet(email, SP_WARD_FAVS, next); renderSpaceWishlist();
-    showToast(cur.includes(id) ? "Removed from favourites" : "Added to favourites 💛");
+    showToast(adding ? "Added to favourites 💛" : "Removed from favourites");
+    if (adding) bumpFunnel("wardrobeSaves"); /* RC-21 — Conversion Intelligence */
   }));
   panel.querySelectorAll("[data-ward-add]").forEach((b) => b.addEventListener("click", () => {
     const f = document.getElementById("wardForm" + b.dataset.wardAdd.charAt(0).toUpperCase() + b.dataset.wardAdd.slice(1));
@@ -8151,6 +8195,7 @@ function renderMyMoments() {
     list.unshift(m);
     spSaveMoments(email, list);
     showToast("Your Moment has begun 💛");
+    bumpFunnel("momentSaves"); /* RC-21 — Conversion Intelligence */
     _momActiveId = m.id;
     renderMyMoments();
   });
@@ -8420,6 +8465,7 @@ function openAddToMomentSheet(productId) {
     const list = spGetMoments(email);
     list.unshift(m);
     spSaveMoments(email, list);
+    bumpFunnel("momentSaves"); /* RC-21 — Conversion Intelligence */
     addProductToMoment(email, m.id, product);
   });
 
@@ -8455,7 +8501,10 @@ function addProductToMoment(email, momentId, product) {
 /* RC-20 — count product shares (delegated; container persists across re-renders) */
 (function wireProductShareTracking() {
   dom.shareButtons?.addEventListener("click", (e) => {
-    if (e.target.closest(".share-btn") && state.activeProductId) bumpProductCounter("abdan-product-shares", state.activeProductId);
+    if (!e.target.closest(".share-btn") || !state.activeProductId) return;
+    bumpProductCounter("abdan-product-shares", state.activeProductId);
+    const sharedProduct = (typeof PRODUCTS !== "undefined") ? PRODUCTS.find((p) => p.id === state.activeProductId) : null;
+    if (sharedProduct) bumpCollectionCounter("abdan-collection-shares", sharedProduct.primaryTag);
   });
 })();
 

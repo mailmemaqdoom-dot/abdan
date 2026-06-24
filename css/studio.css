@@ -2491,3 +2491,35 @@ html { overflow-x: hidden; }
   .op-action-grid { grid-template-columns: repeat(2, 1fr); }
   .op-kanban { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   RC-21 — CONVERSION INTELLIGENCE CENTER (additive)
+   ════════════════════════════════════════════════════════════════════ */
+.ci-funnel { display: flex; flex-direction: column; gap: 0.6rem; }
+.ci-funnel-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 64px 56px;
+  align-items: center;
+  gap: 0.7rem;
+}
+.ci-funnel-row__label { font-size: 0.78rem; color: var(--s-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ci-funnel-row__track { height: 10px; background: var(--s-border); border-radius: 99px; overflow: hidden; }
+.ci-funnel-row__fill {
+  height: 100%; border-radius: 99px;
+  background: linear-gradient(90deg, var(--s-emerald), var(--s-gold));
+  transition: width 0.6s cubic-bezier(.22,.9,.3,1);
+  animation: ciFillIn 0.6s cubic-bezier(.22,.9,.3,1) both;
+}
+@keyframes ciFillIn { from { width: 0 !important; } }
+.ci-funnel-row__val { font-size: 0.82rem; font-weight: 700; color: var(--s-text); text-align: right; }
+.ci-funnel-row__drop { font-size: 0.7rem; font-weight: 600; color: var(--s-text-dim); text-align: right; }
+.ci-funnel-row__drop--high { color: var(--s-error); }
+
+@media (max-width: 640px) {
+  .ci-funnel-row { grid-template-columns: 92px 1fr 48px 44px; gap: 0.4rem; }
+  .ci-funnel-row__label { font-size: 0.7rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ci-funnel-row__fill { animation: none !important; transition: none !important; }
+}

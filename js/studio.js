@@ -48,6 +48,7 @@ const STUDIO_VIEWS = [
   /* ── General ─────────────────────────────────────────────── */
   { id: "command-center", label: "Command Center",  icon: "gauge",            group: "General"      },
   { id: "ops-center",  label: "Operations Center",  icon: "siren",            group: "General"      },
+  { id: "conversion-intel", label: "Conversion Intelligence", icon: "filter", group: "General"      },
   { id: "overview",    label: "Studio Overview",    icon: "layout-dashboard", group: "General"      },
 
   /* ── BRAND ───────────────────────────────────────────────── */
@@ -445,6 +446,7 @@ function renderView(id) {
   const renders = {
     "command-center": renderCommandCenter,
     "ops-center": renderOpsCenter,
+    "conversion-intel": renderConversionIntel,
     vendors:     renderVendorsStub,
     overview:    renderOverview,
     products:    renderProducts,
@@ -1189,6 +1191,271 @@ function renderOpsCenter() {
         </div>
       </div>
 
+    </div>`;
+}
+
+/* ── RC-21: Conversion Intelligence Center ──────────────────────────────
+   Answers "where are we losing potential orders?" using ONLY real,
+   already-tracked data — the lean RC-21 funnel/collection counters added
+   alongside this view, plus orders/referrals/concierge/Your-Space data
+   reused from prior phases. Metrics with no underlying data (payment
+   failures, multi-page exit tracking) render an honest note instead of
+   invented numbers. ───────────────────────────────────────────────── */
+function ciClamp(n) { return Math.max(0, Math.min(100, n)); }
+function ciBar(label, value, pctOfBase, dropoffPct) {
+  return `
+    <div class="ci-funnel-row">
+      <span class="ci-funnel-row__label">${esc(label)}</span>
+      <div class="ci-funnel-row__track"><div class="ci-funnel-row__fill" style="width:${ciClamp(pctOfBase)}%"></div></div>
+      <span class="ci-funnel-row__val">${value.toLocaleString("en-IN")}</span>
+      ${dropoffPct !== null ? `<span class="ci-funnel-row__drop ${dropoffPct > 40 ? "ci-funnel-row__drop--high" : ""}">${dropoffPct >= 0 ? "−" : "+"}${Math.abs(dropoffPct)}%</span>` : `<span class="ci-funnel-row__drop"></span>`}
+    </div>`;
+}
+
+function renderConversionIntel() {
+  setTitle("Conversion Intelligence Center", "");
+  const orders = load(STORAGE.orders, []);
+
+  /* ── Section 1 — Master Conversion Funnel ─────────────────────────── */
+  const funnel = ccCounter("abdan-funnel");
+  const steps = [
+    { key: "visitors",         label: "Visitors" },
+    { key: "collectionViews",  label: "Collection Views" },
+    { key: "productViews",     label: "Product Views" },
+    { key: "productSaves",     label: "Product Saves" },
+    { key: "wardrobeSaves",    label: "Wardrobe Saves" },
+    { key: "momentSaves",      label: "Moment Saves" },
+    { key: "addToBag",         label: "Add To Bag" },
+    { key: "checkoutStarted",  label: "Checkout Started" },
+    { key: "paymentInitiated", label: "Payment Initiated" },
+    { key: "orderCompleted",   label: "Order Completed" },
+  ].map((s) => ({ ...s, val: s.key === "orderCompleted" ? orders.length : (funnel[s.key] || 0) }));
+  const fBase = Math.max(...steps.map((s) => s.val), 1);
+  steps.forEach((s, i) => {
+    s.pctOfBase = Math.round((s.val / fBase) * 100);
+    const prev = i > 0 ? steps[i - 1] : null;
+    s.dropoffPct = prev && prev.val ? Math.round(((prev.val - s.val) / prev.val) * 100) : null;
+  });
+
+  /* ── Section 2 — Collection Performance ───────────────────────────── */
+  const collViews  = ccCounter("abdan-collection-views");
+  const collSaves   = ccCounter("abdan-collection-saves");
+  const collShares  = ccCounter("abdan-collection-shares");
+  const collRevenue = {}, collPurchases = {};
+  orders.forEach((o) => (o.items || []).forEach((it) => {
+    if (!it.collection) return;
+    const qty = it.quantity || 1;
+    const unit = Number(it.price) || ((Number(o.total) || 0) / ((o.items || [1]).length || 1));
+    collPurchases[it.collection] = (collPurchases[it.collection] || 0) + qty;
+    collRevenue[it.collection]   = (collRevenue[it.collection]   || 0) + unit * qty;
+  }));
+  const collConversion = {};
+  Object.keys(collViews).forEach((c) => { collConversion[c] = collViews[c] ? Math.min(100, Math.round(((collPurchases[c] || 0) / collViews[c]) * 1000) / 10) : 0; });
+
+  /* ── Section 3 — Product Performance ──────────────────────────────── */
+  const viewsMap = ccCounter("abdan-product-views");
+  const sharesMap = ccCounter("abdan-product-shares");
+  const savesMap  = ccCounter("abdan-product-saves");
+  const bagMap    = ccCounter("abdan-product-addtobag");
+  const purchaseTally = {}, revenueTally = {};
+  orders.forEach((o) => (o.items || []).forEach((it) => {
+    const key = it.id || it.name; if (!key) return;
+    const qty = it.quantity || 1;
+    const unit = Number(it.price) || ((Number(o.total) || 0) / ((o.items || [1]).length || 1));
+    purchaseTally[key] = (purchaseTally[key] || 0) + qty;
+    revenueTally[key]  = (revenueTally[key]  || 0) + unit * qty;
+  }));
+  const productConversion = {};
+  Object.keys(viewsMap).forEach((id) => { productConversion[id] = viewsMap[id] ? Math.min(100, Math.round(((purchaseTally[id] || 0) / viewsMap[id]) * 1000) / 10) : 0; });
+
+  /* ── Section 4 — Checkout Intelligence ─────────────────────────────── */
+  const cartAbandonPct     = funnel.addToBag ? ciClamp(Math.round(((funnel.addToBag - (funnel.checkoutStarted || 0)) / funnel.addToBag) * 100)) : null;
+  const checkoutAbandonPct = funnel.checkoutStarted ? ciClamp(Math.round(((funnel.checkoutStarted - (funnel.paymentInitiated || 0)) / funnel.checkoutStarted) * 100)) : null;
+  const completionRatePct  = funnel.paymentInitiated ? ciClamp(Math.round((orders.length / funnel.paymentInitiated) * 100)) : null;
+
+  /* ── Section 5 — Savings Impact ────────────────────────────────────── */
+  const pctOf = (n) => orders.length ? Math.round((n / orders.length) * 100) : 0;
+  const savingsInfluencePct = pctOf(orders.filter((o) => Number(o.savings) > 0).length);
+  const couponInfluencePct  = pctOf(orders.filter((o) => o.couponCode).length);
+  const circleInfluencePct  = pctOf(orders.filter((o) => Number(o.compareSavings) > 0).length);
+  const campaignInfluencePct = pctOf(orders.filter((o) => o.ruleName).length);
+
+  /* ── Section 6 — Share the Love Impact ─────────────────────────────── */
+  const referrals = load(STORAGE.referrals, []);
+  const linksSharedSTL = ccScanPrefixed("abdan-sp-shares:").reduce((s, r) => s + Object.values(r.data || {}).reduce((a, b) => a + b, 0), 0);
+  const clicksSTL = referrals.length;
+  const peopleInspiredSTL = referrals.filter((r) => r.status === "rewarded").length;
+  const ordersGeneratedSTL = referrals.filter((r) => r.status === "rewarded" || r.ordered).length;
+  const pointsIssuedSTL = referrals.filter((r) => r.status === "rewarded").reduce((s, r) => s + (r.points || 0), 0);
+  const revenueGeneratedSTL = referrals.filter((r) => r.rewardedOrderRef).reduce((s, r) => {
+    const o = orders.find((x) => x.ref === r.rewardedOrderRef || x.id === r.rewardedOrderRef);
+    return s + (o ? Number(o.total) || 0 : 0);
+  }, 0);
+
+  /* ── Section 7 — Your Space Impact ─────────────────────────────────── */
+  const orderCountByEmail = {};
+  orders.forEach((o) => { const e = (o.customerEmail || "").toLowerCase(); if (e) orderCountByEmail[e] = (orderCountByEmail[e] || 0) + 1; });
+  const purchasingEmails = Object.keys(orderCountByEmail);
+  const emailSetFrom = (prefix) => new Set(ccScanPrefixed(prefix).filter((r) => (Array.isArray(r.data) ? r.data.length : r.data && Object.keys(r.data).length)).map((r) => r.ownerEmail));
+  function cohortCompare(engagedSet) {
+    const engaged = purchasingEmails.filter((e) => engagedSet.has(e));
+    const rest    = purchasingEmails.filter((e) => !engagedSet.has(e));
+    const avg = (arr) => arr.length ? Math.round((arr.reduce((s, e) => s + orderCountByEmail[e], 0) / arr.length) * 10) / 10 : 0;
+    return { engaged: engaged.length, rest: rest.length, avgEngaged: avg(engaged), avgRest: avg(rest) };
+  }
+  const spaceCohorts = [
+    { label: "Wardrobe Users",  cmp: cohortCompare(emailSetFrom("abdan-sp-ward-favs:")) },
+    { label: "Journey Users",   cmp: cohortCompare(emailSetFrom("abdan-sp-journey:")) },
+    { label: "Moment Users",    cmp: cohortCompare(emailSetFrom("abdan-sp-my-moments:")) },
+    { label: "Edit Users",      cmp: cohortCompare(emailSetFrom("abdan-sp-edits:")) },
+  ];
+
+  /* ── Section 8 — Concierge Conversion ──────────────────────────────── */
+  const profileList = Object.entries(load(STORAGE.customers, {}));
+  const categoryCounts = {};
+  const conciergeEmails = [];
+  profileList.forEach(([email]) => {
+    let msgs = []; try { msgs = JSON.parse(localStorage.getItem(`abdan-sp-concierge:${email}`) || "[]") || []; } catch { msgs = []; }
+    if (!msgs.length) return;
+    conciergeEmails.push(email);
+    msgs.forEach((m) => { if (m.category) categoryCounts[m.category] = (categoryCounts[m.category] || 0) + 1; });
+  });
+  const conciergeEmailSet = new Set(conciergeEmails);
+  const conciergeOrders = orders.filter((o) => conciergeEmailSet.has(String(o.customerEmail || "").toLowerCase()));
+  const conciergeRevenue = conciergeOrders.reduce((s, o) => s + (Number(o.total) || 0), 0);
+  const conciergeConvPct = conciergeEmails.length ? Math.round((conciergeOrders.length / conciergeEmails.length) * 100) : 0;
+
+  /* ── Section 9 — Drop-Off Analysis (funnel-gap based; this is a
+     single-page experience, so step-to-step loss IS the honest
+     equivalent of "exit points" — no fabricated page-level tracking). */
+  const dropoffRanked = steps.slice(1).map((s, i) => ({ from: steps[i].label, to: s.label, lossPct: s.dropoffPct }))
+    .filter((d) => d.lossPct !== null && d.lossPct > 0).sort((a, b) => b.lossPct - a.lossPct);
+
+  /* ── Section 10 — Conversion Opportunities (real thresholds only) ──── */
+  const opportunities = [];
+  Object.entries(viewsMap).forEach(([id, views]) => {
+    if (views >= 5 && (productConversion[id] || 0) < 5) opportunities.push(`${ccDeslug(id)} has ${views} views but only ${purchaseTally[id] || 0} purchase${(purchaseTally[id] || 0) !== 1 ? "s" : ""}.`);
+  });
+  Object.entries(collSaves).forEach(([c, saves]) => {
+    if (saves >= 3 && (collConversion[c] || 0) < 10) opportunities.push(`${c} has ${saves} saves but only ${collConversion[c] || 0}% conversion.`);
+  });
+  if (checkoutAbandonPct !== null && checkoutAbandonPct >= 40) {
+    const gap = Math.max(0, (funnel.checkoutStarted || 0) - (funnel.paymentInitiated || 0));
+    opportunities.push(`Checkout abandonment is at ${checkoutAbandonPct}% — ${gap} customer${gap !== 1 ? "s" : ""} started checkout but didn't reach payment.`);
+  }
+  if (cartAbandonPct !== null && cartAbandonPct >= 50) opportunities.push(`Cart abandonment is at ${cartAbandonPct}% — most bag-adds never reach checkout.`);
+  if (!opportunities.length) opportunities.push("No notable conversion gaps surfaced yet — opportunities will sharpen as more activity is tracked.");
+
+  dom.content.innerHTML = `
+    <div class="cc-wrap">
+      <div class="cc-section">
+        <p class="cc-section__label">Master Conversion Funnel</p>
+        <div class="ci-funnel">${steps.map((s) => ciBar(s.label, s.val, s.pctOfBase, s.dropoffPct)).join("")}</div>
+        <p class="cc-note">Bar width is relative to the largest step; the trailing figure is drop-off from the previous step.</p>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Collection Performance</p>
+        <div class="s-analytics-grid">
+          <div class="s-card"><h3 class="s-card__title">Most Viewed Collections</h3>${ccRankList(ccTopEntries(collViews, 6))}</div>
+          <div class="s-card"><h3 class="s-card__title">Highest Conversion Collections</h3>${ccRankList(ccTopEntries(collConversion, 6), (v) => `${v}%`)}</div>
+          <div class="s-card"><h3 class="s-card__title">Most Saved Collections</h3>${ccRankList(ccTopEntries(collSaves, 6))}</div>
+          <div class="s-card"><h3 class="s-card__title">Most Shared Collections</h3>${ccRankList(ccTopEntries(collShares, 6))}</div>
+          <div class="s-card"><h3 class="s-card__title">Revenue By Collection</h3>${ccRankList(ccTopEntries(collRevenue, 6), fmtCurrency)}</div>
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Product Performance</p>
+        <div class="s-analytics-grid">
+          <div class="s-card"><h3 class="s-card__title">Most Viewed</h3>${ccRankList(ccTopEntries(viewsMap, 6))}</div>
+          <div class="s-card"><h3 class="s-card__title">Most Saved</h3>${ccRankList(ccTopEntries(savesMap, 6))}</div>
+          <div class="s-card"><h3 class="s-card__title">Most Shared</h3>${ccRankList(ccTopEntries(sharesMap, 6))}</div>
+          <div class="s-card"><h3 class="s-card__title">Most Added To Bag</h3>${ccRankList(ccTopEntries(bagMap, 6))}</div>
+          <div class="s-card"><h3 class="s-card__title">Most Purchased</h3>${ccRankList(ccTopEntries(purchaseTally, 6))}</div>
+          <div class="s-card"><h3 class="s-card__title">Highest Conversion</h3>${ccRankList(ccTopEntries(productConversion, 6), (v) => `${v}%`)}</div>
+          <div class="s-card"><h3 class="s-card__title">Highest Revenue</h3>${ccRankList(ccTopEntries(revenueTally, 6), fmtCurrency)}</div>
+        </div>
+        <p class="cc-note">View/save/share/bag counters started with this release — conversion % will read more accurately as fresh views accumulate alongside new purchases.</p>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Checkout Intelligence</p>
+        <div class="cc-grid">
+          ${stat("shopping-cart", "Cart Abandonment Rate", cartAbandonPct !== null ? `${cartAbandonPct}%` : "—", "s-stat--amber")}
+          ${stat("credit-card", "Checkout Abandonment Rate", checkoutAbandonPct !== null ? `${checkoutAbandonPct}%` : "—", "s-stat--red")}
+          ${stat("check-circle", "Order Completion Rate", completionRatePct !== null ? `${completionRatePct}%` : "—", "s-stat--green")}
+          ${stat("alert-circle", "Payment Failure Rate", "—")}
+          ${stat("timer", "Average Checkout Time", "—")}
+        </div>
+        <p class="cc-note">Payment failure rate and checkout duration aren't tracked yet — no payment-failure or session-timing data exists in this system.</p>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Savings Impact</p>
+        <div class="cc-grid">
+          ${stat("sparkle", "Savings Influence", `${savingsInfluencePct}%`, "s-stat--gold")}
+          ${stat("ticket", "Coupon Influence", `${couponInfluencePct}%`)}
+          ${stat("gem", "Circle Benefit Influence", `${circleInfluencePct}%`, "s-stat--gold")}
+          ${stat("megaphone", "Campaign Influence", `${campaignInfluencePct}%`)}
+          ${stat("trending-up", "Conversion Lift", "—")}
+        </div>
+        <p class="cc-note">Conversion lift needs a controlled comparison (with vs. without savings shown) that isn't run yet — the figures above show real influence share instead.</p>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Share The Love Impact</p>
+        <div class="cc-grid">
+          ${stat("share-2", "Shared Links", linksSharedSTL, "s-stat--blue")}
+          ${stat("mouse-pointer-click", "Clicks", clicksSTL)}
+          ${stat("heart", "People Inspired", peopleInspiredSTL, "s-stat--purple")}
+          ${stat("shopping-bag", "Orders Generated", ordersGeneratedSTL, "s-stat--green")}
+          ${stat("indian-rupee", "Revenue Generated", fmtCurrency(revenueGeneratedSTL), "s-stat--gold")}
+          ${stat("award", "Circle Points Issued", pointsIssuedSTL)}
+        </div>
+        <p class="cc-note">"Product Views" from shared links specifically can't be isolated from organic views — not shown to avoid an inflated figure.</p>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Your Space Impact</p>
+        <div class="s-analytics-grid">
+          ${spaceCohorts.map((c) => `
+            <div class="s-card"><h3 class="s-card__title">${esc(c.label)} vs Non-Users</h3>
+              <div class="s-rank-list">
+                <div class="s-rank-row"><span class="s-rank-row__name">${esc(c.label)} — avg orders</span><span class="s-rank-row__val">${c.cmp.avgEngaged} (${c.cmp.engaged})</span></div>
+                <div class="s-rank-row"><span class="s-rank-row__name">Non-Users — avg orders</span><span class="s-rank-row__val">${c.cmp.avgRest} (${c.cmp.rest})</span></div>
+              </div>
+            </div>`).join("")}
+        </div>
+        <p class="cc-note">Figures in parentheses are the number of purchasing customers in each cohort.</p>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Concierge Conversion</p>
+        <div class="cc-grid">
+          ${stat("message-circle", "Conversations Started", conciergeEmails.length, "s-stat--blue")}
+          ${stat("shopping-bag", "Orders Generated", conciergeOrders.length, "s-stat--green")}
+          ${stat("indian-rupee", "Revenue Generated", fmtCurrency(conciergeRevenue), "s-stat--gold")}
+          ${stat("percent", "Conversion Rate", `${conciergeConvPct}%`)}
+        </div>
+        <p class="cc-section__sub">Most Requested Categories</p>
+        ${ccRankList(ccTopEntries(categoryCounts, 6))}
+        <p class="cc-note">Most Requested Products can't be parsed reliably from free-text concierge messages — not shown to avoid guessing.</p>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Drop-Off Analysis</p>
+        <p class="cc-section__sub">Funnel Drop-Off Hotspots</p>
+        ${dropoffRanked.length ? `<div class="s-rank-list">${dropoffRanked.slice(0, 6).map((d) => `<div class="s-rank-row"><span class="s-rank-row__name">${esc(d.from)} → ${esc(d.to)}</span><span class="s-rank-row__val">−${d.lossPct}%</span></div>`).join("")}</div>` : `<p class="cc-note">Not enough funnel activity yet to rank drop-off points.</p>`}
+        <p class="cc-note">ABDAN is a single-page experience, so step-to-step funnel loss is the honest equivalent of "exit points" — no separate page-level exit tracking exists.</p>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Conversion Opportunities</p>
+        <div class="cc-pulse-card">
+          ${opportunities.slice(0, 8).map((line) => `<p class="cc-pulse-line"><i data-lucide="lightbulb" class="s-icon"></i>${esc(line)}</p>`).join("")}
+        </div>
+      </div>
     </div>`;
 }
 
