@@ -50,6 +50,7 @@ const STUDIO_VIEWS = [
   { id: "ops-center",  label: "Operations Center",  icon: "siren",            group: "General"      },
   { id: "conversion-intel", label: "Conversion Intelligence", icon: "filter", group: "General"      },
   { id: "customer-intel", label: "Customer Intelligence", icon: "users",     group: "General"        },
+  { id: "retention-intel", label: "Retention Intelligence", icon: "anchor", group: "General"         },
   { id: "overview",    label: "Studio Overview",    icon: "layout-dashboard", group: "General"      },
 
   /* ── BRAND ───────────────────────────────────────────────── */
@@ -449,6 +450,7 @@ function renderView(id) {
     "ops-center": renderOpsCenter,
     "conversion-intel": renderConversionIntel,
     "customer-intel": renderCustomerIntel,
+    "retention-intel": renderRetentionIntel,
     vendors:     renderVendorsStub,
     overview:    renderOverview,
     products:    renderProducts,
@@ -1817,6 +1819,348 @@ function renderCustomerIntel() {
         <div class="cc-pulse-card">
           ${opportunitiesC.slice(0, 8).map((line) => `<p class="cc-pulse-line"><i data-lucide="lightbulb" class="s-icon"></i>${esc(line)}</p>`).join("")}
         </div>
+      </div>
+    </div>`;
+}
+
+/* ── RC-24: Retention Intelligence Center ───────────────────────────────
+   Answers "which customers are staying, leaving, and becoming loyal?".
+   Complements (does not duplicate) Customer Intelligence Center: that
+   view classifies value/segments broadly, this one is purpose-built
+   around retention curves, churn-risk tiers, cohorts, and a retention-
+   specific score. Built from the same real data sources, computed fresh
+   per the established per-view pattern (see RC-20/22/23). ────────────── */
+function riChurnTier(ageDays) {
+  if (ageDays === null) return null;
+  if (ageDays > 90) return "Critical Risk";
+  if (ageDays > 60) return "High Risk";
+  if (ageDays > 30) return "Medium Risk";
+  return "Low Risk";
+}
+
+function renderRetentionIntel() {
+  setTitle("Retention Intelligence Center", "");
+  const now = new Date();
+  const orders = load(STORAGE.orders, []);
+  const profiles = load(STORAGE.customers, {});
+  const profileList = Object.entries(profiles);
+  const totalCustomers = profileList.length;
+  const allReferrals = load(STORAGE.referrals, []);
+  const referralsInvitedByEmail = {};
+  allReferrals.forEach((r) => { const re = String(r.referrerEmail || "").toLowerCase(); if (re) referralsInvitedByEmail[re] = (referralsInvitedByEmail[re] || 0) + 1; });
+  const journeyMilestones = getJourneyMilestones().filter((m) => m.active !== false);
+
+  const orderCountByEmail = {}, lastOrderByEmail = {}, firstOrderByEmail = {}, revenueByEmail = {};
+  orders.forEach((o) => {
+    const e = String(o.customerEmail || "").toLowerCase(); if (!e || !o.createdAt) return;
+    const t = new Date(o.createdAt).getTime();
+    orderCountByEmail[e] = (orderCountByEmail[e] || 0) + 1;
+    revenueByEmail[e] = (revenueByEmail[e] || 0) + (Number(o.total) || 0);
+    if (!lastOrderByEmail[e] || t > lastOrderByEmail[e]) lastOrderByEmail[e] = t;
+    if (!firstOrderByEmail[e] || t < firstOrderByEmail[e]) firstOrderByEmail[e] = t;
+  });
+
+  const profile = profileList.map(([email, p]) => {
+    const pts = (() => { try { return JSON.parse(localStorage.getItem(`abdan-sp-loyalty:${email}`) || "0") || 0; } catch { return 0; } })();
+    let conciergeMsgs = []; try { conciergeMsgs = JSON.parse(localStorage.getItem(`abdan-sp-concierge:${email}`) || "[]") || []; } catch {}
+    const usedConcierge = conciergeMsgs.some((m) => m.from !== "abdan" && m.from !== "system");
+    let wardFavs = []; try { wardFavs = JSON.parse(localStorage.getItem(`abdan-sp-ward-favs:${email}`) || "[]") || []; } catch {}
+    let journeyDates = {}; try { journeyDates = JSON.parse(localStorage.getItem(`abdan-sp-journey:${email}`) || "{}") || {}; } catch {}
+    let moments = []; try { moments = JSON.parse(localStorage.getItem(`abdan-sp-my-moments:${email}`) || "[]") || []; } catch {}
+    let edits = []; try { edits = JSON.parse(localStorage.getItem(`abdan-sp-edits:${email}`) || "[]") || []; } catch {}
+    let shares = {}; try { shares = JSON.parse(localStorage.getItem(`abdan-sp-shares:${email}`) || "{}") || {}; } catch {}
+    const referralsInvited = referralsInvitedByEmail[email] || 0;
+    const usedShareTheLove = referralsInvited > 0 || Object.keys(shares).length > 0;
+    const orderCount = orderCountByEmail[email] || 0;
+    const revenue = revenueByEmail[email] || 0;
+    const lastOrderAt = lastOrderByEmail[email] || null;
+    const firstOrderAt = firstOrderByEmail[email] || null;
+    const ageDays = lastOrderAt ? Math.floor((now.getTime() - lastOrderAt) / 864e5) : null;
+    const journeyUnlocked = Object.keys(journeyDates).length;
+    const milestonePct = journeyMilestones.length ? Math.round((journeyUnlocked / journeyMilestones.length) * 100) : 0;
+    const wardrobeUsed = wardFavs.length > 0;
+    const momentsUsed = moments.length > 0;
+    const editsUsed = edits.length > 0;
+    const journeyUsed = journeyUnlocked > 0;
+    const isCommunity = editsUsed || momentsUsed || referralsInvited > 0;
+    const engagementBreadth = [wardrobeUsed, journeyUsed, momentsUsed, editsUsed, usedShareTheLove, usedConcierge].filter(Boolean).length;
+    const retainedFlag = ageDays !== null && ageDays <= 90; /* "still active" within a 90-day retention window */
+
+    /* Lifecycle — single bucket, priority order, exactly as briefed */
+    let lifecycle;
+    if (pts >= 300) lifecycle = "VIP Customer";
+    else if (pts >= 150) lifecycle = "Inner Circle Member";
+    else if (orderCount > 0 && ageDays !== null && ageDays > 90) lifecycle = "Dormant Customer";
+    else if (orderCount > 0 && ageDays !== null && ageDays > 60) lifecycle = "At Risk Customer";
+    else if (orderCount >= 3) lifecycle = "Loyal Customer";
+    else if (orderCount >= 1 && ageDays !== null && ageDays <= 60) lifecycle = "Active Customer";
+    else if (engagementBreadth >= 2) lifecycle = "Growing Customer";
+    else lifecycle = "New Customer";
+
+    const churnTier = orderCount > 0 ? riChurnTier(ageDays) : null;
+
+    /* Retention Score — 8 factors, ~12.5 pts each, real signals only */
+    let retentionScore = 0;
+    if (ageDays !== null && ageDays <= 30) retentionScore += 12.5; else if (ageDays !== null && ageDays <= 90) retentionScore += 6;
+    retentionScore += (engagementBreadth / 6) * 12.5;
+    retentionScore += journeyUsed ? 12.5 * (milestonePct / 100) : 0;
+    retentionScore += wardrobeUsed ? 12.5 : 0;
+    retentionScore += momentsUsed ? 12.5 : 0;
+    retentionScore += usedConcierge ? 12.5 : 0;
+    retentionScore += isCommunity ? 12.5 : 0;
+    retentionScore += referralsInvited > 0 ? 12.5 : 0;
+    retentionScore = Math.min(100, Math.round(retentionScore));
+
+    return {
+      email, name: p.displayName || p.fullName || email, createdAt: p.createdAt,
+      pts, orderCount, revenue, lastOrderAt, firstOrderAt, ageDays,
+      wardrobeUsed, journeyUsed, momentsUsed, editsUsed, usedShareTheLove, usedConcierge, isCommunity,
+      referralsInvited, journeyUnlocked, milestonePct, engagementBreadth,
+      retainedFlag, lifecycle, churnTier, retentionScore,
+    };
+  });
+
+  /* ── Section 1 — Retention Overview ────────────────────────────────── */
+  const purchasers = profile.filter((c) => c.orderCount > 0);
+  const retentionPct = (days) => purchasers.length ? Math.round((purchasers.filter((c) => c.ageDays !== null && c.ageDays <= days).length / purchasers.length) * 100) : 0;
+  const returningCustomers = purchasers.filter((c) => c.orderCount >= 2).length;
+  const repeatPurchaseRatePct = purchasers.length ? Math.round((returningCustomers / purchasers.length) * 100) : 0;
+  const customerReturnRatePct = totalCustomers ? Math.round((returningCustomers / totalCustomers) * 100) : 0;
+
+  /* ── Section 2 — Customer Lifecycle ────────────────────────────────── */
+  const lifecycleOrder = ["New Customer", "Growing Customer", "Active Customer", "Loyal Customer", "VIP Customer", "Inner Circle Member", "At Risk Customer", "Dormant Customer"];
+  const lifecycleCounts = {};
+  profile.forEach((c) => { lifecycleCounts[c.lifecycle] = (lifecycleCounts[c.lifecycle] || 0) + 1; });
+  const pctOfAll = (n) => totalCustomers ? Math.round((n / totalCustomers) * 100) : 0;
+
+  /* ── Section 3 — Churn Risk Intelligence ───────────────────────────── */
+  const churnCounts = { "Low Risk": 0, "Medium Risk": 0, "High Risk": 0, "Critical Risk": 0 };
+  purchasers.forEach((c) => { if (c.churnTier) churnCounts[c.churnTier]++; });
+  const decliningEngagement = profile.filter((c) => c.orderCount > 0 && c.engagementBreadth === 0 && c.churnTier && c.churnTier !== "Low Risk").length;
+
+  /* ── Section 4 — Repeat Purchase Intelligence ──────────────────────── */
+  const gaps = [];
+  Object.keys(orderCountByEmail).forEach((e) => {
+    const oList = orders.filter((o) => String(o.customerEmail || "").toLowerCase() === e && o.createdAt).map((o) => new Date(o.createdAt).getTime()).sort((a, b) => a - b);
+    for (let i = 1; i < oList.length; i++) gaps.push(oList[i] - oList[i - 1]);
+  });
+  const avgGapDays = gaps.length ? Math.round((gaps.reduce((s, g) => s + g, 0) / gaps.length) / 864e5) : null;
+  const repeatFrequency = purchasers.length ? Math.round((orders.length / purchasers.length) * 10) / 10 : 0;
+  const collectionTally = {}, repeatRevenue = { value: 0 };
+  const seenOnceByEmail = {};
+  orders.slice().sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0)).forEach((o) => {
+    const e = String(o.customerEmail || "").toLowerCase();
+    const isRepeat = e && seenOnceByEmail[e];
+    if (e) seenOnceByEmail[e] = true;
+    (o.items || []).forEach((it) => {
+      if (it.collection && isRepeat) collectionTally[it.collection] = (collectionTally[it.collection] || 0) + (it.quantity || 1);
+    });
+    if (isRepeat) repeatRevenue.value += Number(o.total) || 0;
+  });
+
+  /* ── Section 5 — Your Space Retention Impact (users vs non-users) ──── */
+  function retentionCompare(flagFn) {
+    const users = purchasers.filter(flagFn);
+    const nonUsers = purchasers.filter((c) => !flagFn(c));
+    const retPct = (arr) => arr.length ? Math.round((arr.filter((c) => c.retainedFlag).length / arr.length) * 100) : 0;
+    return { usersCount: users.length, nonUsersCount: nonUsers.length, usersRetention: retPct(users), nonUsersRetention: retPct(nonUsers) };
+  }
+  const spaceImpact = [
+    { label: "Wardrobe Users",     cmp: retentionCompare((c) => c.wardrobeUsed) },
+    { label: "Journey Users",      cmp: retentionCompare((c) => c.journeyUsed) },
+    { label: "Moments Users",      cmp: retentionCompare((c) => c.momentsUsed) },
+    { label: "Edits Users",        cmp: retentionCompare((c) => c.editsUsed) },
+    { label: "Share The Love Users", cmp: retentionCompare((c) => c.usedShareTheLove) },
+    { label: "Concierge Users",    cmp: retentionCompare((c) => c.usedConcierge) },
+  ];
+
+  /* ── Section 6 — Community Retention Impact ────────────────────────── */
+  const communityImpact = retentionCompare((c) => c.isCommunity);
+  let journalTotal = 0; ccScanPrefixed("abdan-sp-journal:").forEach((r) => { journalTotal += Array.isArray(r.data) ? r.data.length : 0; });
+  const collectionsSharedTotal = ccScanPrefixed("abdan-sp-edits:").reduce((s, r) => s + (Array.isArray(r.data) ? r.data.filter((e) => e.status === "published").length : 0), 0);
+
+  /* ── Section 7 — Concierge Retention Impact ────────────────────────── */
+  const conciergeUsersArr = profile.filter((c) => c.usedConcierge);
+  const repeatConciergeUsers = (() => {
+    let n = 0;
+    profileList.forEach(([email]) => {
+      let msgs = []; try { msgs = JSON.parse(localStorage.getItem(`abdan-sp-concierge:${email}`) || "[]") || []; } catch {}
+      if (msgs.filter((m) => m.from !== "abdan" && m.from !== "system").length >= 2) n++;
+    });
+    return n;
+  })();
+  const conciergeEmailSet = new Set(conciergeUsersArr.map((c) => c.email));
+  const conciergeOrders = orders.filter((o) => conciergeEmailSet.has(String(o.customerEmail || "").toLowerCase()));
+  const conciergeRevenue = conciergeOrders.reduce((s, o) => s + (Number(o.total) || 0), 0);
+  const conciergeImpact = retentionCompare((c) => c.usedConcierge);
+  const conciergeCLV = conciergeUsersArr.length ? Math.round(conciergeUsersArr.reduce((s, c) => s + c.revenue, 0) / conciergeUsersArr.length) : 0;
+  const nonConciergeCLV = (() => { const arr = purchasers.filter((c) => !c.usedConcierge); return arr.length ? Math.round(arr.reduce((s, c) => s + c.revenue, 0) / arr.length) : 0; })();
+
+  /* ── Section 8 — Loyalty Retention Impact ──────────────────────────── */
+  const circlePointParticipationPct = pctOfAll(profile.filter((c) => c.pts > 0).length);
+  const journeyParticipationPct = pctOfAll(profile.filter((c) => c.journeyUsed).length);
+  const innerCircleParticipationPct = pctOfAll(profile.filter((c) => c.pts >= 150).length);
+  const loyaltyImpact = retentionCompare((c) => c.pts > 0);
+
+  /* ── Section 9 — Retention Cohorts ─────────────────────────────────── */
+  const qStart = new Date(ccMonthStart(now)); qStart.setMonth(qStart.getMonth() - 3);
+  const lastMonthStart = new Date(ccMonthStart(now)); lastMonthStart.setMonth(lastMonthStart.getMonth() - 1);
+  const cohorts = [
+    { label: "Joined This Month", filter: (c) => c.createdAt && new Date(c.createdAt) >= ccMonthStart(now) },
+    { label: "Joined Last Month", filter: (c) => c.createdAt && new Date(c.createdAt) >= lastMonthStart && new Date(c.createdAt) < ccMonthStart(now) },
+    { label: "Joined Last Quarter", filter: (c) => c.createdAt && new Date(c.createdAt) >= qStart && new Date(c.createdAt) < lastMonthStart },
+    { label: "Older", filter: (c) => !c.createdAt || new Date(c.createdAt) < qStart },
+  ].map((co) => {
+    const members = profile.filter(co.filter);
+    const converted = members.filter((c) => c.orderCount > 0).length;
+    const retained = members.filter((c) => c.retainedFlag).length;
+    return { label: co.label, total: members.length, convertedPct: members.length ? Math.round((converted / members.length) * 100) : 0, retainedPct: members.length ? Math.round((retained / members.length) * 100) : 0 };
+  });
+
+  /* ── Section 10 — At-Risk Customer Actions ─────────────────────────── */
+  const needFollowUp = profile.filter((c) => c.lifecycle === "At Risk Customer" || c.lifecycle === "Dormant Customer");
+  const needConcierge = needFollowUp.filter((c) => !c.usedConcierge).length;
+  const needEngagement = needFollowUp.filter((c) => c.engagementBreadth === 0).length;
+  const nearVIP = profile.filter((c) => c.pts >= 250 && c.pts < 300);
+  const nearInnerCircle = profile.filter((c) => c.pts >= 100 && c.pts < 150);
+
+  /* ── Section 11 — Retention Opportunities (real thresholds only) ───── */
+  const opportunitiesR = [];
+  profile.forEach((c) => { if (c.engagementBreadth >= 3 && c.orderCount === 0) opportunitiesR.push(`${c.name} is highly engaged but hasn't purchased yet.`); });
+  profile.forEach((c) => { if (c.orderCount >= 1 && c.engagementBreadth === 0) opportunitiesR.push(`${c.name} has purchased but isn't using Your Space yet.`); });
+  profile.forEach((c) => { if (c.orderCount === 2 && c.engagementBreadth >= 1) opportunitiesR.push(`${c.name} is close to becoming a Loyal Customer (one more order).`); });
+  nearVIP.forEach((c) => opportunitiesR.push(`${c.name} is ${300 - c.pts} pts from VIP status.`));
+  if (!opportunitiesR.length) opportunitiesR.push("No notable retention opportunities surfaced yet.");
+
+  /* ── Section 12 — Retention Score ──────────────────────────────────── */
+  const avgRetentionScore = profile.length ? Math.round(profile.reduce((s, c) => s + c.retentionScore, 0) / profile.length) : 0;
+  const topRetentionScores = [...profile].sort((a, b) => b.retentionScore - a.retentionScore).slice(0, 6);
+
+  dom.content.innerHTML = `
+    <div class="cc-wrap">
+      <div class="cc-section cc-section--hero">
+        <p class="cc-section__label">Retention Overview</p>
+        <div class="cc-grid cc-grid--6">
+          ${stat("calendar", "30-Day Retention", `${retentionPct(30)}%`, "s-stat--green")}
+          ${stat("calendar", "60-Day Retention", `${retentionPct(60)}%`)}
+          ${stat("calendar", "90-Day Retention", `${retentionPct(90)}%`)}
+          ${stat("calendar", "180-Day Retention", `${retentionPct(180)}%`)}
+          ${stat("calendar", "365-Day Retention", `${retentionPct(365)}%`)}
+          ${stat("repeat", "Repeat Purchase Rate", `${repeatPurchaseRatePct}%`, "s-stat--gold")}
+          ${stat("undo-2", "Customer Return Rate", `${customerReturnRatePct}%`)}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Customer Lifecycle</p>
+        <div class="s-rank-list">${lifecycleOrder.filter((s) => lifecycleCounts[s]).map((s) => `<div class="s-rank-row"><span class="s-rank-row__name">${esc(s)}</span><span class="s-rank-row__val">${lifecycleCounts[s]} (${pctOfAll(lifecycleCounts[s])}%)</span></div>`).join("")}</div>
+        <p class="cc-note">A retention-focused lifecycle view — each customer in exactly one stage. Complements (doesn't replace) Customer Intelligence Center's segmentation.</p>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Churn Risk Intelligence</p>
+        <div class="cc-grid">
+          ${stat("shield-check", "Low Risk", churnCounts["Low Risk"], "s-stat--green")}
+          ${stat("shield-alert", "Medium Risk", churnCounts["Medium Risk"], "s-stat--amber")}
+          ${stat("shield-x", "High Risk", churnCounts["High Risk"], "s-stat--red")}
+          ${stat("siren", "Critical Risk", churnCounts["Critical Risk"], "s-stat--red")}
+        </div>
+        <p class="cc-note">${decliningEngagement} purchasing customer${decliningEngagement !== 1 ? "s" : ""} show both order inactivity and zero Your Space engagement — the clearest combined churn signal available.</p>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Repeat Purchase Intelligence</p>
+        <div class="cc-grid">
+          ${stat("calendar", "Avg Time Between Purchases", avgGapDays !== null ? `${avgGapDays} days` : "—")}
+          ${stat("repeat", "Repeat Purchase Frequency", repeatFrequency)}
+          ${stat("indian-rupee", "Repeat Purchase Revenue", fmtCurrency(repeatRevenue.value), "s-stat--gold")}
+        </div>
+        <p class="cc-section__sub">Most Common Re-Purchase Collections</p>
+        ${ccRankList(ccTopEntries(collectionTally, 6))}
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Your Space Retention Impact</p>
+        <div class="s-analytics-grid">
+          ${spaceImpact.map((s) => `
+            <div class="s-card"><h3 class="s-card__title">${esc(s.label)}</h3>
+              <div class="s-rank-list">
+                <div class="s-rank-row"><span class="s-rank-row__name">Users (${s.cmp.usersCount}) — retained</span><span class="s-rank-row__val">${s.cmp.usersRetention}%</span></div>
+                <div class="s-rank-row"><span class="s-rank-row__name">Non-Users (${s.cmp.nonUsersCount}) — retained</span><span class="s-rank-row__val">${s.cmp.nonUsersRetention}%</span></div>
+              </div>
+            </div>`).join("")}
+        </div>
+        <p class="cc-note">"Retained" = ordered within the last 90 days, among purchasing customers only.</p>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Community Retention Impact</p>
+        <div class="cc-grid">
+          ${stat("book-open", "Journal Entries", journalTotal)}
+          ${stat("share-2", "Collections Shared", collectionsSharedTotal)}
+          ${stat("user-plus", "Referrals Generated", allReferrals.length)}
+          ${stat("percent", "Community Users — Retained", `${communityImpact.usersRetention}%`, "s-stat--green")}
+          ${stat("percent", "Non-Community — Retained", `${communityImpact.nonUsersRetention}%`)}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Concierge Retention Impact</p>
+        <div class="cc-grid">
+          ${stat("repeat", "Repeat Concierge Users", repeatConciergeUsers)}
+          ${stat("percent", "Concierge Users — Retained", `${conciergeImpact.usersRetention}%`, "s-stat--green")}
+          ${stat("percent", "Non-Concierge — Retained", `${conciergeImpact.nonUsersRetention}%`)}
+          ${stat("indian-rupee", "Revenue From Concierge Users", fmtCurrency(conciergeRevenue), "s-stat--gold")}
+          ${stat("gem", "CLV — Concierge vs Non", `${fmtCurrency(conciergeCLV)} / ${fmtCurrency(nonConciergeCLV)}`)}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Loyalty Retention Impact</p>
+        <div class="cc-grid">
+          ${stat("award", "Circle Point Participation", `${circlePointParticipationPct}%`, "s-stat--gold")}
+          ${stat("map", "Journey Participation", `${journeyParticipationPct}%`)}
+          ${stat("gem", "Inner Circle Participation", `${innerCircleParticipationPct}%`, "s-stat--gold")}
+          ${stat("percent", "Loyalty Members — Retained", `${loyaltyImpact.usersRetention}%`, "s-stat--green")}
+          ${stat("percent", "Non-Members — Retained", `${loyaltyImpact.nonUsersRetention}%`)}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Retention Cohorts</p>
+        <div class="s-list">${cohorts.map((co) => `
+          <div class="s-list-item">
+            <div class="s-list-item__main"><strong>${esc(co.label)}</strong><span class="s-list-item__sub">${co.total} customer${co.total !== 1 ? "s" : ""} · ${co.convertedPct}% converted to a purchase</span></div>
+            <div class="s-list-item__actions"><span class="s-badge ${co.retainedPct >= 50 ? "s-badge--green" : "s-badge--amber"}">${co.retainedPct}% retained</span></div>
+          </div>`).join("")}</div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">At-Risk Customer Actions</p>
+        <div class="cc-grid">
+          ${stat("phone", "Needing Follow-Up", needFollowUp.length, "s-stat--amber")}
+          ${stat("message-circle", "Needing Concierge Outreach", needConcierge)}
+          ${stat("heart", "Needing Engagement", needEngagement)}
+          ${stat("crown", "Near VIP Status", nearVIP.length, "s-stat--gold")}
+          ${stat("gem", "Near Inner Circle", nearInnerCircle.length, "s-stat--gold")}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Retention Opportunities</p>
+        <div class="cc-pulse-card">
+          ${opportunitiesR.slice(0, 8).map((line) => `<p class="cc-pulse-line"><i data-lucide="lightbulb" class="s-icon"></i>${esc(line)}</p>`).join("")}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Retention Score</p>
+        <div class="cc-grid">
+          ${stat("activity", "Average Retention Score", avgRetentionScore, avgRetentionScore >= 70 ? "s-stat--green" : avgRetentionScore >= 40 ? "s-stat--amber" : "s-stat--red")}
+        </div>
+        <p class="cc-section__sub">Highest Retention Scores</p>
+        ${topRetentionScores.length ? `<div class="s-rank-list">${topRetentionScores.map((c) => `<div class="s-rank-row"><span class="s-rank-row__name">${esc(c.name)}</span><span class="s-rank-row__val">${c.retentionScore}</span></div>`).join("")}</div>` : empty("No customers yet.", "anchor")}
+        <p class="cc-note">Weighted evenly across purchase recency, engagement breadth, Journey/Wardrobe/Moments usage, Concierge usage, community participation, and referral activity — real signals only, capped at 100.</p>
       </div>
     </div>`;
 }
