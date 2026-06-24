@@ -3434,8 +3434,15 @@ function renderCart() {
     dom.cartCheckoutButton.disabled = true;
     dom.cartCheckoutButton.style.opacity = "0.45";
     dom.bagCheckoutPanel.hidden = true;
+    /* Bug fix: these discount lines previously stayed visible with their
+       last-known values after the cart emptied (e.g. right after placing
+       an order) — only the savings line was being hidden here. */
     const saveLineEmpty = document.getElementById("cartSavingsLine");
     if (saveLineEmpty) saveLineEmpty.hidden = true;
+    const ruleLineEmpty = document.getElementById("cartRuleLine");
+    if (ruleLineEmpty) ruleLineEmpty.hidden = true;
+    const couponLineEmpty = document.getElementById("cartCouponLine");
+    if (couponLineEmpty) couponLineEmpty.hidden = true;
     return;
   }
 
@@ -3581,6 +3588,16 @@ function showOrderSuccess(customerName, order) {
   dom.cartCount.textContent = "0";
   dom.cartCheckoutButton.hidden = true;
   dom.bagCheckoutPanel.hidden = true;
+  /* Bug fix: this success view swaps #cartItems directly (not via
+     renderCart()), so the savings/rule/coupon discount lines below it
+     were left showing their last value from the just-placed order —
+     e.g. "Total Savings ₹4,000" still visible on an empty, ₹0 bag. */
+  const saveLineDone = document.getElementById("cartSavingsLine");
+  if (saveLineDone) saveLineDone.hidden = true;
+  const ruleLineDone = document.getElementById("cartRuleLine");
+  if (ruleLineDone) ruleLineDone.hidden = true;
+  const couponLineDone = document.getElementById("cartCouponLine");
+  if (couponLineDone) couponLineDone.hidden = true;
   safeCreateIcons();
   lxOrderStory(); /* §56 — cinematic stagger: check → title → body → note → timeline */
 }
@@ -3784,9 +3801,12 @@ function attachSwipe(container, panel, opts) {
   function onStart(e) {
     if (mobileOnly && window.innerWidth > 800) return;
 
-    /* Don't intercept when content is scrolled — let native scroll run */
-    const scrollEl = panel.querySelector(".drawer-body, .product-sheet__content");
-    if (scrollEl && axis === "y" && scrollEl.scrollTop > 4) return;
+    /* Don't intercept when content is scrolled — let native scroll run.
+       The cart drawer scrolls via an inner ".drawer-body"; the product
+       sheet scrolls on the panel itself (no separate scroll child), so
+       fall back to the panel when no inner scroll container exists. */
+    const scrollEl = panel.querySelector(".drawer-body") || panel;
+    if (axis === "y" && scrollEl.scrollTop > 4) return;
 
     startPos  = getPos(e);
     startTime = Date.now();

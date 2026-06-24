@@ -6058,8 +6058,8 @@ html[data-theme="dark"] .trust-rail__inner span {
 @media (max-width: 767px) {
   .cart-drawer__panel {
     inset: auto 0 0 0;            width: 100%;
-    height: 88svh;
-    max-height: 88svh;
+    height: 93svh;
+    max-height: 93svh;
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     transform: translateY(100%);
     transition: transform 420ms var(--ease-snap);
@@ -6077,6 +6077,25 @@ html[data-theme="dark"] .trust-rail__inner span {
     background: var(--line);
     margin: 0.55rem auto 0;
     flex-shrink: 0;
+  }
+  /* Bug fix: on mobile, the editorial header + savings/coupon footer were
+     consuming so much of the bottom-sheet's height that the scrollable
+     item list shrank to ~170px — barely showing one cropped item card
+     when 2+ pieces were in the bag. Tighten chrome padding here only
+     (desktop drawer keeps its generous spacing) so .drawer-body (flex:1)
+     reclaims real room to show items without feeling cramped. */
+  .cart-drawer .drawer-header {
+    padding: 1rem 1.35rem 0.85rem;
+  }
+  .cart-drawer .drawer-header h2 {
+    margin: 0.3rem 0;
+  }
+  .cart-drawer .drawer-footer {
+    padding: 0.85rem 1.35rem 1.25rem;
+  }
+  .cart-drawer .drawer-body {
+    flex: 1 1 auto;
+    min-height: 35vh;
   }
 }
 @media (max-width: 767px) {
@@ -16888,6 +16907,11 @@ html[data-theme="dark"] .space-entry-grid > .space-gift-visual::after {
   font-size:       0.92rem;
   color:           var(--gold, #c5a13b);
 }
+/* Bug fix: this unconditional `display:flex` was beating the browser's
+   default `[hidden] { display:none }` rule, so setting `.hidden = true`
+   on the savings/rule/coupon lines in JS had no visual effect — they
+   stayed visible with stale values (e.g. after an order emptied the bag). */
+.drawer-savings[hidden] { display: none; }
 .drawer-savings strong { font-weight: 700; }
 .checkout-savings {
   margin-top:     0.5rem;
