@@ -2367,3 +2367,43 @@ html { overflow-x: hidden; }
   .cc-grid, .cc-grid--6 { grid-template-columns: repeat(2, 1fr); }
   .cc-wrap { gap: 1.5rem; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   RC-20 — EXECUTIVE COMMAND CENTER (additive admin homepage, Phase 2)
+   Operational/customer/product/vendor intelligence — premium, calm,
+   Stripe/Linear-style cards layered onto the existing Phase 1 layout.
+   ════════════════════════════════════════════════════════════════════ */
+.cc-section--hero {
+  background: linear-gradient(155deg, rgba(2, 61, 58, .06), rgba(176, 141, 63, .07));
+  border: 1px solid var(--s-border);
+  border-radius: var(--s-r-lg, 1rem);
+  padding: 1.4rem 1.4rem 1.1rem;
+  animation: ccRiseIn .5s cubic-bezier(.22, .9, .3, 1) both;
+}
+.cc-section--hero .cc-section__label { color: var(--s-gold); font-size: 0.78rem; margin-bottom: 1rem; }
+@keyframes ccRiseIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.cc-section__head { display: flex; align-items: center; justify-content: space-between; gap: .8rem; flex-wrap: wrap; margin-bottom: .85rem; }
+.cc-section__head .cc-section__label { margin-bottom: 0; }
+.cc-section__head .s-qaction { padding: .45rem .85rem; font-size: .72rem; }
+.cc-section__sub { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--s-text-dim); margin: 1.1rem 0 .5rem; }
+.cc-note { font-size: 0.78rem; color: var(--s-text-dim); font-style: italic; margin: .4rem 0 0; }
+
+.cc-stat { position: relative; transition: transform .2s cubic-bezier(.22, .9, .3, 1), box-shadow .2s ease; }
+.cc-trend {
+  position: absolute; top: .85rem; right: .9rem;
+  font-size: 0.68rem; font-weight: 700; padding: .15rem .5rem; border-radius: 1rem;
+}
+.cc-trend--up   { color: var(--s-success); background: rgba(34, 197, 94, .12); }
+.cc-trend--down { color: var(--s-error);   background: rgba(239, 68, 68, .12); }
+
+@media (hover: hover) {
+  .cc-stat:hover { transform: translateY(-2px); box-shadow: var(--s-shadow-sm, 0 8px 20px rgba(0,0,0,.08)); }
+  .s-card:hover  { box-shadow: var(--s-shadow-sm, 0 8px 20px rgba(0,0,0,.08)); }
+}
+.s-card { transition: box-shadow .2s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-section--hero { animation: none !important; }
+  .cc-stat, .s-card { transition: none !important; }
+}

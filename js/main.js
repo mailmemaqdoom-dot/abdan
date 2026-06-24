@@ -569,6 +569,16 @@ function recordProductView(productId) {
   const viewed = (Array.isArray(mem.lastViewedIds) ? mem.lastViewedIds : []).filter(id => id !== productId);
   viewed.unshift(productId);
   saveMemory({ lastViewedIds: viewed.slice(0, 6) });
+  bumpProductCounter("abdan-product-views", productId);
+}
+
+/* RC-20 — minimal, additive counters powering admin Product Intelligence.
+   Plain tally maps only — no personal data, no new customer-facing UI. */
+function bumpProductCounter(key, productId) {
+  if (!productId) return;
+  let m = {}; try { m = JSON.parse(localStorage.getItem(key) || "{}") || {}; } catch { m = {}; }
+  m[productId] = (m[productId] || 0) + 1;
+  try { localStorage.setItem(key, JSON.stringify(m)); } catch {}
 }
 
 /* ── recordFilterUsage ───────────────────────────────────────────────────
@@ -8440,6 +8450,13 @@ function addProductToMoment(email, momentId, product) {
     if (typeof state !== "undefined" && state.activeProductId) openAddToMomentSheet(state.activeProductId);
   });
   document.querySelectorAll("[data-close-moment-picker]").forEach((b) => b.addEventListener("click", closeMomentPicker));
+})();
+
+/* RC-20 — count product shares (delegated; container persists across re-renders) */
+(function wireProductShareTracking() {
+  dom.shareButtons?.addEventListener("click", (e) => {
+    if (e.target.closest(".share-btn") && state.activeProductId) bumpProductCounter("abdan-product-shares", state.activeProductId);
+  });
 })();
 
 /* ════════════════════════════════════════════════════════════════════

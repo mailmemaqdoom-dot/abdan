@@ -506,6 +506,32 @@ function ccWeekStart(d) { const x = ccDayStart(d); const day = x.getDay(); x.set
 function ccMonthStart(d) { const x = ccDayStart(d); x.setDate(1); return x; }
 function ccYearStart(d) { const x = ccDayStart(d); x.setMonth(0, 1); return x; }
 
+/* ── RC-20: Executive intelligence helpers (additive) ──────────────────
+   Pure read-only aggregation over existing localStorage data. No new
+   customer-facing behaviour; no invented numbers — fields with no real
+   underlying data render an honest "not yet tracked" note instead. */
+function ccPct(curr, prev) { return prev > 0 ? Math.round(((curr - prev) / prev) * 100) : null; }
+function ccTopEntries(map, n = 5) { return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, n); }
+function ccDeslug(id) { return String(id || "").replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()); }
+function ccRankList(rows, fmt) {
+  return rows.length
+    ? `<div class="s-rank-list">${rows.map(([label, val]) => `<div class="s-rank-row"><span class="s-rank-row__name">${esc(ccDeslug(label))}</span><span class="s-rank-row__val">${fmt ? fmt(val) : val}</span></div>`).join("")}</div>`
+    : `<p class="cc-note">Not enough activity recorded yet.</p>`;
+}
+function ccScanPrefixed(prefix) {
+  const out = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || k.indexOf(prefix) !== 0) continue;
+      let data = null; try { data = JSON.parse(localStorage.getItem(k)); } catch { data = null; }
+      out.push({ ownerEmail: k.slice(prefix.length), data });
+    }
+  } catch {}
+  return out;
+}
+function ccCounter(key) { try { return JSON.parse(localStorage.getItem(key) || "{}") || {}; } catch { return {}; } }
+
 function renderCommandCenter() {
   setTitle("ABDAN Command Center", `<span class="s-muted" style="font-size:0.78rem">${new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</span>`);
 
@@ -540,6 +566,7 @@ function renderCommandCenter() {
   let conciergeOpen = 0, conciergeResolved = 0, conciergeToday = 0;
   const responseGaps = [];
   const conciergeEmails = [];
+  const categoryCounts = {};
   profileList.forEach(([email]) => {
     let msgs = []; try { msgs = JSON.parse(localStorage.getItem(`abdan-sp-concierge:${email}`) || "[]") || []; } catch { msgs = []; }
     if (!msgs.length) return;
@@ -549,6 +576,7 @@ function renderCommandCenter() {
     msgs.forEach((m) => {
       const ts = m.sentAt || m.ts || 0;
       if (m.from === "customer" && ts && ccIsSameDay(ts, now)) conciergeToday++;
+      if (m.category) categoryCounts[m.category] = (categoryCounts[m.category] || 0) + 1;
     });
     for (let i = 0; i < msgs.length - 1; i++) {
       if (msgs[i].from === "customer" && msgs[i + 1].from === "abdan") {
@@ -571,13 +599,31 @@ function renderCommandCenter() {
   const orderCountByKey = {};
   orders.forEach((o) => { const k = ccOrderKey(o); if (k) orderCountByKey[k] = (orderCountByKey[k] || 0) + 1; });
   const returningCustomers = Object.values(orderCountByKey).filter((n) => n > 1).length;
-  let activeCircle = 0, innerCircle = 0;
+  let activeCircle = 0, innerCircle = 0, vipCircle = 0;
+  const ptsByEmail = {};
   profileList.forEach(([email]) => {
     let pts = 0; try { pts = JSON.parse(localStorage.getItem(`abdan-sp-loyalty:${email}`) || "0") || 0; } catch { pts = 0; }
+    ptsByEmail[email] = pts;
     if (pts > 0) activeCircle++;
     if (pts >= 150) innerCircle++;
+    if (pts >= 300) vipCircle++;
   });
   const purchasersThisMonthKeys = new Set(monthOrders.map(ccOrderKey).filter(Boolean));
+
+  /* RC-20 — Customer Intelligence: dormant, most-active, CLV, repeat rate.
+     "Dormant" = a paying customer with no order in the last 60 days. */
+  const lastOrderByKey = {};
+  orders.forEach((o) => {
+    const k = ccOrderKey(o); if (!k || !o.createdAt) return;
+    const t = new Date(o.createdAt).getTime();
+    if (!lastOrderByKey[k] || t > lastOrderByKey[k]) lastOrderByKey[k] = t;
+  });
+  const dormantCutoff = now.getTime() - 60 * 864e5;
+  const dormantCustomers = Object.keys(lastOrderByKey).filter((k) => lastOrderByKey[k] < dormantCutoff).length;
+  const purchasingCustomerCount = Object.keys(orderCountByKey).length;
+  const clv = purchasingCustomerCount ? revLifetime / purchasingCustomerCount : 0;
+  const repeatRate = purchasingCustomerCount ? Math.round((returningCustomers / purchasingCustomerCount) * 100) : 0;
+  const mostActiveRows = ccTopEntries(orderCountByKey, 5);
 
   /* ABDAN Pulse — real, computed-only facts (no predictions, no AI) */
   const pulse = [];
@@ -599,7 +645,82 @@ function renderCommandCenter() {
   if (newCustomersWeek > 0) pulse.push(`${newCustomersWeek} new customer${newCustomersWeek !== 1 ? "s" : ""} joined this week.`);
   if (pendingCount > 0) pulse.push(`${pendingCount} order${pendingCount !== 1 ? "s are" : " is"} awaiting confirmation.`);
   if (conciergeOpen > 0) pulse.push(`${conciergeOpen} concierge conversation${conciergeOpen !== 1 ? "s" : ""} awaiting your reply.`);
+  const revWeekPrior = orders.filter((o) => {
+    if (!o.createdAt) return false; const t = new Date(o.createdAt);
+    const wkStart = ccWeekStart(now); const priorStart = new Date(wkStart.getTime() - 7 * 864e5);
+    return t >= priorStart && t < wkStart;
+  }).reduce((s, o) => s + ccOrderTotal(o), 0);
+  const weekPct = ccPct(revWeek, revWeekPrior);
+  if (weekPct !== null && weekPct !== 0) pulse.push(`Revenue ${weekPct > 0 ? "increased" : "decreased"} ${Math.abs(weekPct)}% this week compared to last week.`);
   if (!pulse.length) pulse.push("All quiet — no notable changes since last check.");
+
+  /* ── RC-20 Section 7 — Product Intelligence (additive view/share counters
+     + real order-item tallies; no invented popularity numbers). ────────── */
+  const viewsMap  = ccCounter("abdan-product-views");
+  const sharesMap = ccCounter("abdan-product-shares");
+  const purchaseTally = {}, revenueTally = {};
+  orders.forEach((o) => (o.items || []).forEach((it) => {
+    const key = it.id || it.name; if (!key) return;
+    const qty = it.quantity || 1;
+    purchaseTally[key] = (purchaseTally[key] || 0) + qty;
+    const unitPrice = Number(it.price) || (ccOrderTotal(o) / ((o.items || [1]).length || 1));
+    revenueTally[key] = (revenueTally[key] || 0) + unitPrice * qty;
+  }));
+  const conversionRows = Object.entries(viewsMap)
+    .map(([id, views]) => [id, views > 0 ? Math.round(((purchaseTally[id] || 0) / views) * 1000) / 10 : 0])
+    .filter(([, c]) => c > 0).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const wardrobeTally = {};
+  ccScanPrefixed("abdan-sp-ward-favs:").forEach((r) => (Array.isArray(r.data) ? r.data : []).forEach((id) => { wardrobeTally[id] = (wardrobeTally[id] || 0) + 1; }));
+  const momentsProductTally = {};
+  ccScanPrefixed("abdan-sp-my-moments:").forEach((r) => (Array.isArray(r.data) ? r.data : []).forEach((m) => (m.board?.products || []).forEach((p) => { momentsProductTally[p.name || p.id] = (momentsProductTally[p.name || p.id] || 0) + 1; })));
+  const editsProductTally = {};
+  ccScanPrefixed("abdan-sp-edits:").forEach((r) => (Array.isArray(r.data) ? r.data : []).forEach((e) => (e.items || []).forEach((it) => { if (it.kind === "product") editsProductTally[it.name] = (editsProductTally[it.name] || 0) + 1; })));
+
+  /* ── Section 8 — Share the Love Intelligence (reuses existing referral
+     ledger + per-member share counters — no separate referral system). ── */
+  const referrals = load(STORAGE.referrals, []);
+  const linksShared = ccScanPrefixed("abdan-sp-shares:").reduce((s, r) => s + Object.values(r.data || {}).reduce((a, b) => a + b, 0), 0);
+  const peopleInspiredTotal = referrals.filter((r) => r.status === "rewarded").length;
+  const ordersGeneratedSTL = referrals.filter((r) => r.status === "rewarded" || r.ordered).length;
+  const pointsIssuedSTL = referrals.filter((r) => r.status === "rewarded").reduce((s, r) => s + (r.points || 0), 0);
+  const sharedLabelTally = {};
+  ccScanPrefixed("abdan-sp-shares:").forEach((r) => Object.entries(r.data || {}).forEach(([label, n]) => { sharedLabelTally[label] = (sharedLabelTally[label] || 0) + n; }));
+
+  /* ── Section 9 — Savings & Benefits Intelligence ──────────────────────── */
+  let savingsToday = 0, savingsMonth = 0, savingsLifetime = 0;
+  const couponTally = {}, ruleTally = {};
+  orders.forEach((o) => {
+    const s = Number(o.savings) || 0;
+    if (s > 0) {
+      savingsLifetime += s;
+      if (o.createdAt && ccIsSameDay(o.createdAt, now)) savingsToday += s;
+      if (o.createdAt && new Date(o.createdAt) >= ccMonthStart(now)) savingsMonth += s;
+    }
+    if (o.couponCode) couponTally[o.couponCode] = (couponTally[o.couponCode] || 0) + 1;
+    if (o.ruleName)   ruleTally[o.ruleName]     = (ruleTally[o.ruleName]     || 0) + 1;
+  });
+
+  /* ── Section 10 — Vendor Operations Center (honest real proxies only;
+     no vendor identity/response-time/satisfaction data exists yet). ───── */
+  const delayedOrders = orders.filter((o) => (o.status === "pending" || o.status === "confirmed") && o.createdAt && (now.getTime() - new Date(o.createdAt).getTime()) > 3 * 864e5).length;
+  const nonCancelled = orders.length - cancelledCount;
+  const fulfilmentRate = nonCancelled ? Math.round((deliveredCount / nonCancelled) * 100) : 0;
+  const issueRatePct = orders.length ? Math.round((issueCases / orders.length) * 100) : 0;
+
+  /* ── Section 12 — Executive Insights (thresholds only, no AI/predictions) */
+  const nearInnerCircle = Object.entries(ptsByEmail).filter(([, p]) => p >= 100 && p < 150).length;
+  const nearVip = Object.entries(ptsByEmail).filter(([, p]) => p >= 250 && p < 300).length;
+  const couponsNearLimit = load(STORAGE.coupons, []).filter((c) => c.usageLimit && c.uses >= c.usageLimit * 0.8 && c.uses < c.usageLimit).length;
+  const viewedNeverPurchased = Object.keys(viewsMap).filter((id) => !purchaseTally[id]).length;
+  const opportunities = [];
+  if (nearInnerCircle) opportunities.push(`${nearInnerCircle} customer${nearInnerCircle !== 1 ? "s are" : " is"} within reach of Inner Circle status.`);
+  if (nearVip) opportunities.push(`${nearVip} customer${nearVip !== 1 ? "s are" : " is"} close to House of ABDAN tier.`);
+  if (!opportunities.length) opportunities.push("No notable opportunities surfaced today.");
+  const risks = [];
+  if (dormantCustomers) risks.push(`${dormantCustomers} previously active customer${dormantCustomers !== 1 ? "s" : ""} ha${dormantCustomers !== 1 ? "ve" : "s"} not ordered in 60+ days.`);
+  if (delayedOrders) risks.push(`${delayedOrders} order${delayedOrders !== 1 ? "s have" : " has"} been pending or confirmed for over 3 days.`);
+  if (couponsNearLimit) risks.push(`${couponsNearLimit} coupon${couponsNearLimit !== 1 ? "s are" : " is"} nearing their usage limit.`);
+  if (!risks.length) risks.push("No notable risks surfaced today.");
 
   const cc = (icon, label, value, cls = "") => `
     <div class="s-stat-card cc-stat ${cls}">
@@ -608,63 +729,20 @@ function renderCommandCenter() {
       <p class="s-stat-card__label">${label}</p>
     </div>`;
 
+  const trendChip = (pct) => pct === null ? "" : `<span class="cc-trend ${pct >= 0 ? "cc-trend--up" : "cc-trend--down"}">${pct >= 0 ? "▲" : "▼"} ${Math.abs(pct)}%</span>`;
+
   dom.content.innerHTML = `
     <div class="cc-wrap">
-      <div class="cc-section">
-        <p class="cc-section__label">Today's Business</p>
+      <div class="cc-section cc-section--hero">
+        <p class="cc-section__label">Executive Command Center</p>
         <div class="cc-grid">
           ${cc("indian-rupee", "Today's Revenue", fmtCurrency(revToday), "s-stat--gold")}
           ${cc("receipt", "Today's Orders", todayOrders.length, "s-stat--blue")}
           ${cc("users", "Today's Customers", todayCustomerKeys.size, "s-stat--purple")}
           ${cc("message-circle", "Today's Concierge Requests", conciergeToday, "s-stat--green")}
-          ${cc("clock", "Orders Awaiting Confirmation", pendingCount, "s-stat--amber")}
-          ${cc("truck", "Orders In Transit", shippedCount, "s-stat--blue")}
-          ${cc("check-circle", "Orders Delivered", deliveredCount, "s-stat--green")}
-        </div>
-      </div>
-
-      <div class="cc-section">
-        <p class="cc-section__label">Business Performance</p>
-        <div class="cc-grid cc-grid--6">
-          ${cc("indian-rupee", "Revenue Today", fmtCurrency(revToday))}
-          ${cc("indian-rupee", "Revenue Yesterday", fmtCurrency(revYesterday))}
-          ${cc("indian-rupee", "Revenue This Week", fmtCurrency(revWeek))}
-          ${cc("indian-rupee", "Revenue This Month", fmtCurrency(revMonth))}
-          ${cc("indian-rupee", "Revenue This Year", fmtCurrency(revYear))}
-          ${cc("gem", "Lifetime Revenue", fmtCurrency(revLifetime), "s-stat--gold")}
-        </div>
-      </div>
-
-      <div class="cc-section">
-        <p class="cc-section__label">Customer Overview</p>
-        <div class="cc-grid">
-          ${cc("user-plus", "New Customers", newCustomersMonth)}
-          ${cc("repeat", "Returning Customers", returningCustomers)}
+          ${cc("sparkle", "Today's Savings Given", fmtCurrency(savingsToday), "s-stat--gold")}
           ${cc("heart", "Active Circle Members", activeCircle, "s-stat--purple")}
-          ${cc("crown", "Inner Circle Members", innerCircle, "s-stat--gold")}
-          ${cc("shopping-bag", "Customers With Purchases This Month", purchasersThisMonthKeys.size)}
-        </div>
-      </div>
-
-      <div class="cc-section">
-        <p class="cc-section__label">Order Overview</p>
-        <div class="cc-grid">
-          ${cc("clock", "Pending Orders", pendingCount, "s-stat--amber")}
-          ${cc("check", "Confirmed Orders", confirmedCount, "s-stat--blue")}
-          ${cc("truck", "Dispatched Orders", shippedCount)}
-          ${cc("check-circle", "Delivered Orders", deliveredCount, "s-stat--green")}
-          ${cc("x-circle", "Cancelled Orders", cancelledCount, "s-stat--red")}
-          ${cc("flag", "Issue Resolution Cases", issueCases)}
-        </div>
-      </div>
-
-      <div class="cc-section">
-        <p class="cc-section__label">Concierge Overview</p>
-        <div class="cc-grid">
-          ${cc("message-circle", "Open Conversations", conciergeOpen, "s-stat--amber")}
-          ${cc("check-circle", "Resolved Conversations", conciergeResolved, "s-stat--green")}
-          ${cc("shopping-bag", "Orders Generated From Concierge", ordersFromConcierge)}
-          ${cc("timer", "Average Response Time", avgResponseLabel)}
+          ${cc("clock", "Orders Awaiting Action", pendingCount + confirmedCount, "s-stat--amber")}
         </div>
       </div>
 
@@ -676,29 +754,167 @@ function renderCommandCenter() {
       </div>
 
       <div class="cc-section">
-        <p class="cc-section__label">Quick Actions</p>
+        <p class="cc-section__label">Revenue Intelligence</p>
+        <div class="cc-grid cc-grid--6">
+          <div class="s-stat-card cc-stat">${trendChip(ccPct(revToday, revYesterday))}<i data-lucide="indian-rupee" class="s-icon"></i><p class="s-stat-card__val">${fmtCurrency(revToday)}</p><p class="s-stat-card__label">Today</p></div>
+          ${cc("indian-rupee", "Yesterday", fmtCurrency(revYesterday))}
+          <div class="s-stat-card cc-stat">${trendChip(weekPct)}<i data-lucide="indian-rupee" class="s-icon"></i><p class="s-stat-card__val">${fmtCurrency(revWeek)}</p><p class="s-stat-card__label">This Week</p></div>
+          ${cc("indian-rupee", "This Month", fmtCurrency(revMonth))}
+          ${cc("indian-rupee", "This Year", fmtCurrency(revYear))}
+          ${cc("gem", "Lifetime Revenue", fmtCurrency(revLifetime), "s-stat--gold")}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <div class="cc-section__head"><p class="cc-section__label">Order Operations Center</p>${qaction("receipt", "Manage Orders", "orders")}</div>
+        <div class="cc-grid">
+          ${cc("clock", "Pending Orders", pendingCount, "s-stat--amber")}
+          ${cc("check", "Confirmed Orders", confirmedCount, "s-stat--blue")}
+          ${cc("truck", "Dispatched Orders", shippedCount)}
+          ${cc("check-circle", "Delivered Orders", deliveredCount, "s-stat--green")}
+          ${cc("x-circle", "Cancelled Orders", cancelledCount, "s-stat--red")}
+          ${cc("flag", "Issue Resolution Cases", issueCases)}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <div class="cc-section__head"><p class="cc-section__label">Customer Intelligence</p>${qaction("users", "Customer Management", "customers")}</div>
+        <div class="cc-grid">
+          ${cc("user-plus", "New Customers", newCustomersMonth)}
+          ${cc("repeat", "Returning Customers", returningCustomers)}
+          ${cc("crown", "VIP Customers", vipCircle, "s-stat--gold")}
+          ${cc("gem", "Inner Circle Members", innerCircle, "s-stat--gold")}
+          ${cc("moon", "Dormant Customers", dormantCustomers, "s-stat--amber")}
+          ${cc("indian-rupee", "Customer Lifetime Value", fmtCurrency(Math.round(clv)))}
+          ${cc("repeat", "Repeat Purchase Rate", `${repeatRate}%`)}
+          ${cc("shopping-bag", "Purchased This Month", purchasersThisMonthKeys.size)}
+        </div>
+        <p class="cc-section__sub">Most Active Members</p>
+        ${ccRankList(mostActiveRows, (n) => `${n} order${n !== 1 ? "s" : ""}`)}
+      </div>
+
+      <div class="cc-section">
+        <div class="cc-section__head"><p class="cc-section__label">Concierge Intelligence</p>${qaction("message-circle", "Concierge Center", "concierge")}</div>
+        <div class="cc-grid">
+          ${cc("message-circle", "Open Requests", conciergeOpen, "s-stat--amber")}
+          ${cc("check-circle", "Resolved Requests", conciergeResolved, "s-stat--green")}
+          ${cc("timer", "Average Response Time", avgResponseLabel)}
+          ${cc("percent", "Conversion Rate", conciergeEmails.length ? `${Math.round((ordersFromConcierge / conciergeEmails.length) * 100)}%` : "—")}
+        </div>
+        <p class="cc-section__sub">Most Requested Categories</p>
+        ${ccRankList(ccTopEntries(categoryCounts, 6))}
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Product Intelligence</p>
+        <div class="s-analytics-grid">
+          <div class="s-card"><h3 class="s-card__title">Most Viewed</h3>${ccRankList(ccTopEntries(viewsMap, 6))}</div>
+          <div class="s-card"><h3 class="s-card__title">Most Shared</h3>${ccRankList(ccTopEntries(sharesMap, 6))}</div>
+          <div class="s-card"><h3 class="s-card__title">Most Purchased</h3>${ccRankList(ccTopEntries(purchaseTally, 6))}</div>
+          <div class="s-card"><h3 class="s-card__title">Highest Revenue</h3>${ccRankList(ccTopEntries(revenueTally, 6), fmtCurrency)}</div>
+          <div class="s-card"><h3 class="s-card__title">Highest Conversion</h3>${conversionRows.length ? ccRankList(conversionRows, (v) => `${v}%`) : empty("Needs both view and purchase data.", "trending-up")}</div>
+          <div class="s-card"><h3 class="s-card__title">Most Favourited (Owned)</h3>${ccRankList(ccTopEntries(wardrobeTally, 6))}</div>
+          <div class="s-card"><h3 class="s-card__title">Most Added To Moments</h3>${ccRankList(ccTopEntries(momentsProductTally, 6))}</div>
+          <div class="s-card"><h3 class="s-card__title">Most Added To Edits</h3>${ccRankList(ccTopEntries(editsProductTally, 6))}</div>
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <div class="cc-section__head"><p class="cc-section__label">Share the Love Intelligence</p>${qaction("gift", "Share &amp; Earn", "shareearn")}</div>
+        <div class="cc-grid">
+          ${cc("share-2", "Links Shared", linksShared, "s-stat--blue")}
+          ${cc("heart", "People Inspired", peopleInspiredTotal, "s-stat--purple")}
+          ${cc("shopping-bag", "Orders Generated", ordersGeneratedSTL, "s-stat--green")}
+          ${cc("award", "Circle Points Issued", pointsIssuedSTL, "s-stat--gold")}
+        </div>
+        <p class="cc-section__sub">Highest Performing Shared Collections</p>
+        ${ccRankList(ccTopEntries(sharedLabelTally, 6))}
+      </div>
+
+      <div class="cc-section">
+        <div class="cc-section__head"><p class="cc-section__label">Savings &amp; Benefits Intelligence</p>${qaction("ticket", "Coupons & Benefits", "coupons")}</div>
+        <div class="cc-grid">
+          ${cc("sparkle", "Today's Savings Given", fmtCurrency(savingsToday), "s-stat--gold")}
+          ${cc("sparkle", "Monthly Savings Given", fmtCurrency(savingsMonth))}
+          ${cc("gem", "Lifetime Savings Given", fmtCurrency(savingsLifetime), "s-stat--gold")}
+        </div>
+        <p class="cc-section__sub">Most Used Coupons</p>
+        ${ccRankList(ccTopEntries(couponTally, 5))}
+        <p class="cc-section__sub">Most Effective Promotions (Automated Rules)</p>
+        ${ccRankList(ccTopEntries(ruleTally, 5))}
+      </div>
+
+      <div class="cc-section">
+        <div class="cc-section__head"><p class="cc-section__label">Vendor Operations Center</p>${qaction("truck", "Vendor Management", "vendors")}</div>
+        <div class="cc-grid">
+          ${cc("clock", "Orders Awaiting Confirmation", pendingCount, "s-stat--amber")}
+          ${cc("truck", "Orders Awaiting Dispatch", confirmedCount, "s-stat--blue")}
+          ${cc("alert-triangle", "Delayed Orders (3+ days)", delayedOrders, "s-stat--red")}
+          ${cc("check-circle", "Fulfilment Rate", `${fulfilmentRate}%`, "s-stat--green")}
+          ${cc("flag", "Issue Rate", `${issueRatePct}%`)}
+        </div>
+        <p class="cc-note">Vendor identity, response time, and satisfaction scoring aren't tracked yet — these figures reflect order-fulfilment status only.</p>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Executive Insights</p>
+        <div class="s-analytics-grid">
+          <div class="s-card"><h3 class="s-card__title">Today's Opportunities</h3>${opportunities.map((l) => `<p class="cc-pulse-line"><i data-lucide="trending-up" class="s-icon"></i>${esc(l)}</p>`).join("")}</div>
+          <div class="s-card"><h3 class="s-card__title">Today's Risks</h3>${risks.map((l) => `<p class="cc-pulse-line"><i data-lucide="alert-triangle" class="s-icon"></i>${esc(l)}</p>`).join("")}</div>
+          <div class="s-card"><h3 class="s-card__title">Customers Requiring Attention</h3>${dormantCustomers ? `<p class="cc-pulse-line"><i data-lucide="moon" class="s-icon"></i>${dormantCustomers} dormant customer${dormantCustomers !== 1 ? "s" : ""} (60+ days quiet)</p>` : empty("No customers need attention today.", "smile")}</div>
+          <div class="s-card"><h3 class="s-card__title">Products Requiring Attention</h3>${viewedNeverPurchased ? `<p class="cc-pulse-line"><i data-lucide="eye" class="s-icon"></i>${viewedNeverPurchased} viewed product${viewedNeverPurchased !== 1 ? "s" : ""} with no purchases yet</p>` : empty("No products need attention today.", "shopping-bag")}</div>
+          <div class="s-card"><h3 class="s-card__title">Orders Requiring Attention</h3>${(issueCases + delayedOrders) ? `<p class="cc-pulse-line"><i data-lucide="flag" class="s-icon"></i>${issueCases} issue case${issueCases !== 1 ? "s" : ""} · ${delayedOrders} delayed order${delayedOrders !== 1 ? "s" : ""}</p>` : empty("No orders need attention today.", "check-circle")}</div>
+          <div class="s-card"><h3 class="s-card__title">Vendor Issues</h3>${delayedOrders ? `<p class="cc-pulse-line"><i data-lucide="truck" class="s-icon"></i>${delayedOrders} order${delayedOrders !== 1 ? "s" : ""} awaiting fulfilment beyond 3 days</p>` : empty("No fulfilment issues today.", "truck")}</div>
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Quick Action Center</p>
         <div class="s-qaction-row">
           ${qaction("plus", "Add Product", "products")}
           ${qaction("receipt", "Manage Orders", "orders")}
           ${qaction("users", "Customer Management", "customers")}
+          ${qaction("truck", "Vendor Management", "vendors")}
           ${qaction("message-circle", "Concierge Center", "concierge")}
           ${qaction("ticket", "Coupons & Benefits", "coupons")}
           ${qaction("bar-chart-2", "Reports", "analytics")}
-          ${qaction("truck", "Vendor Management", "vendors")}
+          ${qaction("pen-tool", "Stories From Her World", "generator")}
+          ${qaction("star", "Community Management", "reviews")}
         </div>
       </div>
     </div>`;
 }
 
-/* ── Vendor Management (stub) — Phase 1 provides the shortcut only;
-   vendor scoring / intelligence is explicitly out of scope until Phase 2+. */
+/* ── RC-20: Vendor Operations Center — real proxies only. No vendor
+   identity, response-time, or satisfaction data exists in this system;
+   inventing it would violate "no fake insights" — so this view surfaces
+   the honest fulfilment-status proxies and says so plainly. */
 function renderVendorsStub() {
   setTitle("Vendor Management");
+  const orders = load(STORAGE.orders, []);
+  const now = new Date();
+  const pendingCount   = orders.filter((o) => o.status === "pending").length;
+  const confirmedCount = orders.filter((o) => o.status === "confirmed").length;
+  const deliveredCount = orders.filter((o) => o.status === "delivered").length;
+  const cancelledCount = orders.filter((o) => o.status === "cancelled").length;
+  const issueCases     = orders.filter((o) => o.status === "cancelled" && (o.notes || "").trim()).length;
+  const delayedOrders  = orders.filter((o) => (o.status === "pending" || o.status === "confirmed") && o.createdAt && (now.getTime() - new Date(o.createdAt).getTime()) > 3 * 864e5).length;
+  const nonCancelled   = orders.length - cancelledCount;
+  const fulfilmentRate = nonCancelled ? Math.round((deliveredCount / nonCancelled) * 100) : 0;
+  const issueRatePct   = orders.length ? Math.round((issueCases / orders.length) * 100) : 0;
   dom.content.innerHTML = `
     <div class="s-zone-header s-zone-header--circle">
-      <i data-lucide="truck" class="s-icon"></i><span>Vendor Management</span>
+      <i data-lucide="truck" class="s-icon"></i><span>Vendor Operations Center</span>
     </div>
-    ${empty("Vendor workflows are planned for a later phase — this shortcut is reserved for that work.", "truck")}`;
+    <p class="s-muted" style="margin:-0.4rem 0 1rem;font-size:0.8rem">ABDAN currently fulfils as a single house, not a multi-vendor marketplace — these figures reflect fulfilment status, not vendor scoring.</p>
+    <div class="s-stats-row">
+      ${stat("clock", "Awaiting Confirmation", pendingCount, "s-stat--amber")}
+      ${stat("truck", "Awaiting Dispatch", confirmedCount, "s-stat--blue")}
+      ${stat("alert-triangle", "Delayed 3+ Days", delayedOrders, "s-stat--red")}
+      ${stat("check-circle", "Fulfilment Rate", `${fulfilmentRate}%`, "s-stat--green")}
+      ${stat("flag", "Issue Rate", `${issueRatePct}%`)}
+    </div>
+    <p class="s-muted" style="margin-top:1rem;font-size:0.78rem">Vendor identity, response-time, and satisfaction tracking will arrive once multi-vendor fulfilment is part of the business — reserved for that phase.</p>`;
 }
 
 /* ── Overview ───────────────────────────────────────────────── */
