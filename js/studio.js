@@ -50,6 +50,7 @@ const STUDIO_VIEWS = [
   { id: "ops-center",  label: "Operations Center",  icon: "siren",            group: "General"      },
   { id: "conversion-intel", label: "Conversion Intelligence", icon: "filter", group: "General"      },
   { id: "customer-intel", label: "Customer Intelligence", icon: "users",     group: "General"        },
+  { id: "fulfilment-intel", label: "Fulfilment Intelligence", icon: "package-check", group: "General" },
   { id: "retention-intel", label: "Retention Intelligence", icon: "anchor", group: "General"         },
   { id: "overview",    label: "Studio Overview",    icon: "layout-dashboard", group: "General"      },
 
@@ -450,6 +451,7 @@ function renderView(id) {
     "ops-center": renderOpsCenter,
     "conversion-intel": renderConversionIntel,
     "customer-intel": renderCustomerIntel,
+    "fulfilment-intel": renderFulfilmentIntel,
     "retention-intel": renderRetentionIntel,
     vendors:     renderVendorsStub,
     overview:    renderOverview,
@@ -2161,6 +2163,174 @@ function renderRetentionIntel() {
         <p class="cc-section__sub">Highest Retention Scores</p>
         ${topRetentionScores.length ? `<div class="s-rank-list">${topRetentionScores.map((c) => `<div class="s-rank-row"><span class="s-rank-row__name">${esc(c.name)}</span><span class="s-rank-row__val">${c.retentionScore}</span></div>`).join("")}</div>` : empty("No customers yet.", "anchor")}
         <p class="cc-note">Weighted evenly across purchase recency, engagement breadth, Journey/Wardrobe/Moments usage, Concierge usage, community participation, and referral activity — real signals only, capped at 100.</p>
+      </div>
+    </div>`;
+}
+
+/* ── RC-25: Fulfilment Intelligence Center ──────────────────────────────
+   Replaces the originally-specified "Vendor Intelligence Center" — ABDAN
+   has no vendor entity, no supplier data, and customers should only ever
+   experience ABDAN, not a marketplace of suppliers. This view answers
+   the same underlying question ("what's helping or hurting fulfilment?")
+   using ONLY real order-lifecycle data already in the system: status,
+   createdAt, notes, and customer reviews. No vendor/supplier concepts,
+   no fabricated response/dispatch timestamps — order status-change
+   times aren't tracked, so timing here is framed honestly as "time
+   currently in status," not invented point-to-point durations. ──────── */
+function renderFulfilmentIntel() {
+  setTitle("Fulfilment Intelligence Center", "");
+  const orders = load(STORAGE.orders, []);
+  const now = new Date();
+
+  /* ── Section 1 — Fulfilment Overview ───────────────────────────────── */
+  const pendingOrders   = orders.filter((o) => o.status === "pending");
+  const confirmedOrders = orders.filter((o) => o.status === "confirmed");
+  const shippedOrders   = orders.filter((o) => o.status === "shipped");
+  const deliveredOrders = orders.filter((o) => o.status === "delivered");
+  const cancelledOrders = orders.filter((o) => o.status === "cancelled");
+  const nonCancelled = orders.length - cancelledOrders.length;
+  const fulfilmentRatePct = nonCancelled ? Math.round((deliveredOrders.length / nonCancelled) * 100) : 0;
+  const issueOrders = cancelledOrders.filter((o) => (o.notes || "").trim());
+  const issueRatePct = orders.length ? Math.round((issueOrders.length / orders.length) * 100) : 0;
+
+  /* ── Section 2 — Order Lifecycle Timing (current-state ages — the only
+     honest timing signal available without per-status timestamps) ───── */
+  const avgAge = (list) => list.length ? Math.round(list.reduce((s, o) => s + opAgeDays(o.createdAt), 0) / list.length) : 0;
+  const oldestOf = (list) => [...list].sort((a, b) => opAgeDays(b.createdAt) - opAgeDays(a.createdAt))[0] || null;
+  const timingRows = [
+    { label: "Pending",   list: pendingOrders },
+    { label: "Confirmed",  list: confirmedOrders },
+    { label: "Shipped",   list: shippedOrders },
+  ].map((r) => ({ ...r, avgAge: avgAge(r.list), oldest: oldestOf(r.list) }));
+
+  /* ── Section 3 — Delay Intelligence ────────────────────────────────── */
+  const openOrders = [...pendingOrders, ...confirmedOrders, ...shippedOrders];
+  const delay1to3 = openOrders.filter((o) => opAgeDays(o.createdAt) >= 1 && opAgeDays(o.createdAt) < 3);
+  const delay3to5 = openOrders.filter((o) => opAgeDays(o.createdAt) >= 3 && opAgeDays(o.createdAt) < 5);
+  const delay5plus = openOrders.filter((o) => opAgeDays(o.createdAt) >= 5);
+  const mostDelayed = [...openOrders].sort((a, b) => opAgeDays(b.createdAt) - opAgeDays(a.createdAt)).slice(0, 8);
+
+  /* ── Section 4 — Issue & Complaint Intelligence ────────────────────── */
+  const flaggedAnyStatus = orders.filter((o) => (o.notes || "").trim());
+  const complaintRatePct = orders.length ? Math.round((flaggedAnyStatus.length / orders.length) * 100) : 0;
+
+  /* ── Section 5 — Customer Feedback Intelligence ────────────────────── */
+  const reviews = load(STORAGE.reviews, []);
+  const avgRating = reviews.length ? Math.round((reviews.reduce((s, r) => s + (Number(r.rating) || 0), 0) / reviews.length) * 10) / 10 : null;
+  const ratingDist = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+  reviews.forEach((r) => { const n = Math.round(Number(r.rating) || 0); if (ratingDist[n] !== undefined) ratingDist[n]++; });
+  const featuredReviews = reviews.filter((r) => r.featured).length;
+
+  /* ── Section 6 — Fulfilment Trends (real period comparison) ───────── */
+  const periodRate = (list) => { const nc = list.length - list.filter((o) => o.status === "cancelled").length; return nc ? Math.round((list.filter((o) => o.status === "delivered").length / nc) * 100) : null; };
+  const thisMonthOrders = orders.filter((o) => o.createdAt && new Date(o.createdAt) >= ccMonthStart(now));
+  const lastMonthStart = new Date(ccMonthStart(now)); lastMonthStart.setMonth(lastMonthStart.getMonth() - 1);
+  const lastMonthOrders = orders.filter((o) => o.createdAt && new Date(o.createdAt) >= lastMonthStart && new Date(o.createdAt) < ccMonthStart(now));
+  const rateThisMonth = periodRate(thisMonthOrders);
+  const rateLastMonth = periodRate(lastMonthOrders);
+  const rateTrendPct = (rateThisMonth !== null && rateLastMonth) ? ccPct(rateThisMonth, rateLastMonth) : null;
+
+  /* ── Section 7 — Fulfilment Opportunities & Risks (real thresholds) ── */
+  const fOpportunities = [];
+  if (delay5plus.length) fOpportunities.push(`${delay5plus.length} order${delay5plus.length !== 1 ? "s" : ""} ha${delay5plus.length !== 1 ? "ve" : "s"} been open for 5+ days — these need attention first.`);
+  if (rateTrendPct !== null && rateTrendPct !== 0) fOpportunities.push(`Fulfilment rate ${rateTrendPct > 0 ? "improved" : "declined"} ${Math.abs(rateTrendPct)}% this month compared to last month.`);
+  if (avgRating !== null && avgRating < 4) fOpportunities.push(`Average customer rating is ${avgRating}/5 — below the 4-star mark worth investigating.`);
+  if (issueRatePct >= 10) fOpportunities.push(`Issue rate is at ${issueRatePct}% of all orders — worth a closer look at recent cancellations.`);
+  if (!fOpportunities.length) fOpportunities.push("No notable fulfilment risks surfaced today.");
+
+  /* ── Section 8 — Recent Fulfilment Activity (real, timestamped only) ─ */
+  const timeline = [...orders].filter((o) => o.createdAt).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 15);
+
+  const statusBadgeCls = { pending: "s-badge--amber", confirmed: "s-badge--blue", shipped: "s-badge--emerald", delivered: "s-badge--green", cancelled: "s-badge--red" };
+
+  dom.content.innerHTML = `
+    <div class="cc-wrap">
+      <div class="cc-section cc-section--hero">
+        <p class="cc-section__label">Fulfilment Overview</p>
+        <div class="cc-grid">
+          ${stat("receipt", "Total Orders", orders.length, "s-stat--blue")}
+          ${stat("clock", "Pending", pendingOrders.length, "s-stat--amber")}
+          ${stat("check", "Confirmed", confirmedOrders.length)}
+          ${stat("truck", "Shipped", shippedOrders.length)}
+          ${stat("check-circle", "Delivered", deliveredOrders.length, "s-stat--green")}
+          ${stat("x-circle", "Cancelled", cancelledOrders.length, "s-stat--red")}
+          ${stat("check-circle", "Fulfilment Success Rate", `${fulfilmentRatePct}%`, "s-stat--green")}
+          ${stat("flag", "Issue Rate", `${issueRatePct}%`)}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Order Lifecycle Timing</p>
+        <div class="cc-grid">
+          ${timingRows.map((r) => stat("calendar", `Avg Age — ${r.label}`, r.list.length ? `${r.avgAge}d` : "—")).join("")}
+        </div>
+        <p class="cc-section__sub">Longest-Waiting Orders</p>
+        ${timingRows.filter((r) => r.oldest).length ? `<div class="s-rank-list">${timingRows.filter((r) => r.oldest).map((r) => `<div class="s-rank-row"><span class="s-rank-row__name">${esc(r.oldest.ref || r.oldest.id || "Order")} (${r.label})</span><span class="s-rank-row__val">${opAgeDays(r.oldest.createdAt)}d</span></div>`).join("")}</div>` : empty("No open orders right now.", "smile")}
+        <p class="cc-note">Order status changes aren't timestamped individually, so timing reflects how long each order has sat in its current status — the honest, real signal available today.</p>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Delay Intelligence</p>
+        <div class="cc-grid">
+          ${stat("clock", "1–3 Days Open", delay1to3.length, "s-stat--amber")}
+          ${stat("alert-triangle", "3–5 Days Open", delay3to5.length, "s-stat--amber")}
+          ${stat("alert-circle", "5+ Days Open", delay5plus.length, "s-stat--red")}
+        </div>
+        <p class="cc-section__sub">Most Delayed Orders</p>
+        ${mostDelayed.length ? `<div class="s-list">${mostDelayed.map((o) => `
+          <div class="s-list-item">
+            <div class="s-list-item__main"><strong>${esc(o.ref || o.id || "Order")}</strong><span class="s-list-item__sub">${esc(o.customerName || o.customerEmail || "")} · ${opAgeDays(o.createdAt)} days open</span></div>
+            <div class="s-list-item__actions"><span class="s-badge ${statusBadgeCls[o.status] || ""}">${capitalise(o.status || "")}</span></div>
+          </div>`).join("")}</div>` : empty("Nothing delayed right now.", "smile")}
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Issue &amp; Complaint Intelligence</p>
+        <div class="cc-grid">
+          ${stat("flag", "Issue Reports", issueOrders.length, "s-stat--red")}
+          ${stat("percent", "Complaint Rate", `${complaintRatePct}%`)}
+          ${stat("message-square", "Orders Flagged With Notes", flaggedAnyStatus.length)}
+          ${stat("timer", "Resolution Time", "—")}
+        </div>
+        <p class="cc-note">Issue resolution time isn't tracked yet — there's no "issue opened" / "issue resolved" timestamp pair in the order record.</p>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Customer Feedback Intelligence</p>
+        <div class="cc-grid">
+          ${stat("star", "Total Reviews", reviews.length, "s-stat--gold")}
+          ${stat("star", "Average Rating", avgRating !== null ? `${avgRating}/5` : "—", "s-stat--gold")}
+          ${stat("sparkle", "Featured Reviews", featuredReviews)}
+        </div>
+        <p class="cc-section__sub">Rating Distribution</p>
+        ${reviews.length ? `<div class="s-rank-list">${[5, 4, 3, 2, 1].map((n) => `<div class="s-rank-row"><span class="s-rank-row__name">${"★".repeat(n)}${"☆".repeat(5 - n)}</span><span class="s-rank-row__val">${ratingDist[n]}</span></div>`).join("")}</div>` : empty("No reviews yet.", "star")}
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Fulfilment Trends</p>
+        <div class="cc-grid">
+          ${stat("check-circle", "Fulfilment Rate This Month", rateThisMonth !== null ? `${rateThisMonth}%` : "—", "s-stat--green")}
+          ${stat("check-circle", "Fulfilment Rate Last Month", rateLastMonth !== null ? `${rateLastMonth}%` : "—")}
+          ${stat("trending-up", "Month-Over-Month Change", rateTrendPct !== null ? `${rateTrendPct >= 0 ? "+" : ""}${rateTrendPct}%` : "—")}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Fulfilment Opportunities &amp; Risks</p>
+        <div class="cc-pulse-card">
+          ${fOpportunities.slice(0, 8).map((line) => `<p class="cc-pulse-line"><i data-lucide="lightbulb" class="s-icon"></i>${esc(line)}</p>`).join("")}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Recent Fulfilment Activity</p>
+        ${timeline.length ? `<div class="op-timeline">${timeline.map((o) => `
+          <div class="op-timeline__row">
+            <i data-lucide="package" class="s-icon"></i>
+            <span class="op-timeline__text">Order ${esc(o.ref || o.id || "")} placed by ${esc(o.customerName || o.customerEmail || "a customer")} — <span class="s-badge ${statusBadgeCls[o.status] || ""}" style="margin-left:.3rem">${capitalise(o.status || "")}</span></span>
+            <span class="op-timeline__time">${opTimeAgo(new Date(o.createdAt).getTime())}</span>
+          </div>`).join("")}</div>` : empty("No orders yet.", "package")}
+        <p class="cc-note">Only order-placement events are reliably timestamped today — status-change events (confirmed/dispatched/delivered) aren't individually timestamped, so they aren't shown here to avoid implying false precision.</p>
       </div>
     </div>`;
 }
