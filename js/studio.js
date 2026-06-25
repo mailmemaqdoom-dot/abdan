@@ -46,6 +46,7 @@
 /* ── Constants ─────────────────────────────────────────────── */
 const STUDIO_VIEWS = [
   /* ── General ─────────────────────────────────────────────── */
+  { id: "intelligence-hub", label: "Intelligence Hub", icon: "compass",       group: "General"      },
   { id: "command-center", label: "Command Center",  icon: "gauge",            group: "General"      },
   { id: "ops-center",  label: "Operations Center",  icon: "siren",            group: "General"      },
   { id: "conversion-intel", label: "Conversion Intelligence", icon: "filter", group: "General"      },
@@ -447,6 +448,7 @@ function navigate(id) {
 function renderView(id) {
   dom.content.innerHTML = "";
   const renders = {
+    "intelligence-hub": renderIntelligenceHub,
     "command-center": renderCommandCenter,
     "ops-center": renderOpsCenter,
     "conversion-intel": renderConversionIntel,
@@ -541,6 +543,251 @@ function ccScanPrefixed(prefix) {
   return out;
 }
 function ccCounter(key) { try { return JSON.parse(localStorage.getItem(key) || "{}") || {}; } catch { return {}; } }
+
+/* ── RC-27: ABDAN Intelligence Hub ──────────────────────────────────────
+   A single strategic decision screen that UNIFIES the existing
+   intelligence centers (Command Center, Conversion/Customer/Retention/
+   Fulfilment Intelligence) — it introduces no new analytics, no new data
+   structures, and no new tracking. Every figure below is the same real
+   data those centers already read (orders, profiles, concierge threads,
+   referrals, reviews), recomputed inline here in condensed form because
+   each center renders straight to dom.content and can't be "called" for
+   data without clobbering itself — the same independent-per-view scan
+   pattern every prior Intelligence Center already uses. ──────────────── */
+function hubBand(pct, good, ok) { return pct >= good ? "Healthy" : pct >= ok ? "Watch" : "Needs Attention"; }
+function hubBandCls(band) { return band === "Healthy" ? "s-stat--green" : band === "Watch" ? "s-stat--amber" : "s-stat--red"; }
+function hubStatus(icon, label, value, band) {
+  return `
+    <div class="s-stat-card cc-stat ${hubBandCls(band)}">
+      <i data-lucide="${icon}" class="s-icon"></i>
+      <p class="s-stat-card__val">${value}</p>
+      <p class="s-stat-card__label">${label}</p>
+      <span class="s-badge ${hubBandCls(band)}" style="margin-top:.4rem">${band}</span>
+    </div>`;
+}
+
+function renderIntelligenceHub() {
+  setTitle("ABDAN Intelligence Hub", `<span class="s-muted" style="font-size:0.78rem">A single strategic view — reusing every Intelligence Center, nothing new tracked</span>`);
+
+  const now = new Date();
+  const orders = load(STORAGE.orders, []);
+  const profiles = load(STORAGE.customers, {});
+  const profileList = Object.entries(profiles);
+  const reviews = load(STORAGE.reviews, []);
+  const referrals = load(STORAGE.referrals, []);
+  const globalRequests = load(STORAGE.globalRequests, []);
+
+  const todayOrders = orders.filter((o) => o.createdAt && ccIsSameDay(o.createdAt, now));
+  const yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayOrders = orders.filter((o) => o.createdAt && ccIsSameDay(o.createdAt, yesterday));
+  const weekOrders = orders.filter((o) => o.createdAt && new Date(o.createdAt) >= ccWeekStart(now));
+  const priorWeekStart = new Date(ccWeekStart(now).getTime() - 7 * 864e5);
+  const priorWeekOrders = orders.filter((o) => o.createdAt && new Date(o.createdAt) >= priorWeekStart && new Date(o.createdAt) < ccWeekStart(now));
+  const monthOrders = orders.filter((o) => o.createdAt && new Date(o.createdAt) >= ccMonthStart(now));
+  const lastMonthStart = new Date(ccMonthStart(now)); lastMonthStart.setMonth(lastMonthStart.getMonth() - 1);
+  const lastMonthOrders = orders.filter((o) => o.createdAt && new Date(o.createdAt) >= lastMonthStart && new Date(o.createdAt) < ccMonthStart(now));
+
+  const revToday = todayOrders.reduce((s, o) => s + ccOrderTotal(o), 0);
+  const revYesterday = yesterdayOrders.reduce((s, o) => s + ccOrderTotal(o), 0);
+  const revWeek = weekOrders.reduce((s, o) => s + ccOrderTotal(o), 0);
+  const revPriorWeek = priorWeekOrders.reduce((s, o) => s + ccOrderTotal(o), 0);
+  const revTrendPct = ccPct(revWeek, revPriorWeek);
+
+  const pendingCount = orders.filter((o) => o.status === "pending").length;
+  const confirmedCount = orders.filter((o) => o.status === "confirmed").length;
+  const shippedCount = orders.filter((o) => o.status === "shipped").length;
+  const deliveredCount = orders.filter((o) => o.status === "delivered").length;
+  const cancelledCount = orders.filter((o) => o.status === "cancelled").length;
+  const openOrders = orders.filter((o) => o.status === "pending" || o.status === "confirmed" || o.status === "shipped");
+  const delayed = openOrders.filter((o) => opAgeDays(o.createdAt) >= 3);
+  const stuck = openOrders.filter((o) => opAgeDays(o.createdAt) >= 5);
+  const issueOrders = orders.filter((o) => o.status === "cancelled" && (o.notes || "").trim());
+  const nonCancelled = orders.length - cancelledCount;
+  const fulfilmentRatePct = nonCancelled ? Math.round((deliveredCount / nonCancelled) * 100) : 100;
+
+  const orderCountByEmail = {}, lastOrderByEmail = {}, ptsByEmail = {};
+  orders.forEach((o) => {
+    const e = String(o.customerEmail || "").toLowerCase(); if (!e || !o.createdAt) return;
+    orderCountByEmail[e] = (orderCountByEmail[e] || 0) + 1;
+    const t = new Date(o.createdAt).getTime();
+    if (!lastOrderByEmail[e] || t > lastOrderByEmail[e]) lastOrderByEmail[e] = t;
+  });
+  profileList.forEach(([email]) => { try { ptsByEmail[email] = JSON.parse(localStorage.getItem(`abdan-sp-loyalty:${email}`) || "0") || 0; } catch { ptsByEmail[email] = 0; } });
+  const totalCustomers = profileList.length;
+  const newCustomersMonth = profileList.filter(([, p]) => p.createdAt && new Date(p.createdAt) >= ccMonthStart(now)).length;
+  const newCustomersLastMonth = profileList.filter(([, p]) => p.createdAt && new Date(p.createdAt) >= lastMonthStart && new Date(p.createdAt) < ccMonthStart(now)).length;
+  const customerGrowthPct = ccPct(newCustomersMonth, newCustomersLastMonth);
+  const purchasingEmails = Object.keys(orderCountByEmail);
+  const returningCustomers = purchasingEmails.filter((e) => orderCountByEmail[e] > 1).length;
+  const repeatRatePct = purchasingEmails.length ? Math.round((returningCustomers / purchasingEmails.length) * 100) : 0;
+  const dormantCutoff = now.getTime() - 60 * 864e5;
+  const dormantCustomers = purchasingEmails.filter((e) => lastOrderByEmail[e] < dormantCutoff).length;
+  const innerCircleMembers = Object.values(ptsByEmail).filter((p) => p >= 150).length;
+  const vipMembers = Object.values(ptsByEmail).filter((p) => p >= 300).length;
+  const inactiveVip = profileList.filter(([email]) => ptsByEmail[email] >= 150 && (!lastOrderByEmail[email] || lastOrderByEmail[email] < dormantCutoff)).length;
+
+  /* Community signals — same scans Customer/Conversion Intelligence use */
+  const editsAll = ccScanPrefixed("abdan-sp-edits:");
+  const momentsAll = ccScanPrefixed("abdan-sp-my-moments:");
+  const communityEmails = new Set([
+    ...editsAll.filter((r) => Array.isArray(r.data) && r.data.length).map((r) => r.ownerEmail),
+    ...momentsAll.filter((r) => Array.isArray(r.data) && r.data.length).map((r) => r.ownerEmail),
+    ...referrals.map((r) => String(r.referrerEmail || "").toLowerCase()).filter(Boolean),
+  ]);
+  const communityPct = totalCustomers ? Math.round((communityEmails.size / totalCustomers) * 100) : 0;
+
+  /* Concierge — same per-member scan every prior center uses */
+  let conciergeOpen = 0, conciergeResolved = 0;
+  const categoryCounts = {};
+  const conciergeEmails = [];
+  const responseGaps = [];
+  profileList.forEach(([email]) => {
+    let msgs = []; try { msgs = JSON.parse(localStorage.getItem(`abdan-sp-concierge:${email}`) || "[]") || []; } catch { msgs = []; }
+    if (!msgs.length) return;
+    conciergeEmails.push(email);
+    const last = msgs[msgs.length - 1];
+    if (last.from === "customer") conciergeOpen++; else conciergeResolved++;
+    msgs.forEach((m) => { if (m.category) categoryCounts[m.category] = (categoryCounts[m.category] || 0) + 1; });
+    for (let i = 0; i < msgs.length - 1; i++) {
+      if (msgs[i].from === "customer" && msgs[i + 1].from === "abdan") responseGaps.push((msgs[i + 1].sentAt || 0) - (msgs[i].sentAt || 0));
+    }
+  });
+  const avgResponseMs = responseGaps.length ? responseGaps.reduce((s, g) => s + g, 0) / responseGaps.length : 0;
+  const avgResponseLabel = !responseGaps.length ? "—" : avgResponseMs < 3600000 ? `${Math.round(avgResponseMs / 60000)} min` : avgResponseMs < 86400000 ? `${(avgResponseMs / 3600000).toFixed(1)} hrs` : `${(avgResponseMs / 864e5).toFixed(1)} days`;
+  const conciergeEmailSet = new Set(conciergeEmails);
+  const conciergeOrders = orders.filter((o) => conciergeEmailSet.has(String(o.customerEmail || "").toLowerCase()));
+  const conciergeConvPct = conciergeEmails.length ? Math.round((conciergeOrders.length / conciergeEmails.length) * 100) : 0;
+  const thisMonthConciergeMsgs = (() => {
+    let n = 0; profileList.forEach(([email]) => { try { (JSON.parse(localStorage.getItem(`abdan-sp-concierge:${email}`) || "[]") || []).forEach((m) => { if ((m.sentAt || 0) >= ccMonthStart(now).getTime()) n++; }); } catch {} }); return n;
+  })();
+
+  /* ── Status bands (transparent thresholds, no fabricated scoring) ───── */
+  const revenueBand = revWeek <= 0 ? "Watch" : hubBand(revTrendPct === null ? 40 : revTrendPct + 50, 50, 30);
+  const orderBand = hubBand(100 - Math.round((delayed.length / Math.max(openOrders.length, 1)) * 100), 70, 40);
+  const customerBand = newCustomersMonth <= 0 ? "Watch" : hubBand(customerGrowthPct === null ? 40 : customerGrowthPct + 50, 50, 30);
+  const retentionBand = hubBand(repeatRatePct, 40, 20);
+  const fulfilmentBand = hubBand(fulfilmentRatePct, 80, 50);
+  const communityBand = hubBand(communityPct, 30, 15);
+
+  /* ── Section 2/3 — Opportunities & Risks (merged, real thresholds) ──── */
+  const opportunities = [];
+  Object.entries(ptsByEmail).forEach(([email, pts]) => { if (pts >= 100 && pts < 150) opportunities.push({ text: `${esc(profiles[email]?.displayName || email)} is ${150 - pts} pts from Inner Circle.`, nav: "customer-intel" }); });
+  if (categoryCounts && Object.keys(categoryCounts).length) {
+    const topCat = ccTopEntries(categoryCounts, 1)[0];
+    if (topCat) opportunities.push({ text: `"${esc(topCat[0])}" is the most-requested Concierge category — ${topCat[1]} request${topCat[1] !== 1 ? "s" : ""}.`, nav: "fulfilment-intel" });
+  }
+  if (newCustomersMonth > 0) opportunities.push({ text: `${newCustomersMonth} new customer${newCustomersMonth !== 1 ? "s" : ""} joined this month — a window to welcome them well.`, nav: "customer-intel" });
+  if (!opportunities.length) opportunities.push({ text: "No notable opportunities surfaced today.", nav: "" });
+
+  const risks = [];
+  if (stuck.length) risks.push({ text: `${stuck.length} order${stuck.length !== 1 ? "s" : ""} ha${stuck.length !== 1 ? "ve" : "s"} been open 5+ days.`, level: "critical", nav: "fulfilment-intel" });
+  else if (delayed.length) risks.push({ text: `${delayed.length} order${delayed.length !== 1 ? "s" : ""} ha${delayed.length !== 1 ? "ve" : "s"} been open 3+ days.`, level: "high", nav: "fulfilment-intel" });
+  if (inactiveVip) risks.push({ text: `${inactiveVip} Inner Circle/VIP member${inactiveVip !== 1 ? "s" : ""} ha${inactiveVip !== 1 ? "ve" : "s"} not ordered in 60+ days.`, level: "high", nav: "customer-intel" });
+  if (dormantCustomers) risks.push({ text: `${dormantCustomers} previously active customer${dormantCustomers !== 1 ? "s" : ""} ${dormantCustomers !== 1 ? "are" : "is"} now dormant.`, level: "medium", nav: "retention-intel" });
+  if (revTrendPct !== null && revTrendPct < 0) risks.push({ text: `Revenue is down ${Math.abs(revTrendPct)}% this week vs. last week.`, level: "medium", nav: "conversion-intel" });
+  if (!risks.length) risks.push({ text: "No notable risks surfaced today.", level: "low", nav: "" });
+
+  /* ── Section 4 — Customer Opportunities ──────────────────────────────── */
+  const nearInnerCircle = Object.entries(ptsByEmail).filter(([, p]) => p >= 100 && p < 150).length;
+  const nearVip = Object.entries(ptsByEmail).filter(([, p]) => p >= 250 && p < 300).length;
+  const highEngagementNoPurchase = communityEmails.size ? [...communityEmails].filter((e) => !purchasingEmails.includes(e)).length : 0;
+  const potentialAdvocates = referrals.filter((r) => r.status !== "rewarded").map((r) => r.referrerEmail).filter((v, i, a) => v && a.indexOf(v) === i).length;
+
+  /* ── Section 8 — Action Center: merge + rank top real items ─────────── */
+  const actions = [
+    ...risks.filter((r) => r.level === "critical" || r.level === "high").map((r) => ({ text: r.text, level: r.level, nav: r.nav })),
+    ...opportunities.slice(0, 2).map((o) => ({ text: o.text, level: "medium", nav: o.nav })),
+  ].filter((a) => a.text && a.nav !== undefined).slice(0, 5);
+  if (!actions.length) actions.push({ text: "Nothing urgent — a good day to focus on growth.", level: "low", nav: "" });
+
+  /* ── Section 9 — ABDAN Pulse 2.0 (real sentences only, no predictions) */
+  const pulse2 = [];
+  pulse2.push(`${fmtCurrency(revToday)} earned today across ${todayOrders.length} order${todayOrders.length !== 1 ? "s" : ""}${revTrendPct !== null ? `, revenue ${revTrendPct >= 0 ? "up" : "down"} ${Math.abs(revTrendPct)}% week-over-week` : ""}.`);
+  pulse2.push(`${openOrders.length} order${openOrders.length !== 1 ? "s" : ""} currently in motion; ${delayed.length} delayed, fulfilment rate stands at ${fulfilmentRatePct}%.`);
+  pulse2.push(`${totalCustomers} customers in Her Circle — ${innerCircleMembers} Inner Circle, ${vipMembers} VIP, ${repeatRatePct}% repeat purchase rate.`);
+  pulse2.push(`Concierge: ${conciergeOpen} open conversation${conciergeOpen !== 1 ? "s" : ""}, ${avgResponseLabel} average response, ${conciergeConvPct}% conversion.`);
+  pulse2.push(`Community: ${communityPct}% of customers engaging with Wardrobe, Moments, Edits, or Share the Love.`);
+
+  dom.content.innerHTML = `
+    <div class="cc-wrap">
+      <div class="cc-section cc-section--hero">
+        <p class="cc-section__label">Today's ABDAN</p>
+        <div class="cc-grid">
+          ${hubStatus("indian-rupee", "Revenue Status", fmtCurrency(revToday), revenueBand)}
+          ${hubStatus("receipt", "Order Status", `${openOrders.length} in motion`, orderBand)}
+          ${hubStatus("users", "Customer Status", `${newCustomersMonth} new this month`, customerBand)}
+          ${hubStatus("repeat", "Retention Status", `${repeatRatePct}% repeat`, retentionBand)}
+          ${hubStatus("truck", "Fulfilment Status", `${fulfilmentRatePct}% on track`, fulfilmentBand)}
+          ${hubStatus("heart", "Community Status", `${communityPct}% engaged`, communityBand)}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <div class="cc-section__head"><p class="cc-section__label">Opportunities</p>${qaction("trending-up", "Conversion Intel", "conversion-intel")}</div>
+        <div class="cc-pulse-card">${opportunities.slice(0, 5).map((o) => `<p class="cc-pulse-line"><i data-lucide="lightbulb" class="s-icon"></i>${o.text}</p>`).join("")}</div>
+      </div>
+
+      <div class="cc-section">
+        <div class="cc-section__head"><p class="cc-section__label">Risks</p>${qaction("shield-alert", "Fulfilment Intel", "fulfilment-intel")}</div>
+        <div class="cc-pulse-card">${risks.slice(0, 5).map((r) => `<p class="cc-pulse-line"><i data-lucide="alert-triangle" class="s-icon"></i>${r.text} ${opPriorityBadge(r.level)}</p>`).join("")}</div>
+      </div>
+
+      <div class="cc-section">
+        <div class="cc-section__head"><p class="cc-section__label">Customer Opportunities</p>${qaction("users", "Customer Intel", "customer-intel")}</div>
+        <div class="cc-grid">
+          ${stat("crown", "Close to VIP", nearVip, "s-stat--gold")}
+          ${stat("gem", "Close to Inner Circle", nearInnerCircle, "s-stat--gold")}
+          ${stat("zap", "High Engagement, No Purchase", highEngagementNoPurchase, "s-stat--amber")}
+          ${stat("megaphone", "Potential Advocates", potentialAdvocates)}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Business Momentum</p>
+        <div class="cc-grid">
+          ${stat("trending-up", "Revenue Trend (WoW)", revTrendPct !== null ? `${revTrendPct >= 0 ? "+" : ""}${revTrendPct}%` : "—")}
+          ${stat("user-plus", "Customer Trend (MoM)", customerGrowthPct !== null ? `${customerGrowthPct >= 0 ? "+" : ""}${customerGrowthPct}%` : "—")}
+          ${stat("receipt", "Order Volume This Month", monthOrders.length)}
+          ${stat("receipt", "Order Volume Last Month", lastMonthOrders.length)}
+          ${stat("repeat", "Repeat Purchase Rate", `${repeatRatePct}%`)}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Fulfilment Health</p>
+        <div class="cc-grid">
+          ${stat("clock", "Orders Requiring Attention", pendingCount + confirmedCount, "s-stat--amber")}
+          ${stat("alert-triangle", "Delivery Delays (3+ days)", delayed.length, "s-stat--red")}
+          ${stat("flag", "Issue Resolution Status", issueOrders.length ? `${issueOrders.length} open` : "Clear", issueOrders.length ? "s-stat--red" : "s-stat--green")}
+          ${stat("star", "Customer Experience Health", reviews.length ? `${(reviews.reduce((s, r) => s + (Number(r.rating) || 0), 0) / reviews.length).toFixed(1)}/5` : "—", "s-stat--gold")}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Concierge Health</p>
+        <div class="cc-grid">
+          ${stat("timer", "Response Time", avgResponseLabel)}
+          ${stat("percent", "Conversion Rate", `${conciergeConvPct}%`)}
+          ${stat("trending-up", "Demand This Month", thisMonthConciergeMsgs)}
+          ${stat("message-circle", "Most Requested", ccTopEntries(categoryCounts, 1)[0]?.[0] || "—")}
+        </div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Action Center</p>
+        <div class="s-list">${actions.map((a) => `
+          <div class="s-list-item">
+            <div class="s-list-item__main">${opPriorityBadge(a.level)}<span class="s-list-item__sub" style="display:block;margin-top:.3rem">${a.text}</span></div>
+            ${a.nav ? `<div class="s-list-item__actions">${qaction("arrow-right", "View", a.nav)}</div>` : ""}
+          </div>`).join("")}</div>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">ABDAN Pulse 2.0 — Daily Executive Summary</p>
+        <div class="cc-pulse-card">${pulse2.map((line) => `<p class="cc-pulse-line"><i data-lucide="sparkle" class="s-icon"></i>${line}</p>`).join("")}</div>
+      </div>
+    </div>`;
+}
 
 function renderCommandCenter() {
   setTitle("ABDAN Command Center", `<span class="s-muted" style="font-size:0.78rem">${new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</span>`);
