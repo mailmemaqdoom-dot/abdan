@@ -816,6 +816,12 @@ const dom = {
   copyUpiButton: document.getElementById("copyUpiButton"),
   productSheet: document.getElementById("productSheet"),
   productImage: document.getElementById("productImage"),
+  pgPrev: document.getElementById("pgPrev"),
+  pgNext: document.getElementById("pgNext"),
+  pgDots: document.getElementById("pgDots"),
+  pgCounter: document.getElementById("pgCounter"),
+  pgVideoWrap: document.getElementById("pgVideoWrap"),
+  pgVideo: document.getElementById("pgVideo"),
   productTag: document.getElementById("productTag"),
   productName: document.getElementById("productName"),
   productPrice: document.getElementById("productPrice"),
@@ -970,6 +976,19 @@ function applyStudioOverrides() {
       p.comparePrice = sv.compare;
       p.priceLabel   = formatCurrency(sv.current);
     }
+    /* RC-29 — Media Management System: admin-uploaded gallery/video also
+       overlays onto the live built-in catalog, the same way price/badge
+       already do. `image` (primary) stays in sync so every existing card/
+       cart/wishlist/share call site — which only ever reads `.image` —
+       keeps working with zero changes, even though it's now backed by a
+       real multi-image gallery under the hood. */
+    if (Array.isArray(sp.images) && sp.images.length) {
+      p.images = sp.images.map((im) => im.src).filter(Boolean);
+      p.image  = p.images[0] || p.image;
+    } else if (sp.image) {
+      p.image = sp.image;
+    }
+    if (sp.video && sp.video.src) p.video = { src: sp.video.src };
   });
 }
 
@@ -3433,6 +3452,7 @@ function openProduct(productId) {
   renderShareCard(product);      /* S81 — branded share preview card */
   updateProductOG(product);      /* S81 — dynamic OG meta tags */
   renderEmotionalRecommendations(product); /* emotionally adjacent pieces */
+  renderProductGallery(product); /* RC-29 — multi-image gallery + video */
 
   /* Reset scroll so every open starts from the top of the content area */
   const contentEl = dom.productSheet.querySelector(".product-sheet__content");
@@ -3476,6 +3496,71 @@ function closeProduct() {
     if (el) el.content = val;
   });
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   RC-29 — PRODUCT GALLERY (multi-image swipe + video + fullscreen zoom)
+   Purely additive: a product with only `.image` renders exactly as
+   before (no dots, no nav arrows, no behaviour change at all). A
+   product with `.images` (set via the Media Management System) gets
+   the richer swipeable gallery described below.
+   ════════════════════════════════════════════════════════════════════ */
+let _pgImages = [];
+let _pgIndex  = 0;
+
+function pgSetIndex(i) {
+  if (!_pgImages.length) return;
+  _pgIndex = ((i % _pgImages.length) + _pgImages.length) % _pgImages.length;
+  dom.productImage.src = _pgImages[_pgIndex];
+  dom.pgDots?.querySelectorAll(".pg-dots__dot").forEach((d, idx) => d.classList.toggle("is-active", idx === _pgIndex));
+  if (dom.pgCounter) dom.pgCounter.textContent = `${_pgIndex + 1} / ${_pgImages.length}`;
+}
+
+function renderProductGallery(product) {
+  _pgImages = (Array.isArray(product.images) && product.images.length ? product.images : [product.image]).filter(Boolean);
+  _pgIndex = 0;
+  const multi = _pgImages.length > 1;
+
+  if (dom.pgPrev) dom.pgPrev.hidden = !multi;
+  if (dom.pgNext) dom.pgNext.hidden = !multi;
+  if (dom.pgCounter) dom.pgCounter.hidden = !multi;
+  if (dom.pgDots) {
+    dom.pgDots.hidden = !multi;
+    dom.pgDots.innerHTML = multi ? _pgImages.map((_, i) => `<span class="pg-dots__dot${i === 0 ? " is-active" : ""}" data-pg-dot="${i}"></span>`).join("") : "";
+    dom.pgDots.querySelectorAll("[data-pg-dot]").forEach((dot) => dot.addEventListener("click", () => pgSetIndex(Number(dot.dataset.pgDot))));
+  }
+  if (multi && dom.pgCounter) dom.pgCounter.textContent = `1 / ${_pgImages.length}`;
+
+  /* Video — shown after the gallery, only when the product has one. */
+  if (product.video && product.video.src && dom.pgVideoWrap && dom.pgVideo) {
+    dom.pgVideo.src = product.video.src;
+    dom.pgVideoWrap.hidden = false;
+  } else if (dom.pgVideoWrap) {
+    dom.pgVideoWrap.hidden = true;
+    if (dom.pgVideo) dom.pgVideo.removeAttribute("src");
+  }
+}
+
+(function wireProductGallery() {
+  dom.pgPrev?.addEventListener("click", () => pgSetIndex(_pgIndex - 1));
+  dom.pgNext?.addEventListener("click", () => pgSetIndex(_pgIndex + 1));
+
+  /* Horizontal swipe on the media area — independent of attachSwipe()
+     (that engine is for vertical dismiss gestures; this is a carousel). */
+  const media = dom.productSheet?.querySelector(".product-sheet__media");
+  if (media) {
+    let startX = 0, active = false;
+    media.addEventListener("touchstart", (e) => { if (_pgImages.length > 1) { startX = e.touches[0].clientX; active = true; } }, { passive: true });
+    media.addEventListener("touchend", (e) => {
+      if (!active) return; active = false;
+      const dx = (e.changedTouches[0]?.clientX || startX) - startX;
+      if (Math.abs(dx) > 40) pgSetIndex(_pgIndex + (dx < 0 ? 1 : -1));
+    }, { passive: true });
+  }
+
+  /* Fullscreen viewing is handled by the existing .lx-imgview system
+     (see initProductImageViewer below) — it was made gallery-aware
+     there instead of building a second fullscreen viewer here. */
+})();
 
 function renderCart() {
   /* ── reset checkout button visibility ──────────────────────────────── */
@@ -5863,6 +5948,7 @@ function initProductImageViewer() {
     '<button type="button" class="lx-imgview__close-btn" aria-label="Close image">',
     '  <i data-lucide="x"></i>',
     '</button>',
+    '<span class="lx-imgview__counter" id="lxImgviewCounter" hidden></span>',
     '<img class="lx-imgview__img" src="" alt="" draggable="false" loading="eager" />',
     '<p class="lx-imgview__dismiss-hint" aria-hidden="true">Tap image · Swipe down · Esc</p>',
   ].join("");
@@ -5870,11 +5956,30 @@ function initProductImageViewer() {
 
   const viewerImg = viewer.querySelector(".lx-imgview__img");
   const closeBtn  = viewer.querySelector(".lx-imgview__close-btn");
+  const counterEl = viewer.querySelector("#lxImgviewCounter");
+  let isZoomed = false, lastTapTime = 0;
+
+  /* RC-29 — gallery-aware: when the product sheet has more than one
+     image (see _pgImages/_pgIndex from renderProductGallery), the same
+     viewer also shows a counter and supports a horizontal swipe to move
+     between images, alongside its existing swipe-down-to-dismiss. */
+  function syncCounter() {
+    if (counterEl) counterEl.hidden = !(_pgImages.length > 1);
+    if (counterEl && _pgImages.length > 1) counterEl.textContent = `${_pgIndex + 1} / ${_pgImages.length}`;
+  }
+  function goToIndex(i) {
+    if (!_pgImages.length) return;
+    pgSetIndex(i); /* keeps the thumbnail/dots in sync too */
+    viewerImg.src = _pgImages[_pgIndex];
+    syncCounter();
+  }
 
   /* ── Open/close helpers ──────────────────────────────────────────────── */
   function openViewer(src, alt) {
     viewerImg.src = src;
     viewerImg.alt = alt || "Product image";
+    viewerImg.classList.remove("is-zoomed"); isZoomed = false;
+    syncCounter();
     viewer.classList.add("is-open");
     viewer.setAttribute("aria-hidden", "false");
     closeBtn.focus(); /* move focus into viewer for keyboard users */
@@ -5889,6 +5994,24 @@ function initProductImageViewer() {
     if (expandBtn) requestAnimationFrame(() => expandBtn.focus());
   }
 
+  /* Single tap on the image closes the viewer (existing behaviour); a
+     second tap within 350ms cancels that close and zooms instead — this
+     is the minimal change needed to add double-tap zoom without losing
+     the advertised "tap image to close" gesture. */
+  let pendingCloseTimer = null;
+  viewerImg.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const now = Date.now();
+    if (now - lastTapTime < 350) {
+      clearTimeout(pendingCloseTimer);
+      isZoomed = !isZoomed;
+      viewerImg.classList.toggle("is-zoomed", isZoomed);
+    } else {
+      pendingCloseTimer = setTimeout(() => { if (!isZoomed) closeViewer(); }, 350);
+    }
+    lastTapTime = now;
+  });
+
   /* ── Trigger: click on the product sheet media area ─────────────────── */
   document.addEventListener("click", (e) => {
     /* Allow click on media area (but not the expand btn — that handles itself) */
@@ -5900,9 +6023,9 @@ function initProductImageViewer() {
     }
   });
 
-  /* ── Dismiss: backdrop click, image click, close button ─────────────── */
+  /* ── Dismiss: backdrop click, close button ───────────────────────────── */
   viewer.addEventListener("click", (e) => {
-    if (e.target === viewer || e.target === viewerImg) closeViewer();
+    if (e.target === viewer) closeViewer();
   });
   closeBtn.addEventListener("click", closeViewer);
 
@@ -5912,14 +6035,24 @@ function initProductImageViewer() {
       e.preventDefault();
       closeViewer();
     }
+    if (viewer.classList.contains("is-open") && _pgImages.length > 1) {
+      if (e.key === "ArrowRight") goToIndex(_pgIndex + 1);
+      if (e.key === "ArrowLeft") goToIndex(_pgIndex - 1);
+    }
   });
 
-  /* ── Dismiss: swipe down gesture (touch) ────────────────────────────── */
-  let lxTouchStartY = 0;
+  /* ── Swipe: down dismisses, left/right moves through the gallery ────── */
+  let lxTouchStartY = 0, lxTouchStartX = 0;
   viewer.addEventListener("touchstart", (e) => {
     lxTouchStartY = e.touches[0].clientY;
+    lxTouchStartX = e.touches[0].clientX;
   }, { passive: true });
   viewer.addEventListener("touchend", (e) => {
+    const dx = e.changedTouches[0].clientX - lxTouchStartX;
+    if (!isZoomed && _pgImages.length > 1 && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(e.changedTouches[0].clientY - lxTouchStartY)) {
+      goToIndex(_pgIndex + (dx < 0 ? 1 : -1));
+      return;
+    }
     const dy = e.changedTouches[0].clientY - lxTouchStartY;
     if (dy > 80 && viewer.classList.contains("is-open")) closeViewer();
   }, { passive: true });

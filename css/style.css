@@ -17808,3 +17808,45 @@ html[data-theme="dark"] .lx-ring__track { stroke: rgba(250, 246, 239, .14); }
   .lx-snapshot--journey { grid-template-columns: repeat(2, 1fr); }
   .lx-benefits__pill { min-width: 100%; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   RC-29 — PRODUCT GALLERY (additive; inert/hidden for single-image
+   products, so the existing experience is unchanged by default)
+   ════════════════════════════════════════════════════════════════════ */
+.product-sheet__media { position: relative; }
+.pg-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 2.4rem; height: 2.4rem; border-radius: 50%;
+  background: rgba(255, 255, 255, .85); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--emerald, #023d3a); z-index: 2;
+  box-shadow: 0 4px 14px rgba(2, 20, 18, .15);
+}
+.pg-nav--prev { left: .7rem; }
+.pg-nav--next { right: .7rem; }
+.pg-dots {
+  position: absolute; bottom: .7rem; left: 0; right: 0; z-index: 2;
+  display: flex; justify-content: center; gap: .4rem;
+}
+.pg-dots__dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255, 255, 255, .55); transition: background .2s ease, transform .2s ease; }
+.pg-dots__dot.is-active { background: var(--ivory, #faf6ef); transform: scale(1.3); }
+.pg-counter {
+  position: absolute; top: .7rem; left: .7rem; z-index: 2;
+  background: rgba(2, 20, 18, .55); color: var(--ivory, #faf6ef);
+  font-size: .7rem; padding: .2rem .55rem; border-radius: 1rem;
+}
+
+.pg-video-wrap { padding: 0 1.75rem 1rem; }
+.pg-video-wrap video { width: 100%; border-radius: .9rem; display: block; background: #000; }
+
+/* Fullscreen viewing is handled by the existing .lx-imgview system
+   (extended to be gallery-aware below) — no second viewer here. */
+.lx-imgview__counter {
+  position: absolute; top: max(1.25rem, env(safe-area-inset-top, 1.25rem)); left: 50%; transform: translateX(-50%);
+  color: rgba(248, 245, 236, .85); font-size: .78rem; letter-spacing: .04em;
+}
+.lx-imgview__img.is-zoomed { transform: scale(1.9); cursor: zoom-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pg-dots__dot { transition: none !important; }
+}

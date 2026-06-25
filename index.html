@@ -1572,6 +1572,27 @@
         <!-- Image — capped at 42svh on mobile, fills left column on desktop -->
         <div class="product-sheet__media">
           <img id="productImage" src="" alt="" loading="lazy" />
+          <!-- RC-29 — multi-image gallery controls (additive; stay hidden
+               and inert for any product with only a single image, so the
+               existing single-image experience is unchanged). -->
+          <button type="button" class="pg-nav pg-nav--prev" id="pgPrev" hidden aria-label="Previous image">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button type="button" class="pg-nav pg-nav--next" id="pgNext" hidden aria-label="Next image">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <!-- Fullscreen viewing already exists via .lx-imgview's own
+               expand button (added at runtime by initProductImageViewer) —
+               that system was extended to be gallery-aware instead of
+               building a second, duplicate fullscreen viewer here. -->
+          <div class="pg-dots" id="pgDots" hidden></div>
+          <span class="pg-counter" id="pgCounter" hidden></span>
+        </div>
+
+        <!-- RC-29 — product video, shown after the image gallery, hidden
+             unless the product actually has one. -->
+        <div class="pg-video-wrap" id="pgVideoWrap" hidden>
+          <video id="pgVideo" controls playsinline muted preload="metadata"></video>
         </div>
 
         <!-- Body: flex column → scrollable content + sticky CTA bar -->

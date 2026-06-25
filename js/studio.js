@@ -272,6 +272,382 @@ function fmtDate(iso) {
   return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   RC-29 — ABDAN MEDIA MANAGEMENT SYSTEM (additive)
+   Client-side only — this is a static site with no backend/object
+   storage, so "upload" means: compress in-browser via canvas, store as
+   a data URL in localStorage (the same proven technique already used
+   for Wardrobe/Edits cover photos), and register it in a shared media
+   library for reuse. localStorage has a real ~5-10MB origin quota, so
+   every image is aggressively compressed and a separate, much smaller
+   thumbnail is generated for grids/lists. Paste-URL remains fully
+   supported and unlimited (it stores a string, not binary data).
+   ════════════════════════════════════════════════════════════════════ */
+const MEDIA_LIBRARY_KEY  = "abdan-media-library";
+const MMS_IMAGE_TYPES    = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/avif"];
+const MMS_VIDEO_TYPES    = ["video/mp4", "video/webm", "video/quicktime"];
+const MMS_MAX_IMAGE_MB   = 12;   /* raw upload cap, before compression */
+const MMS_MAX_VIDEO_MB   = 8;    /* hard cap — localStorage can't hold large video */
+const MMS_DISPLAY_MAX_PX = 1400;
+const MMS_THUMB_MAX_PX   = 320;
+
+let _mmsWebpOk = null;
+function mmsSupportsWebp(cb) {
+  if (_mmsWebpOk !== null) return cb(_mmsWebpOk);
+  const img = new Image();
+  img.onload = () => { _mmsWebpOk = img.width > 0; cb(_mmsWebpOk); };
+  img.onerror = () => { _mmsWebpOk = false; cb(false); };
+  img.src = "data:image/webp;base64,UklGRiQAAABXRUJQVlA4IBgAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA";
+}
+
+function mmsUid() { return "med" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+/* Validate + compress an image File → { src, thumb, sizeBytes, mime }. */
+function mmsProcessImage(file, cb) {
+  if (!MMS_IMAGE_TYPES.includes(file.type)) return cb("Unsupported format — use JPG, PNG, WEBP, or AVIF.");
+  if (file.size > MMS_MAX_IMAGE_MB * 1024 * 1024) return cb(`File is too large — please keep images under ${MMS_MAX_IMAGE_MB}MB.`);
+  const reader = new FileReader();
+  reader.onerror = () => cb("Couldn't read that file — it may be corrupted.");
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onerror = () => cb("That file doesn't look like a valid image.");
+    img.onload = () => {
+      mmsSupportsWebp((webpOk) => {
+        const mime = webpOk ? "image/webp" : "image/jpeg";
+        const resize = (maxPx, quality) => {
+          let w = img.width, h = img.height;
+          if (w > maxPx || h > maxPx) { const r = Math.min(maxPx / w, maxPx / h); w = Math.round(w * r); h = Math.round(h * r); }
+          const c = document.createElement("canvas"); c.width = w; c.height = h;
+          c.getContext("2d").drawImage(img, 0, 0, w, h);
+          try { return c.toDataURL(mime, quality); } catch { return c.toDataURL("image/jpeg", quality); }
+        };
+        const src = resize(MMS_DISPLAY_MAX_PX, 0.82);
+        const thumb = resize(MMS_THUMB_MAX_PX, 0.74);
+        cb(null, { src, thumb, sizeBytes: Math.round(src.length * 0.75), mime });
+      });
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* Validate a video File → { src, sizeBytes, mime } — stored as-is (no
+   client-side video transcoding is realistic), so the size cap is strict. */
+function mmsProcessVideo(file, cb) {
+  if (!MMS_VIDEO_TYPES.includes(file.type)) return cb("Unsupported format — use MP4, WEBM, or MOV.");
+  if (file.size > MMS_MAX_VIDEO_MB * 1024 * 1024) return cb(`Video is too large — please keep clips under ${MMS_MAX_VIDEO_MB}MB (short showcase clips work best).`);
+  const reader = new FileReader();
+  reader.onerror = () => cb("Couldn't read that file — it may be corrupted.");
+  reader.onload = (e) => cb(null, { src: e.target.result, sizeBytes: file.size, mime: file.type });
+  reader.readAsDataURL(file);
+}
+
+/* ── Shared Media Library — independent of any single product ───────── */
+function mmsGetLibrary() { return load(MEDIA_LIBRARY_KEY, []); }
+function mmsSaveLibrary(list) { save(MEDIA_LIBRARY_KEY, list); }
+function mmsAddToLibrary(rec) {
+  const lib = mmsGetLibrary();
+  const item = { id: mmsUid(), usageCount: 0, uploadedAt: new Date().toISOString(), ...rec };
+  lib.unshift(item);
+  mmsSaveLibrary(lib);
+  return item;
+}
+function mmsBumpUsage(id, delta) {
+  if (!id) return;
+  const lib = mmsGetLibrary();
+  const item = lib.find((m) => m.id === id);
+  if (item) { item.usageCount = Math.max(0, (item.usageCount || 0) + delta); mmsSaveLibrary(lib); }
+}
+
+/* ── Self-contained modal overlay — separate from openPanel/closePanel so
+   the existing CRUD-panel system (single Save callback) is never touched. */
+function mmsModal(innerHtml) {
+  mmsCloseModal();
+  const wrap = document.createElement("div");
+  wrap.id = "mmsModal";
+  wrap.className = "mms-modal";
+  wrap.innerHTML = `
+    <div class="mms-modal__backdrop" data-mms-close></div>
+    <div class="mms-modal__panel">
+      <button class="mms-modal__close" type="button" data-mms-close aria-label="Close"><i data-lucide="x" class="s-icon"></i></button>
+      ${innerHtml}
+    </div>`;
+  document.body.appendChild(wrap);
+  wrap.querySelectorAll("[data-mms-close]").forEach((b) => b.addEventListener("click", mmsCloseModal));
+  initLucide();
+  return wrap;
+}
+function mmsCloseModal() { document.getElementById("mmsModal")?.remove(); }
+
+/* ── Lightweight editor: rotate (90° steps) + zoom + reposition, baked
+   into a square preview canvas. "Do not build a complex image editor" —
+   this intentionally stops at crop/rotate/zoom/preview. ────────────── */
+function mmsEditorHtml() {
+  return `
+    <div class="mms-editor">
+      <p class="s-card__title">Adjust your photo</p>
+      <div class="mms-editor__stage">
+        <canvas id="mmsEditorCanvas" width="320" height="320"></canvas>
+      </div>
+      <div class="mms-editor__controls">
+        <button type="button" class="s-btn s-btn--ghost s-btn--sm" id="mmsRotateL"><i data-lucide="rotate-ccw" class="s-icon"></i></button>
+        <label class="mms-editor__zoom">Zoom
+          <input type="range" id="mmsZoom" min="1" max="2.5" step="0.05" value="1" />
+        </label>
+        <button type="button" class="s-btn s-btn--ghost s-btn--sm" id="mmsRotateR"><i data-lucide="rotate-cw" class="s-icon"></i></button>
+      </div>
+      <p class="cc-note">Drag the photo to reposition it within the frame.</p>
+      <button type="button" class="s-btn s-btn--primary" id="mmsEditorUse" style="width:100%;margin-top:.75rem">Use This Photo</button>
+    </div>`;
+}
+function mmsWireEditor(imgSrc, onDone) {
+  const canvas = document.getElementById("mmsEditorCanvas");
+  const ctx = canvas.getContext("2d");
+  const img = new Image();
+  let rotation = 0, zoom = 1, offX = 0, offY = 0, dragging = false, lastX = 0, lastY = 0;
+  function draw() {
+    ctx.clearRect(0, 0, 320, 320);
+    ctx.save();
+    ctx.translate(160 + offX, 160 + offY);
+    ctx.rotate((rotation * Math.PI) / 180);
+    const scale = Math.max(320 / img.width, 320 / img.height) * zoom;
+    ctx.drawImage(img, (-img.width * scale) / 2, (-img.height * scale) / 2, img.width * scale, img.height * scale);
+    ctx.restore();
+  }
+  img.onload = draw;
+  img.src = imgSrc;
+  document.getElementById("mmsRotateL")?.addEventListener("click", () => { rotation -= 90; draw(); });
+  document.getElementById("mmsRotateR")?.addEventListener("click", () => { rotation += 90; draw(); });
+  document.getElementById("mmsZoom")?.addEventListener("input", (e) => { zoom = Number(e.target.value); draw(); });
+  const startDrag = (x, y) => { dragging = true; lastX = x; lastY = y; };
+  const moveDrag = (x, y) => { if (!dragging) return; offX += x - lastX; offY += y - lastY; lastX = x; lastY = y; draw(); };
+  const endDrag = () => { dragging = false; };
+  canvas.addEventListener("mousedown", (e) => startDrag(e.clientX, e.clientY));
+  canvas.addEventListener("mousemove", (e) => moveDrag(e.clientX, e.clientY));
+  window.addEventListener("mouseup", endDrag);
+  canvas.addEventListener("touchstart", (e) => { const t = e.touches[0]; startDrag(t.clientX, t.clientY); }, { passive: true });
+  canvas.addEventListener("touchmove", (e) => { const t = e.touches[0]; moveDrag(t.clientX, t.clientY); }, { passive: true });
+  canvas.addEventListener("touchend", endDrag);
+  document.getElementById("mmsEditorUse")?.addEventListener("click", () => {
+    mmsSupportsWebp((webpOk) => {
+      const mime = webpOk ? "image/webp" : "image/jpeg";
+      let out; try { out = canvas.toDataURL(mime, 0.85); } catch { out = canvas.toDataURL("image/jpeg", 0.85); }
+      const thumbCanvas = document.createElement("canvas"); thumbCanvas.width = 160; thumbCanvas.height = 160;
+      thumbCanvas.getContext("2d").drawImage(canvas, 0, 0, 160, 160);
+      let thumb; try { thumb = thumbCanvas.toDataURL(mime, 0.74); } catch { thumb = thumbCanvas.toDataURL("image/jpeg", 0.74); }
+      onDone({ src: out, thumb, sizeBytes: Math.round(out.length * 0.75), mime });
+    });
+  });
+}
+
+/* ── Media picker — Upload / Paste URL / Choose from Library tabs.
+   onPick receives { src, thumb, mediaId, name } and the modal closes. */
+function mmsOpenPicker(kind, onPick) {
+  const isVideo = kind === "video";
+  const lib = mmsGetLibrary().filter((m) => (m.kind || "image") === kind);
+  const modal = mmsModal(`
+    <div class="mms-picker">
+      <div class="mms-picker__tabs" role="tablist">
+        <button type="button" class="mms-picker__tab is-active" data-mms-ptab="upload">Upload</button>
+        <button type="button" class="mms-picker__tab" data-mms-ptab="url">Paste URL</button>
+        ${lib.length ? `<button type="button" class="mms-picker__tab" data-mms-ptab="library">Library</button>` : ""}
+      </div>
+      <div class="mms-picker__pane" data-mms-pane="upload">
+        <div class="mms-dropzone" id="mmsDropzone">
+          <i data-lucide="${isVideo ? "film" : "image-plus"}" class="s-icon"></i>
+          <p>Drag &amp; drop ${isVideo ? "a video" : "a photo"}, or</p>
+          <button type="button" class="s-btn s-btn--primary s-btn--sm" id="mmsBrowseBtn">Choose File</button>
+          <input type="file" id="mmsFileInput" accept="${isVideo ? MMS_VIDEO_TYPES.join(",") : MMS_IMAGE_TYPES.join(",")}" ${isVideo ? "" : "capture=\"environment\""} hidden />
+          <p class="cc-note">${isVideo ? `MP4/WEBM/MOV, under ${MMS_MAX_VIDEO_MB}MB` : `JPG/PNG/WEBP/AVIF, under ${MMS_MAX_IMAGE_MB}MB`} · on mobile this also offers your camera and gallery</p>
+        </div>
+        <div id="mmsUploadStatus" class="cc-note"></div>
+        <div id="mmsEditorMount"></div>
+      </div>
+      <div class="mms-picker__pane" data-mms-pane="url" hidden>
+        <input type="url" id="mmsUrlInput" class="s-field__select" placeholder="${isVideo ? "https://…/clip.mp4" : "https://…/image.jpg"}" style="width:100%;margin-bottom:.6rem" />
+        <button type="button" class="s-btn s-btn--primary s-btn--sm" id="mmsUrlAdd">Add</button>
+      </div>
+      ${lib.length ? `<div class="mms-picker__pane" data-mms-pane="library" hidden>
+        <input type="text" id="mmsLibSearch" class="s-field__select" placeholder="Search media…" style="width:100%;margin-bottom:.6rem" />
+        <div class="s-media-grid" id="mmsLibGrid">${lib.map((m) => `
+          <div class="s-media-item" data-mms-libpick="${m.id}">
+            <div class="s-media-item__img" style="background-image:url('${esc(m.thumb || m.src)}')"></div>
+            <p class="s-media-item__name">${esc(m.name || "Untitled")} · used ${m.usageCount || 0}×</p>
+          </div>`).join("")}</div>
+      </div>` : ""}
+    </div>`);
+
+  modal.querySelectorAll("[data-mms-ptab]").forEach((tab) => tab.addEventListener("click", () => {
+    modal.querySelectorAll("[data-mms-ptab]").forEach((t) => t.classList.toggle("is-active", t === tab));
+    modal.querySelectorAll("[data-mms-pane]").forEach((p) => { p.hidden = p.dataset.mmsPane !== tab.dataset.mmsPtab; });
+  }));
+
+  const dropzone = modal.querySelector("#mmsDropzone");
+  const fileInput = modal.querySelector("#mmsFileInput");
+  const statusEl = modal.querySelector("#mmsUploadStatus");
+  const editorMount = modal.querySelector("#mmsEditorMount");
+
+  function handleFile(file) {
+    if (!file) return;
+    statusEl.textContent = "Processing…";
+    if (isVideo) {
+      mmsProcessVideo(file, (err, result) => {
+        if (err) { statusEl.textContent = err; return; }
+        statusEl.textContent = "";
+        const rec = mmsAddToLibrary({ kind: "video", src: result.src, thumb: "", name: file.name, sizeBytes: result.sizeBytes, mime: result.mime });
+        onPick({ src: rec.src, thumb: "", mediaId: rec.id, name: rec.name });
+        mmsCloseModal();
+      });
+      return;
+    }
+    mmsProcessImage(file, (err, result) => {
+      if (err) { statusEl.textContent = err; return; }
+      statusEl.textContent = "";
+      /* Lightweight editor step — crop/rotate/zoom/preview, then confirm. */
+      editorMount.innerHTML = mmsEditorHtml();
+      initLucide();
+      mmsWireEditor(result.src, (edited) => {
+        const rec = mmsAddToLibrary({ kind: "image", src: edited.src, thumb: edited.thumb, name: file.name, sizeBytes: edited.sizeBytes, mime: edited.mime });
+        onPick({ src: rec.src, thumb: rec.thumb, mediaId: rec.id, name: rec.name });
+        mmsCloseModal();
+      });
+    });
+  }
+
+  dropzone.addEventListener("dragover", (e) => { e.preventDefault(); dropzone.classList.add("is-dragover"); });
+  dropzone.addEventListener("dragleave", () => dropzone.classList.remove("is-dragover"));
+  dropzone.addEventListener("drop", (e) => { e.preventDefault(); dropzone.classList.remove("is-dragover"); handleFile(e.dataTransfer.files?.[0]); });
+  modal.querySelector("#mmsBrowseBtn")?.addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", (e) => handleFile(e.target.files?.[0]));
+
+  modal.querySelector("#mmsUrlAdd")?.addEventListener("click", () => {
+    const url = modal.querySelector("#mmsUrlInput").value.trim();
+    if (!url) { toast("Paste a URL first", "error"); return; }
+    onPick({ src: url, thumb: "", mediaId: "", name: url.split("/").pop() });
+    mmsCloseModal();
+  });
+
+  modal.querySelectorAll("[data-mms-libpick]").forEach((card) => card.addEventListener("click", () => {
+    const m = lib.find((x) => x.id === card.dataset.mmsLibpick);
+    if (!m) return;
+    onPick({ src: m.src, thumb: m.thumb || "", mediaId: m.id, name: m.name });
+    mmsCloseModal();
+  }));
+  modal.querySelector("#mmsLibSearch")?.addEventListener("input", (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    modal.querySelectorAll("[data-mms-libpick]").forEach((card) => {
+      const m = lib.find((x) => x.id === card.dataset.mmsLibpick);
+      card.style.display = !q || (m && (m.name || "").toLowerCase().includes(q)) ? "" : "none";
+    });
+  });
+}
+
+/* ── Gallery manager — up to 6 images (1 primary + 5 gallery), drag-
+   reorder, backed by a plain array the caller persists on save. ───── */
+const MMS_MAX_GALLERY = 6;
+function mmsGalleryHtml(images) {
+  const slots = (images || []).slice(0, MMS_MAX_GALLERY);
+  const tiles = slots.map((img, idx) => `
+    <div class="mms-tile" draggable="true" data-mms-idx="${idx}">
+      <img src="${esc(img.thumb || img.src)}" alt="" />
+      ${idx === 0 ? `<span class="mms-tile__badge">Primary</span>` : ""}
+      <button type="button" class="mms-tile__remove" data-mms-tile-remove="${idx}" aria-label="Remove">×</button>
+    </div>`).join("");
+  const addTile = slots.length < MMS_MAX_GALLERY ? `<button type="button" class="mms-tile mms-tile--add" id="mmsAddTile"><i data-lucide="plus" class="s-icon"></i><span>Add</span></button>` : "";
+  return `
+    <div class="s-field s-field--full">
+      <span class="s-field__label">Product Images</span>
+      <p class="cc-note" style="margin:0 0 .5rem">First image is the Primary Image, used throughout the platform. Drag tiles to reorder.</p>
+      <div class="mms-gallery" id="mmsGallery">${tiles}${addTile}</div>
+    </div>`;
+}
+function mmsWireGallery(getImages, onChange) {
+  function rerender() {
+    const grid = document.getElementById("mmsGallery");
+    if (!grid) return;
+    grid.outerHTML = mmsGalleryHtml(getImages());
+    wire();
+    initLucide();
+  }
+  function wire() {
+    const grid = document.getElementById("mmsGallery");
+    if (!grid) return;
+    document.getElementById("mmsAddTile")?.addEventListener("click", () => {
+      mmsOpenPicker("image", (picked) => {
+        const images = getImages();
+        if (images.length >= MMS_MAX_GALLERY) { toast(`Up to ${MMS_MAX_GALLERY} images per piece`, "error"); return; }
+        images.push({ id: mmsUid(), src: picked.src, thumb: picked.thumb, mediaId: picked.mediaId });
+        if (picked.mediaId) mmsBumpUsage(picked.mediaId, 1);
+        onChange(images); rerender();
+      });
+    });
+    grid.querySelectorAll("[data-mms-tile-remove]").forEach((b) => b.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const idx = Number(b.dataset.mmsTileRemove);
+      const images = getImages();
+      const [removed] = images.splice(idx, 1);
+      if (removed?.mediaId) mmsBumpUsage(removed.mediaId, -1);
+      onChange(images); rerender();
+    }));
+    let dragIdx = null;
+    grid.querySelectorAll(".mms-tile[draggable='true']").forEach((tile) => {
+      tile.addEventListener("dragstart", () => { dragIdx = Number(tile.dataset.mmsIdx); tile.classList.add("is-dragging"); });
+      tile.addEventListener("dragend", () => tile.classList.remove("is-dragging"));
+      tile.addEventListener("dragover", (e) => e.preventDefault());
+      tile.addEventListener("drop", (e) => {
+        e.preventDefault();
+        const dropIdx = Number(tile.dataset.mmsIdx);
+        if (dragIdx === null || dragIdx === dropIdx) return;
+        const images = getImages();
+        const [moved] = images.splice(dragIdx, 1);
+        images.splice(dropIdx, 0, moved);
+        onChange(images); rerender();
+      });
+    });
+  }
+  wire();
+}
+
+/* ── Single video slot — Upload or Paste URL, with remove. ──────────── */
+function mmsVideoHtml(video) {
+  const v = video && video.src ? video : null;
+  return `
+    <div class="s-field s-field--full">
+      <span class="s-field__label">Product Video (optional)</span>
+      <p class="cc-note" style="margin:0 0 .5rem">Shown after the image gallery on the product page — great for fabric movement, 360° views, or styling demos.</p>
+      <div class="mms-video-slot" id="mmsVideoSlot">
+        ${v ? `<video src="${esc(v.src)}" muted playsinline style="width:100%;max-width:220px;border-radius:.6rem"></video><button type="button" class="s-btn s-btn--ghost s-btn--sm" id="mmsVideoRemove" style="margin-top:.5rem">Remove Video</button>`
+            : `<button type="button" class="s-btn s-btn--ghost s-btn--sm" id="mmsVideoAdd"><i data-lucide="film" class="s-icon"></i> Add Video</button>`}
+      </div>
+    </div>`;
+}
+function mmsWireVideo(getVideo, onChange) {
+  function rerender() {
+    const slot = document.getElementById("mmsVideoSlot")?.closest(".s-field");
+    if (!slot) return;
+    slot.outerHTML = mmsVideoHtml(getVideo());
+    wire(); initLucide();
+  }
+  function wire() {
+    document.getElementById("mmsVideoAdd")?.addEventListener("click", () => {
+      mmsOpenPicker("video", (picked) => {
+        const v = getVideo() || {};
+        if (v.mediaId) mmsBumpUsage(v.mediaId, -1);
+        onChange({ src: picked.src, mediaId: picked.mediaId });
+        if (picked.mediaId) mmsBumpUsage(picked.mediaId, 1);
+        rerender();
+      });
+    });
+    document.getElementById("mmsVideoRemove")?.addEventListener("click", () => {
+      const v = getVideo();
+      if (v?.mediaId) mmsBumpUsage(v.mediaId, -1);
+      onChange(null);
+      rerender();
+    });
+  }
+  wire();
+}
+
 function fmtCurrency(n) {
   return "₹" + Number(n || 0).toLocaleString("en-IN");
 }
@@ -2938,9 +3314,17 @@ function openProductForm(product = null) {
   const isNew = !product;
   const p = product || {
     id: uid(), name: "", price: "", comparePrice: "", badge: "", category: "", sizes: [],
-    image: "", image2: "", image3: "", description: "", curationLine: "",
+    image: "", image2: "", image3: "", images: [], video: null, description: "", curationLine: "",
     inStock: true, status: "active", tags: "", featured: false, updatedAt: new Date().toISOString(),
   };
+  /* RC-29 — migrate legacy image/image2/image3 URLs into images[] once,
+     transparently. Old products with only URL fields keep working exactly
+     as before; this just gives them a real gallery going forward. */
+  let images = Array.isArray(p.images) && p.images.length ? p.images.slice() : [];
+  if (!images.length) {
+    [p.image, p.image2, p.image3].filter(Boolean).forEach((src) => images.push({ id: mmsUid(), src, thumb: "", mediaId: "" }));
+  }
+  let video = p.video && p.video.src ? { ...p.video } : null;
 
   openPanel(isNew ? "Add Piece" : "Edit Piece", `
     <div class="s-form-grid">
@@ -2968,9 +3352,14 @@ function openProductForm(product = null) {
           ${STATUS_OPTIONS.map((s) => `<option value="${s}" ${p.status === s ? "selected" : ""}>${capitalise(s)}</option>`).join("")}
         </select>
       </label>
-      ${fieldFull("Primary Image URL", "url", "pfImage", p.image, "https://…")}
-      ${fieldFull("Secondary Image URL", "url", "pfImage2", p.image2 || "", "https://… (optional)")}
-      ${fieldFull("Third Image URL", "url", "pfImage3", p.image3 || "", "https://… (optional)")}
+      ${mmsGalleryHtml(images)}
+      <details class="s-field s-field--full" id="pfLegacyUrls">
+        <summary class="cc-note" style="cursor:pointer">Or paste image URLs directly (legacy method — still fully supported)</summary>
+        ${fieldFull("Primary Image URL", "url", "pfImage", images[0]?.mediaId ? "" : (images[0]?.src || ""), "https://…")}
+        ${fieldFull("Secondary Image URL", "url", "pfImage2", images[1]?.mediaId ? "" : (images[1]?.src || ""), "https://… (optional)")}
+        ${fieldFull("Third Image URL", "url", "pfImage3", images[2]?.mediaId ? "" : (images[2]?.src || ""), "https://… (optional)")}
+      </details>
+      ${mmsVideoHtml(video)}
       ${textareaFull("Description", "pfDesc", p.description, 3)}
       ${fieldFull("Curation Line", "text", "pfCurationLine", p.curationLine || "", "A single poetic line for sharing")}
       ${fieldFull("Tags (comma-separated)", "text", "pfTags", p.tags || "", "ivory, festive, linen")}
@@ -3003,6 +3392,12 @@ function openProductForm(product = null) {
     const name = val("pfName");
     if (!name) { toast("Product name is required", "error"); return; }
     const sizes = [...document.querySelectorAll("input[name='pfSizes']:checked")].map((el) => el.value);
+    /* Legacy URL fields, if filled, are folded into images[] on save too —
+       whichever method the admin used, the gallery stays the single source
+       of truth and every existing consumer of `image` keeps working. */
+    const legacyUrls = [val("pfImage"), val("pfImage2"), val("pfImage3")].filter(Boolean);
+    legacyUrls.forEach((src) => { if (!images.some((im) => im.src === src)) images.push({ id: mmsUid(), src, thumb: "", mediaId: "" }); });
+    images = images.slice(0, MMS_MAX_GALLERY);
     const updated = {
       ...p,
       name,
@@ -3011,9 +3406,11 @@ function openProductForm(product = null) {
       badge:         val("pfBadge"),
       category:      val("pfCategory"),
       status:        val("pfStatus"),
-      image:         val("pfImage"),
-      image2:        val("pfImage2"),
-      image3:        val("pfImage3"),
+      images,
+      image:         images[0]?.src || "",
+      image2:        images[1]?.src || "",
+      image3:        images[2]?.src || "",
+      video,
       description:   val("pfDesc"),
       curationLine:  val("pfCurationLine"),
       tags:          val("pfTags"),
@@ -3030,6 +3427,9 @@ function openProductForm(product = null) {
     toast(isNew ? "Piece added 💛" : "Piece updated ✨");
     renderProducts();
   });
+
+  mmsWireGallery(() => images, (next) => { images = next; });
+  mmsWireVideo(() => video, (next) => { video = next; });
 
   /* Live savings auto-calculation in the form (Premium Pricing System). */
   const previewEl = document.getElementById("pfSavingsPreview");
@@ -3607,34 +4007,78 @@ function renderSocial() {
 }
 
 /* ── Media Library ──────────────────────────────────────────── */
+/* ── RC-29: real Media Library — upload, search, reuse, delete ──────── */
+let _mmsLibFilter = "";
 function renderMedia() {
   setTitle("Media Library", `
     <button class="s-btn s-btn--primary s-btn--sm" id="sAddMedia">
-      <i data-lucide="plus" class="s-icon"></i> Add Image
+      <i data-lucide="upload" class="s-icon"></i> Upload Media
     </button>
   `);
+  const lib = mmsGetLibrary();
+  const q = _mmsLibFilter.trim().toLowerCase();
+  const filtered = q ? lib.filter((m) => (m.name || "").toLowerCase().includes(q)) : lib;
+  const totalBytes = lib.reduce((s, m) => s + (m.sizeBytes || 0), 0);
+  const unused = lib.filter((m) => !m.usageCount).length;
+
+  /* Legacy view — images referenced only via URL fields, not yet in the
+     library (kept for continuity; nothing here is duplicated logic). */
   const products = load(STORAGE.products, []);
-  const images   = products.flatMap((p) => [p.image, p.image2, p.image3].filter(Boolean).map((url) => ({ url, name: p.name })));
+  const legacyImages = products.flatMap((p) => [p.image, p.image2, p.image3].filter(Boolean)
+    .filter((url) => !lib.some((m) => m.src === url))
+    .map((url) => ({ url, name: p.name })));
 
   dom.content.innerHTML = `
-    <p class="s-muted" style="margin-bottom:1rem">All images currently in use across your product catalog.</p>
-    ${images.length ? `
+    <div class="s-stats-row">
+      ${stat("layers", "Total Media", lib.length, "s-stat--blue")}
+      ${stat("image", "Images", lib.filter((m) => (m.kind || "image") === "image").length)}
+      ${stat("film", "Videos", lib.filter((m) => m.kind === "video").length)}
+      ${stat("database", "Storage Used", `${(totalBytes / (1024 * 1024)).toFixed(1)} MB`, "s-stat--amber")}
+      ${stat("trash-2", "Unused", unused)}
+    </div>
+    <input type="text" id="mmsLibFilter" class="s-field__select" placeholder="Search media by name…" style="width:100%;margin:1rem 0" value="${esc(_mmsLibFilter)}" />
+    ${filtered.length ? `
     <div class="s-media-grid">
-      ${images.map(({ url, name }) => `
+      ${filtered.map((m) => `
+        <div class="s-media-item">
+          <div class="s-media-item__img" style="background-image:url('${esc(m.thumb || m.src)}')">${m.kind === "video" ? `<span class="mms-tile__badge" style="position:absolute;top:.4rem;left:.4rem">Video</span>` : ""}</div>
+          <p class="s-media-item__name">${esc(m.name || "Untitled")}</p>
+          <p class="cc-note" style="margin:0">Used ${m.usageCount || 0}× · ${fmtDate(m.uploadedAt)}</p>
+          <div class="s-list-item__actions" style="margin-top:.4rem">
+            <button class="s-btn s-btn--ghost s-btn--sm" data-mms-copy="${m.id}">Copy Link</button>
+            <button class="s-btn s-btn--ghost s-btn--sm" data-mms-delete="${m.id}">Delete</button>
+          </div>
+        </div>
+      `).join("")}
+    </div>` : empty("No media uploaded yet — upload your first photo or video to get started.", "image")}
+    ${legacyImages.length ? `
+    <p class="cc-section__sub" style="margin-top:1.5rem">Used via URL (not yet in the library)</p>
+    <div class="s-media-grid">
+      ${legacyImages.map(({ url, name }) => `
         <div class="s-media-item">
           <div class="s-media-item__img" style="background-image:url('${esc(url)}')"></div>
           <p class="s-media-item__name">${esc(name)}</p>
         </div>
       `).join("")}
-    </div>` : empty("No images yet — add products with image URLs to see them here", "image")}
-    <div class="s-alert s-alert--info" style="margin-top:1.5rem">
-      <i data-lucide="info" class="s-icon"></i>
-      ABDAN uses URL-based images (Unsplash, Cloudinary, etc.). No file uploads needed.
-    </div>
+    </div>` : ""}
   `;
+
   document.getElementById("sAddMedia")?.addEventListener("click", () => {
-    toast("Add image URLs directly in the product form 💛");
+    mmsOpenPicker("image", () => { toast("Added to your Media Library 💛"); renderMedia(); });
   });
+  document.getElementById("mmsLibFilter")?.addEventListener("input", (e) => { _mmsLibFilter = e.target.value; renderMedia(); });
+  dom.content.querySelectorAll("[data-mms-copy]").forEach((b) => b.addEventListener("click", () => {
+    const m = lib.find((x) => x.id === b.dataset.mmsCopy);
+    if (m) { try { navigator.clipboard.writeText(m.src); } catch {} toast("Link copied"); }
+  }));
+  dom.content.querySelectorAll("[data-mms-delete]").forEach((b) => b.addEventListener("click", () => {
+    const m = lib.find((x) => x.id === b.dataset.mmsDelete);
+    if (!m) return;
+    if (m.usageCount > 0 && !confirm(`This is used in ${m.usageCount} place${m.usageCount !== 1 ? "s" : ""}. Delete anyway?`)) return;
+    mmsSaveLibrary(mmsGetLibrary().filter((x) => x.id !== m.id));
+    toast("Media deleted");
+    renderMedia();
+  }));
 }
 
 /* ── Settings ───────────────────────────────────────────────── */
