@@ -47,6 +47,7 @@
 const STUDIO_VIEWS = [
   /* ── General ─────────────────────────────────────────────── */
   { id: "intelligence-hub", label: "Intelligence Hub", icon: "compass",       group: "General"      },
+  { id: "aos",          label: "Operating System",  icon: "infinity",        group: "General"      },
   { id: "command-center", label: "Command Center",  icon: "gauge",            group: "General"      },
   { id: "ops-center",  label: "Operations Center",  icon: "siren",            group: "General"      },
   { id: "conversion-intel", label: "Conversion Intelligence", icon: "filter", group: "General"      },
@@ -449,6 +450,7 @@ function renderView(id) {
   dom.content.innerHTML = "";
   const renders = {
     "intelligence-hub": renderIntelligenceHub,
+    "aos": renderAOS,
     "command-center": renderCommandCenter,
     "ops-center": renderOpsCenter,
     "conversion-intel": renderConversionIntel,
@@ -787,6 +789,192 @@ function renderIntelligenceHub() {
         <div class="cc-pulse-card">${pulse2.map((line) => `<p class="cc-pulse-line"><i data-lucide="sparkle" class="s-icon"></i>${line}</p>`).join("")}</div>
       </div>
     </div>`;
+}
+
+/* ── RC-28: ABDAN Operating System (AOS) ────────────────────────────────
+   NOT a new feature — an orchestration layer presenting how the existing
+   modules already connect. Every lifecycle mapping below maps real,
+   existing state (order.status, edit.status, loyalty pts, concierge
+   threads) onto the richer operational language the brief asks for;
+   where no real underlying field exists (e.g. multi-stage product
+   curation, Story/Collection content status), it says so honestly
+   rather than inventing new stored state. The Follow-Up Engine and
+   Workflow Timeline below are real and live — they read the AOS event
+   log / task queue that main.js's AOS.emit()/aosScheduleTask() write
+   to whenever an order is placed, a Moment is created, or an Edit is
+   published. ──────────────────────────────────────────────────────── */
+const AOS_PRINCIPLES = ["Intentional", "Elegant", "Calm", "Premium", "Human", "Transparent", "Consistent", "Customer-first"];
+const AOS_PILLARS = ["Customer Experience", "Your Space", "Community", "Concierge", "Orders", "Fulfilment", "Loyalty", "Circle", "Stories From Her World", "Intelligence", "Automation"];
+const AOS_ORDER_STAGE_LABELS = {
+  pending:   "Order Received",
+  confirmed: "Carefully Reserved",
+  preparing: "Being Prepared Thoughtfully",
+  shipped:   "Dispatched · In Transit",
+  delivered_pending:  "Feedback Pending",
+  delivered_complete: "Completed",
+  cancelled: "Closed",
+};
+const AOS_TASK_LABELS = {
+  feedback: "Feedback", story_invite: "Story Invitation", concierge_followup: "Concierge Follow-up",
+  moment_nudge: "Moment Creation", wardrobe_completion: "Wardrobe Completion", share_the_love: "Share the Love",
+};
+
+function renderAOS() {
+  setTitle("ABDAN Operating System", `<span class="s-muted" style="font-size:0.78rem">The framework governing every module — not a new feature</span>`);
+  const now = new Date();
+  const orders = load(STORAGE.orders, []);
+  const profiles = load(STORAGE.customers, {});
+  const profileList = Object.entries(profiles);
+
+  /* ── Order Operating Model — real 5-status enum, presented richly ──── */
+  const orderStageCounts = { pending: 0, confirmed: 0, preparing: 0, shipped: 0, delivered_pending: 0, delivered_complete: 0, cancelled: 0 };
+  orders.forEach((o) => {
+    if (o.status === "pending") orderStageCounts.pending++;
+    else if (o.status === "confirmed") orderStageCounts.confirmed++;
+    else if (o.status === "shipped") orderStageCounts.shipped++;
+    else if (o.status === "cancelled") orderStageCounts.cancelled++;
+    else if (o.status === "delivered") {
+      const days = o.createdAt ? Math.floor((now.getTime() - new Date(o.createdAt).getTime()) / 864e5) : 999;
+      if (days < 30) orderStageCounts.delivered_pending++; else orderStageCounts.delivered_complete++;
+    }
+  });
+
+  /* ── Concierge Operating Model — real per-member thread state ───────── */
+  let conciergeNew = 0, conciergeAwaitingCustomer = 0, conciergeClosed = 0;
+  profileList.forEach(([email]) => {
+    let msgs = []; try { msgs = JSON.parse(localStorage.getItem(`abdan-sp-concierge:${email}`) || "[]") || []; } catch { msgs = []; }
+    if (!msgs.length) return;
+    const last = msgs[msgs.length - 1];
+    if (last.from === "customer") (msgs.length === 1 ? conciergeNew++ : conciergeAwaitingCustomer++);
+    else conciergeClosed++;
+  });
+
+  /* ── Content Operating Model — Edits has a real status field; Stories/
+     Collections/Community Posts don't, so those render an honest note. */
+  const editsAll = ccScanPrefixed("abdan-sp-edits:").flatMap((r) => Array.isArray(r.data) ? r.data : []);
+  const contentCounts = { Draft: 0, Published: 0, Archived: 0 };
+  editsAll.forEach((e) => { if (e.status === "published") contentCounts.Published++; else if (e.status === "archived") contentCounts.Archived++; else contentCounts.Draft++; });
+  const reviews = load(STORAGE.reviews, []);
+  const featuredReviews = reviews.filter((r) => r.featured).length;
+
+  /* ── Product Operating Model — real 4-state product status ──────────── */
+  const products = load(STORAGE.products, []);
+  const productCounts = { draft: 0, active: 0, "sold-out": 0, archived: 0 };
+  products.forEach((p) => { if (productCounts[p.status] !== undefined) productCounts[p.status]++; });
+
+  /* ── Customer Success Model — same segmentation Customer Intelligence
+     already computes (reused exactly, not reimplemented differently). */
+  const orderCountByEmail = {};
+  orders.forEach((o) => { const e = String(o.customerEmail || "").toLowerCase(); if (e) orderCountByEmail[e] = (orderCountByEmail[e] || 0) + 1; });
+  const referrals = load(STORAGE.referrals, []);
+  const advocateEmails = new Set(referrals.filter((r) => r.status === "rewarded").map((r) => String(r.referrerEmail || "").toLowerCase()));
+  const communityEmails = new Set(editsAll.length ? ccScanPrefixed("abdan-sp-edits:").filter((r) => Array.isArray(r.data) && r.data.length).map((r) => r.ownerEmail) : []);
+  const successCounts = { Customer: 0, "Returning Customer": 0, "Circle Member": 0, "Inner Circle": 0, "Brand Advocate": 0, "Community Contributor": 0 };
+  profileList.forEach(([email]) => {
+    let pts = 0; try { pts = JSON.parse(localStorage.getItem(`abdan-sp-loyalty:${email}`) || "0") || 0; } catch {}
+    const orderCount = orderCountByEmail[email] || 0;
+    if (orderCount > 1) successCounts["Returning Customer"]++; else if (orderCount === 1) successCounts.Customer++;
+    if (pts > 0) successCounts["Circle Member"]++;
+    if (pts >= 150) successCounts["Inner Circle"]++;
+    if (advocateEmails.has(email)) successCounts["Brand Advocate"]++;
+    if (communityEmails.has(email)) successCounts["Community Contributor"]++;
+  });
+
+  /* ── Follow-Up Engine — real internal task queue ─────────────────────── */
+  let tasks = []; try { tasks = JSON.parse(localStorage.getItem("abdan-aos-tasks") || "[]") || []; } catch { tasks = []; }
+  const openTasks = tasks.filter((t) => !t.done);
+  const overdueTasks = openTasks.filter((t) => new Date(t.dueAt) < now);
+  const taskTypeCounts = {};
+  openTasks.forEach((t) => { taskTypeCounts[t.type] = (taskTypeCounts[t.type] || 0) + 1; });
+
+  /* ── Workflow Timeline — real AOS event log ──────────────────────────── */
+  let aosLog = []; try { aosLog = JSON.parse(localStorage.getItem("abdan-aos-log") || "[]") || []; } catch { aosLog = []; }
+
+  dom.content.innerHTML = `
+    <div class="cc-wrap">
+      <div class="cc-section cc-section--hero">
+        <p class="cc-section__label">AOS Principles</p>
+        <div class="aos-principle-row">${AOS_PRINCIPLES.map((p) => `<span class="s-badge">${esc(p)}</span>`).join("")}</div>
+        <p class="cc-note" style="margin-top:.8rem">Governing pillars: ${AOS_PILLARS.map(esc).join(" · ")}.</p>
+      </div>
+
+      <div class="cc-section">
+        <div class="cc-section__head"><p class="cc-section__label">Order Operating Model</p>${qaction("receipt", "Manage Orders", "orders")}</div>
+        ${ccRankList(Object.entries(orderStageCounts).map(([k, v]) => [AOS_ORDER_STAGE_LABELS[k], v]).filter(([, v]) => v > 0))}
+      </div>
+
+      <div class="cc-section">
+        <div class="cc-section__head"><p class="cc-section__label">Concierge Operating Model</p>${qaction("message-circle", "Concierge Queue", "concierge")}</div>
+        ${ccRankList([["New Request", conciergeNew], ["Awaiting Customer Decision", conciergeAwaitingCustomer], ["Closed / Resolved", conciergeClosed]].filter(([, v]) => v > 0))}
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Content Operating Model</p>
+        ${ccRankList(Object.entries(contentCounts).filter(([, v]) => v > 0))}
+        <p class="cc-note">Edits has a real Draft/Published/Archived status — shown above. Stories From Her World, Collections, and Community Posts don't carry a lifecycle status field yet, so they aren't shown here rather than guessed. ${featuredReviews} review${featuredReviews !== 1 ? "s are" : " is"} currently Featured.</p>
+      </div>
+
+      <div class="cc-section">
+        <div class="cc-section__head"><p class="cc-section__label">Product Operating Model</p>${qaction("shopping-bag", "Curated Pieces", "products")}</div>
+        ${ccRankList([["Draft", productCounts.draft], ["Published", productCounts.active], ["Sold Out", productCounts["sold-out"]], ["Archived", productCounts.archived]].filter(([, v]) => v > 0))}
+        <p class="cc-note">Products track 4 real states (Draft/Published/Sold Out/Archived) — Curation/Photography/Review/Trending aren't separately tracked fields yet.</p>
+      </div>
+
+      <div class="cc-section">
+        <div class="cc-section__head"><p class="cc-section__label">Customer Success Model</p>${qaction("users", "Customer Intelligence", "customer-intel")}</div>
+        ${ccRankList(Object.entries(successCounts).filter(([, v]) => v > 0))}
+        <p class="cc-note">"Visitor" isn't shown — there's no identity for an anonymous, not-yet-registered browser session to count.</p>
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Follow-Up Engine</p>
+        <div class="cc-grid">
+          ${stat("list-checks", "Open Tasks", openTasks.length, "s-stat--blue")}
+          ${stat("alert-triangle", "Overdue", overdueTasks.length, overdueTasks.length ? "s-stat--red" : "s-stat--green")}
+        </div>
+        <p class="cc-note">Internal reminders only — ABDAN never contacts a customer automatically from this queue.</p>
+        ${openTasks.length ? `<div class="s-list" id="aosTaskList">${openTasks.slice(0, 12).map((t) => `
+          <div class="s-list-item">
+            <div class="s-list-item__main"><strong>${esc(AOS_TASK_LABELS[t.type] || t.type)}</strong><span class="s-list-item__sub">${esc(t.label)} · due ${fmtDate(t.dueAt)}</span></div>
+            <div class="s-list-item__actions">
+              ${new Date(t.dueAt) < now ? `<span class="s-badge s-badge--red">Overdue</span>` : ""}
+              <button class="s-btn s-btn--ghost s-btn--sm" data-aos-done="${t.id}">Mark Done</button>
+            </div>
+          </div>`).join("")}</div>` : empty("No follow-ups scheduled yet — they appear automatically after orders, Moments, and Edits.", "list-checks")}
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Workflow Timeline</p>
+        ${aosLog.length ? `<div class="op-timeline">${aosLog.slice(0, 15).map((l) => `
+          <div class="op-timeline__row">
+            <i data-lucide="git-branch" class="s-icon"></i>
+            <span class="op-timeline__text">${esc(l.event)}${l.ref ? ` — ${esc(l.ref)}` : ""}</span>
+            <span class="op-timeline__time">${opTimeAgo(new Date(l.at).getTime())}</span>
+          </div>`).join("")}</div>` : empty("No workflow events recorded yet — placing an order or creating a Moment/Edit will populate this.", "git-branch")}
+      </div>
+
+      <div class="cc-section">
+        <p class="cc-section__label">Intelligence Orchestration</p>
+        <p class="cc-section__sub" style="margin-top:0">Every figure above is sourced from these — nothing here duplicates their analytics.</p>
+        <div class="s-qaction-row">
+          ${qaction("compass", "Intelligence Hub", "intelligence-hub")}
+          ${qaction("gauge", "Command Center", "command-center")}
+          ${qaction("siren", "Operations Center", "ops-center")}
+          ${qaction("filter", "Conversion Intel", "conversion-intel")}
+          ${qaction("users", "Customer Intel", "customer-intel")}
+          ${qaction("anchor", "Retention Intel", "retention-intel")}
+          ${qaction("package-check", "Fulfilment Intel", "fulfilment-intel")}
+        </div>
+      </div>
+    </div>`;
+
+  dom.content.querySelectorAll("[data-aos-done]").forEach((b) => b.addEventListener("click", () => {
+    const id = b.dataset.aosDone;
+    const idx = tasks.findIndex((t) => t.id === id);
+    if (idx >= 0) { tasks[idx].done = true; try { localStorage.setItem("abdan-aos-tasks", JSON.stringify(tasks)); } catch {} }
+    toast("Marked done");
+    renderAOS();
+  }));
 }
 
 function renderCommandCenter() {

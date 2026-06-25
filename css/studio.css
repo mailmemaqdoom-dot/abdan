@@ -2523,3 +2523,14 @@ html { overflow-x: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .ci-funnel-row__fill { animation: none !important; transition: none !important; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   RC-28 — ABDAN OPERATING SYSTEM (additive)
+   ════════════════════════════════════════════════════════════════════ */
+.aos-principle-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.aos-principle-row .s-badge {
+  background: var(--s-emerald-muted, rgba(2,61,58,.08));
+  color: var(--s-emerald, #023d3a);
+  font-size: 0.72rem;
+  padding: 0.3rem 0.75rem;
+}

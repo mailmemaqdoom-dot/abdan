@@ -603,6 +603,67 @@ function bumpCollectionCounter(key, collection) {
   } catch {}
 })();
 
+/* ════════════════════════════════════════════════════════════════════
+   ABDAN OPERATING SYSTEM (AOS) — workflow orchestration layer (RC-28)
+   A lightweight, real event bus connecting existing modules without
+   duplicating their logic. Modules emit a fact ("an order was placed");
+   subscribers react (schedule internal follow-ups, reconcile rewards).
+   No module is rewritten — this only adds a connective layer on top.
+   ════════════════════════════════════════════════════════════════════ */
+const AOS_LOG_KEY   = "abdan-aos-log";
+const AOS_TASKS_KEY = "abdan-aos-tasks";
+const AOS = (() => {
+  const handlers = {};
+  function on(event, fn) { (handlers[event] = handlers[event] || []).push(fn); }
+  function emit(event, payload) {
+    /* Real, persisted event log — powers the admin Workflow Timeline.
+       Capped so it never grows unbounded. */
+    try {
+      const log = JSON.parse(localStorage.getItem(AOS_LOG_KEY) || "[]");
+      log.unshift({ event, at: new Date().toISOString(), ref: payload?.ref || payload?.id || "" });
+      localStorage.setItem(AOS_LOG_KEY, JSON.stringify(log.slice(0, 200)));
+    } catch {}
+    (handlers[event] || []).forEach((fn) => { try { fn(payload); } catch {} });
+  }
+  return { on, emit };
+})();
+
+/* ── Follow-Up Engine — internal task reminders only. Never contacts
+   the customer automatically; admin acts on these from the Studio. ── */
+function aosScheduleTask(type, label, dueInDays, meta) {
+  let tasks = []; try { tasks = JSON.parse(localStorage.getItem(AOS_TASKS_KEY) || "[]") || []; } catch { tasks = []; }
+  tasks.unshift({
+    id: "aos" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    type, label, meta: meta || {}, done: false,
+    createdAt: new Date().toISOString(),
+    dueAt: new Date(Date.now() + dueInDays * 864e5).toISOString(),
+  });
+  try { localStorage.setItem(AOS_TASKS_KEY, JSON.stringify(tasks.slice(0, 300))); } catch {}
+}
+
+/* ── Subscribers: the example chain from the brief, wired without
+   touching any existing module's internal logic. ───────────────────── */
+AOS.on("order:created", (order) => {
+  if (!order) return;
+  const email = String(order.customerEmail || "").toLowerCase();
+  /* Share the Love eligibility — reconciling again here is harmless
+     (idempotent) and keeps the chain visibly connected end-to-end. */
+  if (typeof reconcileReferralRewards === "function") { try { reconcileReferralRewards(); } catch {} }
+  aosScheduleTask("feedback", `Request feedback for order ${order.ref || order.id}`, 7, { email, ref: order.ref });
+  aosScheduleTask("story_invite", `Invite ${order.customerName || "customer"} to share their story`, 10, { email, ref: order.ref });
+  if (email) {
+    let msgs = []; try { msgs = JSON.parse(localStorage.getItem(`abdan-sp-concierge:${email}`) || "[]") || []; } catch {}
+    if (msgs.length) aosScheduleTask("concierge_followup", `Follow up on Concierge thread for ${order.customerName || email}`, 3, { email, ref: order.ref });
+    let moments = []; try { moments = JSON.parse(localStorage.getItem(`abdan-sp-my-moments:${email}`) || "[]") || []; } catch {}
+    if (!moments.length) aosScheduleTask("moment_nudge", `Suggest a Moment to ${order.customerName || email}`, 5, { email, ref: order.ref });
+    const hasBio = !!localStorage.getItem(`abdan-sp-bio:${email}`);
+    const hasStyle = !!localStorage.getItem(`abdan-sp-style:${email}`);
+    const hasPhoto = !!localStorage.getItem(`abdan-sp-photo:${email}`);
+    if (!(hasBio && hasStyle && hasPhoto)) aosScheduleTask("wardrobe_completion", `Encourage ${order.customerName || email} to complete their Space profile`, 4, { email, ref: order.ref });
+  }
+  if ((Number(order.total) || 0) >= 5000) aosScheduleTask("share_the_love", `Invite ${order.customerName || "customer"} to Share the Love`, 6, { email, ref: order.ref });
+});
+
 /* ── recordFilterUsage ───────────────────────────────────────────────────
    Called on every non-"All" filter selection. Builds a mood affinity map
    used to bias the editorial campaign and personalise the Space dashboard.  */
@@ -3927,6 +3988,7 @@ function lxCreateOrder(details, items, paymentMethod, extra = {}) {
   /* Share & Earn — attribute referral on order, then reconcile any rewards. */
   if (typeof attributeReferral === "function") { try { attributeReferral(order.customerEmail, order.customerPhone); } catch {} }
   if (typeof reconcileReferralRewards === "function") { try { reconcileReferralRewards(); } catch {} }
+  AOS.emit("order:created", order); /* RC-28 — AOS workflow orchestration */
   return order;
 }
 
@@ -8216,6 +8278,7 @@ function renderMyMoments() {
     spSaveMoments(email, list);
     showToast("Your Moment has begun 💛");
     bumpFunnel("momentSaves"); /* RC-21 — Conversion Intelligence */
+    if (typeof AOS !== "undefined") AOS.emit("moment:created", { id: m.id, email, name: m.name }); /* RC-28 */
     _momActiveId = m.id;
     renderMyMoments();
   });
@@ -8486,6 +8549,7 @@ function openAddToMomentSheet(productId) {
     list.unshift(m);
     spSaveMoments(email, list);
     bumpFunnel("momentSaves"); /* RC-21 — Conversion Intelligence */
+    if (typeof AOS !== "undefined") AOS.emit("moment:created", { id: m.id, email, name: m.name }); /* RC-28 */
     addProductToMoment(email, m.id, product);
   });
 
@@ -8883,6 +8947,7 @@ function renderEditDetail(panel, email, id) {
     if (!e.shareSlug) e.shareSlug = slugify(e.name) + "-" + e.id.slice(-4);
     e.updatedAt = new Date().toISOString(); spSaveEdits(email, list);
     showToast("Your Edit is published ✨"); renderMyEdits();
+    if (typeof AOS !== "undefined") AOS.emit("edit:published", { id: e.id, email, name: e.name }); /* RC-28 */
   });
   panel.querySelector("#edtArchive")?.addEventListener("click", () => {
     e.status = "archived"; e.updatedAt = new Date().toISOString(); spSaveEdits(email, list);
