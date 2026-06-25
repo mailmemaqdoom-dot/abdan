@@ -11954,6 +11954,9 @@ html[data-theme="dark"] .support-pill__icon {
 .product-sheet__media.img-loaded .lx-imgview__expand-btn {
   opacity: 0.82;
 }
+.lx-imgview__expand-btn.is-video-slide {
+  opacity: 0 !important; pointer-events: none; /* video has its own native fullscreen control */
+}
 .lx-imgview__expand-btn:hover {
   opacity:   1 !important;
   transform: scale(1.1);
@@ -17836,8 +17839,14 @@ html[data-theme="dark"] .lx-ring__track { stroke: rgba(250, 246, 239, .14); }
   font-size: .7rem; padding: .2rem .55rem; border-radius: 1rem;
 }
 
-.pg-video-wrap { padding: 0 1.75rem 1rem; }
-.pg-video-wrap video { width: 100%; border-radius: .9rem; display: block; background: #000; }
+/* RC-29.1 — video is a slide within the same media box as the image
+   (not a separate block below it); same sizing as #productImage so it
+   fills exactly the same frame, just shown/hidden via [hidden]. */
+.pg-video {
+  display: block; position: absolute; inset: 0; z-index: 1;
+  width: 100%; height: 100%; object-fit: contain; background: #000;
+}
+.pg-video[hidden] { display: none; }
 
 /* Fullscreen viewing is handled by the existing .lx-imgview system
    (extended to be gallery-aware below) — no second viewer here. */

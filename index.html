@@ -1569,9 +1569,12 @@
           <i data-lucide="x"></i>
         </button>
 
-        <!-- Image — capped at 42svh on mobile, fills left column on desktop -->
+        <!-- Image/video gallery — capped at 42svh on mobile, fills left
+             column on desktop. RC-29.1: video is one more slide in this
+             same carousel (not a separate block below it). -->
         <div class="product-sheet__media">
           <img id="productImage" src="" alt="" loading="lazy" />
+          <video id="pgVideo" class="pg-video" controls playsinline muted preload="metadata" hidden></video>
           <!-- RC-29 — multi-image gallery controls (additive; stay hidden
                and inert for any product with only a single image, so the
                existing single-image experience is unchanged). -->
@@ -1587,12 +1590,6 @@
                building a second, duplicate fullscreen viewer here. -->
           <div class="pg-dots" id="pgDots" hidden></div>
           <span class="pg-counter" id="pgCounter" hidden></span>
-        </div>
-
-        <!-- RC-29 — product video, shown after the image gallery, hidden
-             unless the product actually has one. -->
-        <div class="pg-video-wrap" id="pgVideoWrap" hidden>
-          <video id="pgVideo" controls playsinline muted preload="metadata"></video>
         </div>
 
         <!-- Body: flex column → scrollable content + sticky CTA bar -->

@@ -820,7 +820,6 @@ const dom = {
   pgNext: document.getElementById("pgNext"),
   pgDots: document.getElementById("pgDots"),
   pgCounter: document.getElementById("pgCounter"),
-  pgVideoWrap: document.getElementById("pgVideoWrap"),
   pgVideo: document.getElementById("pgVideo"),
   productTag: document.getElementById("productTag"),
   productName: document.getElementById("productName"),
@@ -3475,6 +3474,7 @@ function openProduct(productId) {
 function closeProduct() {
   dom.productSheet.classList.remove("is-open");
   dom.productSheet.setAttribute("aria-hidden", "true");
+  dom.pgVideo?.pause(); /* RC-29.1 — stop any playing gallery video on close */
   if (!dom.cartDrawer.classList.contains("is-open") && !dom.teaserModal.classList.contains("is-open")) {
     dom.body.classList.remove("is-locked");
   }
@@ -3504,40 +3504,58 @@ function closeProduct() {
    product with `.images` (set via the Media Management System) gets
    the richer swipeable gallery described below.
    ════════════════════════════════════════════════════════════════════ */
+/* RC-29.1 — video is one more slide in this SAME carousel, not a
+   separate block underneath. _pgSlides drives the inline thumbnail;
+   _pgImages (images only, derived) still feeds the fullscreen .lx-imgview
+   viewer below, since a video already has its own native fullscreen
+   control and doesn't belong in an image lightbox. */
+let _pgSlides = [];
 let _pgImages = [];
 let _pgIndex  = 0;
 
+function pgCurrentSlide() { return _pgSlides[_pgIndex] || null; }
+
 function pgSetIndex(i) {
-  if (!_pgImages.length) return;
-  _pgIndex = ((i % _pgImages.length) + _pgImages.length) % _pgImages.length;
-  dom.productImage.src = _pgImages[_pgIndex];
+  if (!_pgSlides.length) return;
+  _pgIndex = ((i % _pgSlides.length) + _pgSlides.length) % _pgSlides.length;
+  const slide = _pgSlides[_pgIndex];
+  if (slide.type === "video") {
+    dom.productImage.hidden = true;
+    if (dom.pgVideo) {
+      dom.pgVideo.hidden = false;
+      if (dom.pgVideo.getAttribute("src") !== slide.src) dom.pgVideo.src = slide.src;
+    }
+  } else {
+    if (dom.pgVideo && !dom.pgVideo.hidden) { dom.pgVideo.pause(); dom.pgVideo.hidden = true; }
+    dom.productImage.hidden = false;
+    dom.productImage.src = slide.src;
+  }
   dom.pgDots?.querySelectorAll(".pg-dots__dot").forEach((d, idx) => d.classList.toggle("is-active", idx === _pgIndex));
-  if (dom.pgCounter) dom.pgCounter.textContent = `${_pgIndex + 1} / ${_pgImages.length}`;
+  if (dom.pgCounter) dom.pgCounter.textContent = `${_pgIndex + 1} / ${_pgSlides.length}`;
+  /* Fullscreen viewing doesn't apply to the video slide — its own native
+     controls already offer fullscreen playback. */
+  document.querySelector(".lx-imgview__expand-btn")?.classList.toggle("is-video-slide", slide.type === "video");
 }
 
 function renderProductGallery(product) {
-  _pgImages = (Array.isArray(product.images) && product.images.length ? product.images : [product.image]).filter(Boolean);
+  const images = (Array.isArray(product.images) && product.images.length ? product.images : [product.image]).filter(Boolean);
+  _pgImages = images.slice();
+  _pgSlides = images.map((src) => ({ type: "image", src }));
+  if (product.video && product.video.src) _pgSlides.push({ type: "video", src: product.video.src });
   _pgIndex = 0;
-  const multi = _pgImages.length > 1;
+  const multi = _pgSlides.length > 1;
 
   if (dom.pgPrev) dom.pgPrev.hidden = !multi;
   if (dom.pgNext) dom.pgNext.hidden = !multi;
   if (dom.pgCounter) dom.pgCounter.hidden = !multi;
   if (dom.pgDots) {
     dom.pgDots.hidden = !multi;
-    dom.pgDots.innerHTML = multi ? _pgImages.map((_, i) => `<span class="pg-dots__dot${i === 0 ? " is-active" : ""}" data-pg-dot="${i}"></span>`).join("") : "";
+    dom.pgDots.innerHTML = multi ? _pgSlides.map((_, i) => `<span class="pg-dots__dot${i === 0 ? " is-active" : ""}" data-pg-dot="${i}"></span>`).join("") : "";
     dom.pgDots.querySelectorAll("[data-pg-dot]").forEach((dot) => dot.addEventListener("click", () => pgSetIndex(Number(dot.dataset.pgDot))));
   }
-  if (multi && dom.pgCounter) dom.pgCounter.textContent = `1 / ${_pgImages.length}`;
-
-  /* Video — shown after the gallery, only when the product has one. */
-  if (product.video && product.video.src && dom.pgVideoWrap && dom.pgVideo) {
-    dom.pgVideo.src = product.video.src;
-    dom.pgVideoWrap.hidden = false;
-  } else if (dom.pgVideoWrap) {
-    dom.pgVideoWrap.hidden = true;
-    if (dom.pgVideo) dom.pgVideo.removeAttribute("src");
-  }
+  if (multi && dom.pgCounter) dom.pgCounter.textContent = `1 / ${_pgSlides.length}`;
+  if (dom.pgVideo) { dom.pgVideo.pause(); dom.pgVideo.hidden = true; dom.pgVideo.removeAttribute("src"); }
+  document.querySelector(".lx-imgview__expand-btn")?.classList.remove("is-video-slide");
 }
 
 (function wireProductGallery() {
@@ -3549,7 +3567,7 @@ function renderProductGallery(product) {
   const media = dom.productSheet?.querySelector(".product-sheet__media");
   if (media) {
     let startX = 0, active = false;
-    media.addEventListener("touchstart", (e) => { if (_pgImages.length > 1) { startX = e.touches[0].clientX; active = true; } }, { passive: true });
+    media.addEventListener("touchstart", (e) => { if (_pgSlides.length > 1 && pgCurrentSlide()?.type !== "video") { startX = e.touches[0].clientX; active = true; } }, { passive: true });
     media.addEventListener("touchend", (e) => {
       if (!active) return; active = false;
       const dx = (e.changedTouches[0]?.clientX || startX) - startX;
@@ -5958,24 +5976,29 @@ function initProductImageViewer() {
   const closeBtn  = viewer.querySelector(".lx-imgview__close-btn");
   const counterEl = viewer.querySelector("#lxImgviewCounter");
   let isZoomed = false, lastTapTime = 0;
+  /* RC-29.1 — the fullscreen viewer keeps its OWN index into _pgImages
+     (images only — a video is never opened here, it has its own native
+     fullscreen via its player controls). This stays fully decoupled
+     from the inline carousel's _pgIndex, which now also covers a
+     trailing video slide. */
+  let fsIndex = 0;
 
-  /* RC-29 — gallery-aware: when the product sheet has more than one
-     image (see _pgImages/_pgIndex from renderProductGallery), the same
-     viewer also shows a counter and supports a horizontal swipe to move
-     between images, alongside its existing swipe-down-to-dismiss. */
   function syncCounter() {
     if (counterEl) counterEl.hidden = !(_pgImages.length > 1);
-    if (counterEl && _pgImages.length > 1) counterEl.textContent = `${_pgIndex + 1} / ${_pgImages.length}`;
+    if (counterEl && _pgImages.length > 1) counterEl.textContent = `${fsIndex + 1} / ${_pgImages.length}`;
   }
   function goToIndex(i) {
     if (!_pgImages.length) return;
-    pgSetIndex(i); /* keeps the thumbnail/dots in sync too */
-    viewerImg.src = _pgImages[_pgIndex];
+    fsIndex = ((i % _pgImages.length) + _pgImages.length) % _pgImages.length;
+    viewerImg.src = _pgImages[fsIndex];
     syncCounter();
   }
 
   /* ── Open/close helpers ──────────────────────────────────────────────── */
   function openViewer(src, alt) {
+    if (pgCurrentSlide()?.type === "video") return; /* fullscreen image lightbox doesn't apply to the video slide */
+    const idx = _pgImages.indexOf(src);
+    fsIndex = idx >= 0 ? idx : 0;
     viewerImg.src = src;
     viewerImg.alt = alt || "Product image";
     viewerImg.classList.remove("is-zoomed"); isZoomed = false;
@@ -6036,8 +6059,8 @@ function initProductImageViewer() {
       closeViewer();
     }
     if (viewer.classList.contains("is-open") && _pgImages.length > 1) {
-      if (e.key === "ArrowRight") goToIndex(_pgIndex + 1);
-      if (e.key === "ArrowLeft") goToIndex(_pgIndex - 1);
+      if (e.key === "ArrowRight") goToIndex(fsIndex + 1);
+      if (e.key === "ArrowLeft") goToIndex(fsIndex - 1);
     }
   });
 
@@ -6050,7 +6073,7 @@ function initProductImageViewer() {
   viewer.addEventListener("touchend", (e) => {
     const dx = e.changedTouches[0].clientX - lxTouchStartX;
     if (!isZoomed && _pgImages.length > 1 && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(e.changedTouches[0].clientY - lxTouchStartY)) {
-      goToIndex(_pgIndex + (dx < 0 ? 1 : -1));
+      goToIndex(fsIndex + (dx < 0 ? 1 : -1));
       return;
     }
     const dy = e.changedTouches[0].clientY - lxTouchStartY;
